@@ -1,11 +1,13 @@
 namespace Aeco.Serialization;
 
 using System.Reflection;
+using System.Collections.Immutable;
 
 public static class SerializationUtils<TComponent>
 {
-    private static MethodInfo? s_setMethodInfo;
-    private static Dictionary<Type, MethodInfo> s_genericMethods = new();
+    private static volatile MethodInfo? s_setMethodInfo;
+    private static ImmutableDictionary<Type, MethodInfo> s_genericMethods =
+        ImmutableDictionary<Type, MethodInfo>.Empty;
 
     public static void Set(IDataLayer<TComponent> dataLayer, Guid entityId, IEnumerable<TComponent> components)
     {
@@ -22,7 +24,7 @@ public static class SerializationUtils<TComponent>
             var type = component.GetType();
             if (!s_genericMethods.TryGetValue(type, out var methodInfo)) {
                 methodInfo = s_setMethodInfo.MakeGenericMethod(type);
-                s_genericMethods[type] = methodInfo;
+                ImmutableInterlocked.TryAdd(ref s_genericMethods, type, methodInfo);
             }
             methodInfo.Invoke(dataLayer, param);
         }
