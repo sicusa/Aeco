@@ -20,10 +20,8 @@ public class RPGGame : CompositeLayer
             new PolyHashStorage(),
 
             new FileSystemPersistenceLayer<ISavedComponent>(
-                new PolyHashStorage(),
                 "./Save", new JsonEntitySerializer<ISavedComponent>()),
             new ReadOnlyFileSystemPersistenceLayer(
-                new PolyHashStorage(),
                 "./Data", new JsonEntitySerializer<IComponent>()),
 
             new AttackInterpreter(),

@@ -14,7 +14,7 @@ public class ReadOnlyFileSystemPersistenceLayer<TComponent, TSelectedComponent>
 {
     public IReadOnlySet<Guid> SavedEntities => _savedEntities;
 
-    public IDataLayer<Persistent>? PersistentDataLayer { get; protected set; }
+    public IDataLayer<Persistent>? PersistentDataLayer { get; }
     public IEntitySerializer<TSelectedComponent> Serializer { get; init; }
 
     public string DataDirectory { get; private set; }
@@ -68,11 +68,12 @@ public class ReadOnlyFileSystemPersistenceLayer<TComponent, TSelectedComponent>
 
     protected virtual IDisposable CreateSubscription(ITrackableDataLayer<TComponent> parent)
     {
+        var persistentDataLayer = GetPersistentDataLayer(parent);
         return parent.EntityCreated.Subscribe(id => {
             if (!_savedEntities.Contains(id)) {
                 return;
             }
-            GetPersistentDataLayer(parent).Acquire<Persistent>(id);
+            persistentDataLayer.Acquire<Persistent>(id);
             var stream = OpenReadStream(id);
             if (stream != null) {
                 Serializer.Read(stream,
@@ -154,11 +155,11 @@ public class FileSystemPersistenceLayer<TComponent, TSelectedComponent>
     protected override IDisposable CreateSubscription(ITrackableDataLayer<TComponent> parent)
     {
         var readSubscription = base.CreateSubscription(parent);
+        var persistentDataLayer = GetPersistentDataLayer(parent);
 
         return new CompositeDisposable(
             readSubscription,
             parent.EntityDisposed.Subscribe(id => {
-                var persistentDataLayer = GetPersistentDataLayer(parent);
                 if (!SavedEntities.Contains(id)) {
                     if (persistentDataLayer.Contains<Persistent>(id)) {
                         RawAddSavedEntity(id);
