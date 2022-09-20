@@ -45,7 +45,7 @@ public static class ConcurrentTests
 
         var testLayers = world.GetSublayers<ITestLayer>().ToArray();
         
-        var channel = world.GetConcurrentEntity(Guid.NewGuid());
+        var channel = world.CreateConcurrentEntity();
         channel.Acquire<TestChannel>();
 
         new Thread(() => {

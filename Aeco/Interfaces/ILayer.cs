@@ -88,6 +88,8 @@ public interface IParentLayerListener<in TParentLayer> : IParentLayerListener<ob
 
 public static class LayerExtensions
 {
+    public static IEntity<TComponent> CreateEntity<TComponent>(this ILayer<TComponent> layer)
+        => layer.GetEntity(Guid.NewGuid());
     public static IEntity<TComponent> GetEntity<TComponent>(this ILayer<TComponent> layer, string id)
         => layer.GetEntity(Guid.Parse(id));
 }
