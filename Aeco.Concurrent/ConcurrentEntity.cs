@@ -25,6 +25,7 @@ public class ConcurrentEntity<TComponent, TDataLayer> : IConcurrentEntity<TCompo
 
     private TDataLayer _dataLayer;
     private Subject<IEntity<TComponent>> _disposed = new();
+    private object _internalLock = new object();
 
     public ConcurrentEntity(TDataLayer dataLayer, Guid id)
     {
@@ -34,28 +35,20 @@ public class ConcurrentEntity<TComponent, TDataLayer> : IConcurrentEntity<TCompo
 
     public void Reset(TDataLayer dataLayer, Guid id)
     {
-        var lockSlim = _dataLayer.LockSlim;
-        lockSlim.EnterWriteLock();
-
-        Id = id;
-        _dataLayer = dataLayer;
-        _disposed = new();
-
-        lockSlim.ExitWriteLock();
+        lock (_internalLock) {
+            Id = id;
+            _dataLayer = dataLayer;
+            _disposed = new();
+        }
     }
 
     public void Dispose()
     {
-        var lockSlim = _dataLayer.LockSlim;
-        lockSlim.EnterWriteLock();
-        try {
+        lock (_internalLock) {
             if (!_disposed.IsDisposed) {
                 _disposed.OnNext(this);
                 _disposed.Dispose();
             }
-        }
-        finally {
-            lockSlim.ExitWriteLock();
         }
     }
 
