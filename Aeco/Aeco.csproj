@@ -4,6 +4,11 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PackageId>Aeco</PackageId>
+    <PackageDescription>A composable ECS framework for .NET</PackageDescription>
+    <Author>Phlam Sicusa</Author>
+    <Company>Gilatod.art</Company>
+    <RepositoryUrl>https://github.com/sicusa/Aeco</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
