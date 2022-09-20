@@ -12,21 +12,23 @@ public static class ConcurrentTests
         void Update(ConcurrentCompositeLayer layer);
     }
 
-    public struct Channel : IComponent
+    public struct TestChannel : IComponent
     {
     }
 
-    public struct EchoCmd : ICommand
+    public record struct EchoCmd(int Id) : ICommand
     {
-        public int Id { get; set; }
-        public void Dispose() {}
+        public void Dispose()
+        {
+            Id = 0;
+        }
     }
 
     public class TestConcurrentLayer : VirtualLayer, ITestLayer
     {
         public void Update(ConcurrentCompositeLayer world)
         {
-            var channelId = world.Singleton<Channel>();
+            var channelId = world.Singleton<TestChannel>();
             while (world.TryGet<EchoCmd>(channelId, out var cmd)) {
                 Console.WriteLine("Received: " + cmd.Id);
                 world.Remove<EchoCmd>(channelId);
@@ -40,16 +42,17 @@ public static class ConcurrentTests
             new PooledChannelLayer(),
             new PolyHashStorage(),
             new TestConcurrentLayer());
+
         var testLayers = world.GetSublayers<ITestLayer>().ToArray();
         
         var channel = world.GetConcurrentEntity(Guid.NewGuid());
-        channel.Acquire<Channel>();
+        channel.Acquire<TestChannel>();
 
         new Thread(() => {
             int i = 0;
             while (true) {
-                channel.Acquire<EchoCmd>().Id = ++i;
-                channel.Acquire<EchoCmd>().Id = 1000 + i;
+                channel.Set(new EchoCmd(++i));
+                channel.Set(new EchoCmd(1000 + i));
                 Console.WriteLine("Sent: " + i);
                 Thread.Sleep(1000);
             }
@@ -58,8 +61,8 @@ public static class ConcurrentTests
         new Thread(() => {
             int i = 2000;
             while (true) {
-                channel.Acquire<EchoCmd>().Id = ++i;
-                channel.Acquire<EchoCmd>().Id = 1000 + i;
+                channel.Set(new EchoCmd(++i));
+                channel.Set(new EchoCmd(1000 + i));
                 Console.WriteLine("Sent: " + i);
                 Thread.Sleep(500);
             }
