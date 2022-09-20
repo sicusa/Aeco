@@ -9,6 +9,7 @@
     <Author>Phlam Sicusa</Author>
     <Company>Gilatod.art</Company>
     <RepositoryUrl>https://github.com/sicusa/Aeco</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>

@@ -10,6 +10,7 @@ jobs:
     env:
       BUILD_CONFIG: 'Release'
       SOLUTION: 'aeco.sln'
+      PACKAGE_OUTPUT_DIRECTORY: ${{github.workspace}}/output
 
     runs-on: ubuntu-latest
 
@@ -34,14 +35,17 @@ jobs:
           VERSION=${{github.ref_name}}
           echo "VERSION=${VERSION:1}" >> $GITHUB_ENV
 
-      - name: Build
+      - name: Build project
         run: dotnet build $SOLUTION --configuration $BUILD_CONFIG -p:Version=$VERSION --no-restore
 
       - name: Run tests
         run: dotnet test /p:Configuration=$BUILD_CONFIG --no-restore --no-build --verbosity normal
+      
+      - name: Pack project
+        run: dotnet pack $SOLUTION --configuration $BUILD_CONFIG -p:PackageVersion=$VERSION --no-restore --no-build --output $PACKAGE_OUTPUT_DIRECTORY
         
-      - name: Publish
-        run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey ${{secrets.NUGET_API_KEY}}
+      - name: Publish packages
+        run: dotnet nuget push ${PACKAGE_OUTPUT_DIRECTORY}/*.nupkg -k ${{secrets.NUGET_API_KEY}} -s 'https://api.nuget.org/v3/index.json' --skip-duplicate
 
       - name: Create tag artifact
         uses: actions/upload-artifact@v2
