@@ -185,7 +185,7 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
 
     public override void Set<UComponent>(Guid entityId, in UComponent component)
     {
-        var block = AcquireBlock<UComponent>(entityId);
+        ref var block = ref AcquireBlock<UComponent>(entityId);
         block.Data = component;
     }
 
