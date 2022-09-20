@@ -157,7 +157,8 @@ public class ConcurrentEntity<TComponent, TDataLayer> : IConcurrentEntity<TCompo
         }
     }
     
-    public void Set(TComponent component)
+    public void Set<UComponent>(in UComponent component)
+        where UComponent : TComponent
     {
         var lockSlim = _dataLayer.LockSlim;
         lockSlim.EnterWriteLock();

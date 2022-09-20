@@ -59,7 +59,8 @@ public class Entity<TComponent, TDataLayer> : IEntity<TComponent>
         where UComponent : TComponent
         => _dataLayer.Remove<UComponent>(Id);
     
-    public void Set(TComponent component)
+    public void Set<UComponent>(in UComponent component)
+        where UComponent : TComponent
         => _dataLayer.Set(Id, component);
 }
 

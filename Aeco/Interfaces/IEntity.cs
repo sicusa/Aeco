@@ -19,7 +19,8 @@ public interface IEntity<in TComponent> : IDisposable
         where UComponent : TComponent;
     bool Remove<UComponent>()
         where UComponent : TComponent;
-    void Set(TComponent component);
+    void Set<UComponent>(in UComponent component)
+        where UComponent : TComponent;
 
     void Clear();
 }
