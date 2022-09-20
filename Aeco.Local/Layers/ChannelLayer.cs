@@ -22,7 +22,7 @@ public class Channel<TMessage> : IChannel
 }
 
 public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<TComponent, TSelectedComponent>
-    where TSelectedComponent : class, TComponent
+    where TSelectedComponent : TComponent
 {
     public IDataLayer<IChannel> ChannelDataLayer { get; init; }
     public IDataLayer<TComponent> MessageDataLayer { get; init; }

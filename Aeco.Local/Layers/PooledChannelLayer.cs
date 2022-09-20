@@ -1,7 +1,7 @@
 namespace Aeco.Local;
 
 public class PooledChannelLayer<TComponent, TSelectedComponent> : ChannelLayer<TComponent, TSelectedComponent>
-    where TSelectedComponent : class, TComponent, IDisposable
+    where TSelectedComponent : TComponent, IDisposable
 {
     public PooledChannelLayer(int capacity = MonoPoolStorage.kDefaultCapacity)
         : base(new PolyPoolStorage<TComponent, TSelectedComponent>(capacity))
