@@ -1,0 +1,10 @@
+namespace Aeco.Tests.RPGGame;
+
+using System.Runtime.Serialization;
+
+[DataContract]
+public struct Rotation : IComponent
+{
+    [DataMember]
+    public Direction Direction;
+}

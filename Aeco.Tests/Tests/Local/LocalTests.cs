@@ -1,0 +1,139 @@
+namespace Aeco.Tests;
+
+using System.Runtime.Serialization;
+
+using Aeco.Local;
+using Aeco.Serialization.Json;
+using Aeco.Persistence;
+using Aeco.Persistence.Local;
+
+public static class LocalTests
+{
+    [DataContract]
+    public class TestComponent : IComponent, IDisposable
+    {
+        [DataMember]
+        public int A { get; set; } = 5;
+
+        public void Dispose()
+        {
+            A = 5;
+        }
+    }
+
+    public interface ITestComponentB : IComponent, IDisposable
+    {
+    }
+
+    [DataContract]
+    public class TestComponentB : ITestComponentB
+    {
+        [DataMember]
+        public int A { get; set; } = 5;
+
+        public void Dispose()
+        {
+            A = 5;
+        }
+    }
+
+    [DataContract]
+    public class TestComponentBB : ITestComponentB
+    {
+        [DataMember]
+        public int A { get; set; } = 5;
+
+        public void Dispose()
+        {
+            A = 5;
+        }
+    }
+
+    public struct TestCommand : ICommand
+    {
+        public string Name = "unknown";
+        public TestCommand() {}
+
+        public void Dispose()
+        {
+            Name = "unknown";
+        }
+    }
+
+    public static void Run()
+    {
+        var entityFactory = new EntityFactory();
+
+        var compositeLayer = new CompositeLayer(
+            new MonoPoolStorage<TestComponent>(),
+            new PolyPoolStorage<ITestComponentB>(),
+            new PooledChannelLayer<ICommand>(),
+            new PolyHashStorage(),
+            new FileSystemPersistenceLayer(
+                "./Entities", new JsonEntitySerializer<IComponent>())
+        );
+        compositeLayer.EntityFactory = entityFactory;
+
+        var entity = compositeLayer.GetEntity("ae2a4c30-86c5-4aad-8293-bb6757a0741e");
+        entity.Acquire<Persistent>();
+        Console.WriteLine(compositeLayer.Contains<Persistent>(entity.Id));
+
+        Console.WriteLine($"ID: {entity.Id}");
+        foreach (var component in compositeLayer.GetAll(entity.Id)){
+            Console.WriteLine($"\tComponent: {component}");
+        }
+
+        Console.WriteLine("[TestComponent1]");
+        Console.WriteLine($"ContainsComponent<TestComponent>(): {entity.Contains<TestComponent>()}");
+        entity.Acquire<TestComponent>();
+        Console.WriteLine($"ContainsComponent<TestComponent>(): {entity.Contains<TestComponent>()}");
+        entity.Remove<TestComponent>();
+        Console.WriteLine($"ContainsComponent<TestComponent>(): {entity.Contains<TestComponent>()}");
+        entity.Acquire<TestComponent>();
+        Console.WriteLine($"ContainsComponent<TestComponent>(): {entity.Contains<TestComponent>()}");
+
+        Console.WriteLine("\n[TestComponentB]");
+        Console.WriteLine($"ContainsComponent<TestComponentB>(): {entity.Contains<TestComponentB>()}");
+        entity.Acquire<TestComponentB>();
+        Console.WriteLine($"ContainsComponent<TestComponentB>(): {entity.Contains<TestComponentB>()}");
+        entity.Remove<TestComponentB>();
+        Console.WriteLine($"ContainsComponent<TestComponentB>(): {entity.Contains<TestComponentB>()}");
+        entity.Acquire<TestComponentB>();
+        Console.WriteLine($"ContainsComponent<TestComponentB>(): {entity.Contains<TestComponentB>()}");
+
+        Console.WriteLine("\n[TestComponentBB]");
+        Console.WriteLine($"ContainsComponent<TestComponentBB>(): {entity.Contains<TestComponentBB>()}");
+        entity.Acquire<TestComponentBB>();
+        Console.WriteLine($"ContainsComponent<TestComponentB>(): {entity.Contains<TestComponentBB>()}");
+        entity.Remove<TestComponentBB>();
+        Console.WriteLine($"ContainsComponent<TestComponentB>(): {entity.Contains<TestComponentBB>()}");
+        entity.Acquire<TestComponentBB>();
+        Console.WriteLine($"ContainsComponent<TestComponentB>(): {entity.Contains<TestComponentBB>()}");
+
+        var q = new Query<Persistent, TestComponent, TestComponentB, TestComponentBB>();
+        foreach (var id in q.Query(compositeLayer)) {
+            Console.WriteLine(id);
+        }
+
+        Console.WriteLine("\n[TestCommand]");
+        ref var cmd = ref entity.Acquire<TestCommand>();
+        cmd.Name = "Test";
+        Console.WriteLine($"TestCommand.Name: {cmd.Name}");
+        cmd = ref entity.Acquire<TestCommand>();
+        cmd.Name = "Test2";
+        Console.WriteLine($"TestCommand.Name: {cmd.Name}");
+        cmd = ref entity.Acquire<TestCommand>();
+        cmd.Name = "Test3";
+        Console.WriteLine($"TestCommand.Name: {cmd.Name}");
+        cmd = ref entity.Acquire<TestCommand>();
+        cmd.Name = "Test4";
+        Console.WriteLine($"TestCommand.Name: {cmd.Name}");
+
+        while (entity.TryGet<TestCommand>(out var recCmd)) {
+            Console.WriteLine($"TestCommand.Name: {recCmd.Name}");
+            Console.WriteLine(entity.Remove<TestCommand>());
+        }
+
+        entity.Dispose();
+    }
+}

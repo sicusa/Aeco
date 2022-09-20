@@ -1,0 +1,1 @@
+namespace Aeco.Tests.RPGGame;
