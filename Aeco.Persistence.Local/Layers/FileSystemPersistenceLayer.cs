@@ -64,7 +64,7 @@ public class ReadOnlyFileSystemPersistenceLayer<TComponent, TSelectedComponent>
 
     protected IDataLayer<Persistent> GetPersistentDataLayer(ITrackableDataLayer<TComponent> parent)
         => PersistentDataLayer ?? parent as IDataLayer<Persistent>
-            ?? throw new Exception("Persistent data layer not set and parent layer does not support Persistent component.");
+            ?? throw new NotSupportedException("Persistent data layer not set and parent layer does not support Persistent component.");
 
     protected virtual IDisposable CreateSubscription(ITrackableDataLayer<TComponent> parent)
     {

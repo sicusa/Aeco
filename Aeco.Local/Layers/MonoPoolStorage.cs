@@ -47,7 +47,7 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     public override bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
     {
         var convertedBlocks = _blocks as Block<UComponent>[]
-            ?? throw new Exception("Component not supported");
+            ?? throw new NotSupportedException("Component not supported");
 
         int index = GetIndex(entityId);
         ref var block = ref convertedBlocks[index];
@@ -74,7 +74,7 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     public override ref UComponent Require<UComponent>(Guid entityId)
     {
         var convertedBlocks = _blocks as Block<UComponent>[]
-            ?? throw new Exception("Component not supported");
+            ?? throw new NotSupportedException("Component not supported");
 
         int index = GetIndex(entityId);
         ref var block = ref convertedBlocks[index];
