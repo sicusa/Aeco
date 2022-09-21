@@ -2,7 +2,6 @@ namespace Aeco.Local;
 
 using System.Reactive.Subjects;
 using System.Diagnostics.CodeAnalysis;
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
 
 public class CompositeLayer<TComponent, TSublayer>
@@ -14,15 +13,7 @@ public class CompositeLayer<TComponent, TSublayer>
     public IObservable<Guid> EntityCreated => EntityCreatedSubject;
     public IObservable<Guid> EntityDisposed => EntityDisposedSubject;
 
-    public IReadOnlyList<TSublayer> Sublayers {
-        get {
-            if (_sublayerListDirty) {
-                CalculateSublayerSequence();
-            }
-            return _sublayerList;
-        }
-    }
-
+    public IReadOnlyList<TSublayer> Sublayers => _sublayerList;
     protected IReadOnlySet<TSublayer> SublayerSet => _sublayerSet;
 
     protected Subject<Guid> EntityCreatedSubject { get; } = new();
@@ -31,8 +22,7 @@ public class CompositeLayer<TComponent, TSublayer>
     private Dictionary<Guid, IEntity<TComponent>> _entities = new();
 
     private ImmutableHashSet<TSublayer> _sublayerSet = ImmutableHashSet<TSublayer>.Empty;
-    private ImmutableArray<TSublayer> _sublayerList = ImmutableArray<TSublayer>.Empty;
-    private volatile bool _sublayerListDirty;
+    private ImmutableList<TSublayer> _sublayerList = ImmutableList<TSublayer>.Empty;
 
     private ImmutableDictionary<IDataLayer<TComponent>, ImmutableHashSet<Type>> _dataLayers =
         ImmutableDictionary<IDataLayer<TComponent>, ImmutableHashSet<Type>>.Empty;
@@ -44,7 +34,6 @@ public class CompositeLayer<TComponent, TSublayer>
         foreach (var sublayer in sublayers) {
             RawAddSublayer(sublayer);
         }
-        CalculateSublayerSequence();
     }
 
     protected override IEntity<TComponent> CreateEntity(Guid id)
@@ -76,37 +65,38 @@ public class CompositeLayer<TComponent, TSublayer>
     {
         var changed = ImmutableInterlocked.Update(
             ref _sublayerSet, (sublayers, sublayer) => sublayers.Add(sublayer), sublayer);
+        if (!changed) { return false; }
 
-        if (changed) {
-            _sublayerListDirty = true;
-            if (sublayer is IDataLayer<TComponent> dataLayer) {
-                ImmutableInterlocked.TryAdd(
-                    ref _dataLayers, dataLayer, ImmutableHashSet<Type>.Empty);
-            }
-            (sublayer as IParentLayerListener<TComponent, CompositeLayer<TComponent, TSublayer>>)?.OnLayerAdded(this);
+        ImmutableInterlocked.Update(
+            ref _sublayerList, (sublayers, sublayer) => sublayers.Add(sublayer), sublayer);
+
+        if (sublayer is IDataLayer<TComponent> dataLayer) {
+            ImmutableInterlocked.TryAdd(
+                ref _dataLayers, dataLayer, ImmutableHashSet<Type>.Empty);
         }
 
-        return changed;
+        (sublayer as IParentLayerListener<TComponent, CompositeLayer<TComponent, TSublayer>>)?.OnLayerAdded(this);
+        return true;
     }
-
 
     protected bool RawRemoveSublayer(TSublayer sublayer)
     {
         var changed = ImmutableInterlocked.Update(
             ref _sublayerSet, (sublayers, sublayer) => sublayers.Remove(sublayer), sublayer);
+        if (!changed) { return false; }
+
+        ImmutableInterlocked.Update(
+            ref _sublayerList, (sublayers, sublayer) => sublayers.Remove(sublayer), sublayer);
         
-        if (changed) {
-            _sublayerListDirty = true;
-            if (sublayer is IDataLayer<TComponent> dataLayer) {
-                if (ImmutableInterlocked.TryRemove(ref _dataLayers, dataLayer, out var cachedComps)) {
-                    ImmutableInterlocked.Update(ref _dataLayerCache,
-                        (cache, comps) => cache.RemoveRange(comps), cachedComps);
-                }
+        if (sublayer is IDataLayer<TComponent> dataLayer) {
+            if (ImmutableInterlocked.TryRemove(ref _dataLayers, dataLayer, out var cachedComps)) {
+                ImmutableInterlocked.Update(ref _dataLayerCache,
+                    (cache, comps) => cache.RemoveRange(comps), cachedComps);
             }
-            (sublayer as IParentLayerListener<TComponent, CompositeLayer<TComponent, TSublayer>>)?.OnLayerRemoved(this);
         }
 
-        return changed;
+        (sublayer as IParentLayerListener<TComponent, CompositeLayer<TComponent, TSublayer>>)?.OnLayerRemoved(this);
+        return true;
     }
 
     protected IReadOnlyList<TSublayer> RawClearSublayers()
@@ -121,39 +111,9 @@ public class CompositeLayer<TComponent, TSublayer>
         return oldSublayers;
     }
     
-    protected virtual void CalculateSublayerSequence()
-    {
-        void AddToLayerSeq(ImmutableArray<TSublayer>.Builder builder, TSublayer layer, HashSet<TSublayer> addedLayer)
-        {
-            if (layer is IDependentLayer<TComponent> dependentLayer) {
-                foreach (var dependency in dependentLayer.GetDependencies(this)) {
-                    if (addedLayer.Contains(dependency)) { return; }
-                    AddToLayerSeq(builder, dependency, addedLayer);
-                }
-            }
-            builder.Add(layer);
-            addedLayer.Add(layer);
-        }
-
-        var builder = ImmutableArray.CreateBuilder<TSublayer>();
-        var addedLayer = new HashSet<TSublayer>();
-
-        foreach (var sublayer in _sublayerSet) {
-            if (addedLayer.Contains(sublayer)) { continue; }
-            AddToLayerSeq(builder, sublayer, addedLayer);
-        }
-
-        builder.Reverse();
-        
-        ImmutableInterlocked.Update(
-            ref _sublayerList, (_, builder) => builder.ToImmutableArray(), builder);
-
-        _sublayerListDirty = false;
-    }
-
     public virtual T? GetSublayer<T>()
     {
-        foreach (var sublayer in Sublayers) {
+        foreach (var sublayer in _sublayerList) {
             if (sublayer is T result) {
                 return result;
             }
@@ -163,7 +123,7 @@ public class CompositeLayer<TComponent, TSublayer>
 
     public virtual IEnumerable<T> GetSublayers<T>()
     {
-        foreach (var sublayer in Sublayers) {
+        foreach (var sublayer in _sublayerList) {
             if (sublayer is T result) {
                 yield return result;
             }
