@@ -75,6 +75,16 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
         return substorage.Remove<UComponent>(entityId);
     }
 
+    public override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    {
+        var substorage = FindSubstorage<UComponent>();
+        if (substorage == null) {
+            component = default(UComponent);
+            return false;
+        }
+        return substorage.Remove<UComponent>(entityId, out component);
+    }
+
     public override void Set<UComponent>(Guid entityId, in UComponent component)
         => AcquireSubstorage<UComponent>().Set(entityId, component);
 

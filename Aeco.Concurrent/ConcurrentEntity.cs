@@ -156,6 +156,19 @@ public class ConcurrentEntity<TComponent, TDataLayer> : IConcurrentEntity<TCompo
             lockSlim.ExitWriteLock();
         }
     }
+
+    public bool Remove<UComponent>([MaybeNullWhen(false)] out UComponent component)
+        where UComponent : TComponent
+    {
+        var lockSlim = _dataLayer.LockSlim;
+        lockSlim.EnterWriteLock();
+        try {
+            return _dataLayer.Remove<UComponent>(Id, out component);
+        }
+        finally {
+            lockSlim.ExitWriteLock();
+        }
+    }
     
     public void Set<UComponent>(in UComponent component)
         where UComponent : TComponent

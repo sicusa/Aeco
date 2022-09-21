@@ -224,6 +224,16 @@ public class CompositeLayer<TComponent, TSublayer>
         return dataLayer.Remove<UComponent>(entityId);
     }
 
+    public override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    {
+        var dataLayer = FindTerminalDataLayer<UComponent>();
+        if (dataLayer == null) {
+            component = default(UComponent);
+            return false;
+        }
+        return dataLayer.Remove<UComponent>(entityId, out component);
+    }
+
     public override void Clear(Guid entityId)
     {
         foreach (var (dataLayer, _) in _dataLayers) {

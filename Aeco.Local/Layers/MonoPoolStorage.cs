@@ -183,6 +183,44 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     public override bool Remove<UComponent>(Guid entityId)
         => RawRemove(entityId);
 
+    public override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    {
+        var convertedBlocks = _blocks as Block<UComponent>[]
+            ?? throw new NotSupportedException("Component not supported");
+
+        int index = GetIndex(entityId);
+        ref var block = ref convertedBlocks[index];
+
+        if (block.Id == Guid.Empty) {
+            component = default(UComponent);
+            return false;
+        }
+
+        int prevIndex = index;
+        while (true) {
+            if (block.Id == entityId) {
+                convertedBlocks[prevIndex].NextBlockIndex = block.NextBlockIndex;
+                component = block.Data;
+
+                block.Id = Guid.Empty;
+                _blocks[index].Data.Dispose();
+
+                _entityIds.Remove(entityId);
+                if (_singleton == entityId) {
+                    ResetSingleton();
+                }
+                return true;
+            }
+            prevIndex = index;
+            index = block.NextBlockIndex;
+            if (index == -1) {
+                component = default(UComponent);
+                return false;
+            }
+            block = ref convertedBlocks[index];
+        }
+    }
+
     public override void Set<UComponent>(Guid entityId, in UComponent component)
     {
         ref var block = ref AcquireBlock<UComponent>(entityId);

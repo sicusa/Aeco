@@ -111,6 +111,16 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
         return false;
     }
 
+    public override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    {
+        if (ChannelDataLayer.TryGet<Channel<UComponent>>(entityId, out var channel)
+                && channel.Messages.TryDequeue(out var messageId)) {
+            return MessageDataLayer.Remove<UComponent>(messageId, out component);
+        }
+        component = default(UComponent);
+        return false;
+    }
+
     public virtual bool RemoveChannel<UComponent>(Guid entityId)
         where UComponent : IComponent
     {

@@ -28,10 +28,9 @@ public static class ConcurrentTests
     {
         public void Update(ConcurrentCompositeLayer world)
         {
-            var channelId = world.Singleton<TestChannel>();
-            while (world.TryGet<EchoCmd>(channelId, out var cmd)) {
+            var channel = world.GetConcurrentEntity<TestChannel>();
+            while (channel.Remove<EchoCmd>(out var cmd)) {
                 Console.WriteLine("Received: " + cmd.Id);
-                world.Remove<EchoCmd>(channelId);
             }
         }
     }
@@ -71,13 +70,7 @@ public static class ConcurrentTests
         var lockSlim = world.LockSlim;
         while (true) {
             foreach (var layer in testLayers) {
-                lockSlim.EnterWriteLock();
-                try {
-                    layer.Update(world);
-                }
-                finally {
-                    lockSlim.ExitWriteLock();
-                }
+                layer.Update(world);
             }
             Thread.Sleep(100);
         }

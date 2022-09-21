@@ -26,6 +26,8 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
         where UComponent : TComponent;
     public abstract bool Remove<UComponent>(Guid entityId)
         where UComponent : TComponent;
+    public abstract bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+        where UComponent : TComponent;
     public abstract void Set<UComponent>(Guid entityId, in UComponent component)
         where UComponent : TComponent;
     public abstract void Clear(Guid entityId);

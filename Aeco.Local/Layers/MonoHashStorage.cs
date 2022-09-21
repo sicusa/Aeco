@@ -76,6 +76,25 @@ public class MonoHashStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     public override bool Remove<UComponent>(Guid entityId)
         => RawRemove(entityId);
 
+    public override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    {
+        if (!_entityIds.Remove(entityId)) {
+            component = default(UComponent);
+            return false;
+        }
+
+        var convertedDict = _dict as Dictionary<Guid, UComponent>
+            ?? throw new NotSupportedException("Component not supported");
+        if (!convertedDict.Remove(entityId, out component)) {
+            throw new KeyNotFoundException("Internal error");
+        }
+
+        if (_singleton == entityId) {
+            ResetSingleton();
+        }
+        return true;
+    }
+
     public override void Set<UComponent>(Guid entityId, in UComponent component)
     {
         var convertedDict = _dict as Dictionary<Guid, UComponent>

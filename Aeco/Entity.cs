@@ -58,6 +58,10 @@ public class Entity<TComponent, TDataLayer> : IEntity<TComponent>
     public bool Remove<UComponent>()
         where UComponent : TComponent
         => _dataLayer.Remove<UComponent>(Id);
+
+    public bool Remove<UComponent>([MaybeNullWhen(false)] out UComponent component)
+        where UComponent : TComponent
+        => _dataLayer.Remove<UComponent>(Id, out component);
     
     public void Set<UComponent>(in UComponent component)
         where UComponent : TComponent
