@@ -76,10 +76,10 @@ public interface IDynamicCompositeLayer<in TComponent, TSublayer> : ICompositeLa
     void ClearSublayers();
 }
 
-public interface IDependentLayer<in TComponent, out TLayer> : ILayer<TComponent>
-    where TLayer : ILayer<TComponent>
+public interface IDependentLayer<TComponent> : ILayer<TComponent>
 {
-    IEnumerable<TLayer> Dependencies { get; }
+    IEnumerable<TSublayer> GetDependencies<TSublayer>(ICompositeLayer<TComponent, TSublayer> parent)
+        where TSublayer : ILayer<TComponent>;
 }
 
 public interface IParentLayerListener<in TComponent, in TParentLayer>

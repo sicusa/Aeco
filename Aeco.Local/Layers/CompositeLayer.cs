@@ -125,8 +125,8 @@ public class CompositeLayer<TComponent, TSublayer>
     {
         void AddToLayerSeq(ImmutableArray<TSublayer>.Builder builder, TSublayer layer, HashSet<TSublayer> addedLayer)
         {
-            if (layer is IDependentLayer<TComponent, TSublayer> dependentLayer) {
-                foreach (var dependency in dependentLayer.Dependencies) {
+            if (layer is IDependentLayer<TComponent> dependentLayer) {
+                foreach (var dependency in dependentLayer.GetDependencies(this)) {
                     if (addedLayer.Contains(dependency)) { return; }
                     AddToLayerSeq(builder, dependency, addedLayer);
                 }
@@ -143,8 +143,11 @@ public class CompositeLayer<TComponent, TSublayer>
             AddToLayerSeq(builder, sublayer, addedLayer);
         }
 
+        builder.Reverse();
+        
         ImmutableInterlocked.Update(
             ref _sublayerList, (_, builder) => builder.ToImmutableArray(), builder);
+
         _sublayerListDirty = false;
     }
 
