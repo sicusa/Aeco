@@ -56,6 +56,14 @@ public interface ICompositeLayer<in TComponent, out TSublayer> : ILayer<TCompone
     IEnumerable<T> GetSublayers<T>();
 }
 
+public interface ICompositeDataLayer<in TComponent, out TSublayer>
+    : ICompositeLayer<TComponent, TSublayer>, IDataLayer<TComponent>
+    where TSublayer : ILayer<TComponent>
+{
+    IDataLayer<TComponent>? FindTerminalDataLayer<UComponent>()
+        where UComponent : TComponent;
+}
+
 public interface IDynamicCompositeLayer<in TComponent, TSublayer> : ICompositeLayer<TComponent, TSublayer>
     where TSublayer : ILayer<TComponent>
 {

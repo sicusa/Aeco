@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 
 public class CompositeLayer<TComponent, TSublayer>
-    : LocalDataLayerBase<TComponent, TComponent>, ICompositeLayer<TComponent, TSublayer>
+    : LocalDataLayerBase<TComponent, TComponent>, ICompositeDataLayer<TComponent, TSublayer>
     , ITrackableDataLayer<TComponent>
     where TSublayer : ILayer<TComponent>
 {
@@ -167,7 +167,7 @@ public class CompositeLayer<TComponent, TSublayer>
         }
     }
 
-    protected IDataLayer<TComponent>? FindDataLayer<UComponent>()
+    public IDataLayer<TComponent>? FindTerminalDataLayer<UComponent>()
         where UComponent : TComponent
     {
         var compT = typeof(UComponent);
@@ -175,20 +175,28 @@ public class CompositeLayer<TComponent, TSublayer>
             return cachedLayer;
         }
         foreach (var sublayer in Sublayers) {
-            if (sublayer is IDataLayer<TComponent> dataLayer
-                    && dataLayer.CheckSupported(compT)) {
-                ImmutableInterlocked.AddOrUpdate(ref _dataLayers, dataLayer,
-                    _ => ImmutableHashSet<Type>.Empty, (_, comps) => comps.Add(compT));
-                ImmutableInterlocked.TryAdd(ref _dataLayerCache, compT, dataLayer);
-                return dataLayer;
+            if (sublayer is not IDataLayer<TComponent> dataLayer
+                    || !dataLayer.CheckSupported(compT)) {
+                continue;
             }
+            if (sublayer is ICompositeDataLayer<TComponent, TSublayer> compositeDataLayer) {
+                var terminalDataLayer = compositeDataLayer.FindTerminalDataLayer<UComponent>();
+                if (terminalDataLayer == null) {
+                    continue;
+                }
+                dataLayer = terminalDataLayer;
+            }
+            ImmutableInterlocked.AddOrUpdate(ref _dataLayers, dataLayer,
+                _ => ImmutableHashSet<Type>.Empty, (_, comps) => comps.Add(compT));
+            ImmutableInterlocked.TryAdd(ref _dataLayerCache, compT, dataLayer);
+            return dataLayer;
         }
         return null;
     }
 
     public override bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
     {
-        var dataLayer = FindDataLayer<UComponent>();
+        var dataLayer = FindTerminalDataLayer<UComponent>();
         if (dataLayer == null) {
             component = default(UComponent);
             return false;
@@ -198,27 +206,27 @@ public class CompositeLayer<TComponent, TSublayer>
 
     public override ref UComponent Require<UComponent>(Guid entityId)
     {
-        var dataLayer = FindDataLayer<UComponent>()
+        var dataLayer = FindTerminalDataLayer<UComponent>()
             ?? throw new NotSupportedException("No suitable data layer for specified component");
         return ref dataLayer.Require<UComponent>(entityId);
     }
 
     public override ref UComponent Acquire<UComponent>(Guid entityId)
     {
-        var dataLayer = FindDataLayer<UComponent>()
+        var dataLayer = FindTerminalDataLayer<UComponent>()
             ?? throw new NotSupportedException("No suitable data layer for specified component");
         return ref dataLayer.Acquire<UComponent>(entityId);
     }
 
     public override bool Contains<UComponent>(Guid entityId)
     {
-        var dataLayer = FindDataLayer<UComponent>();
+        var dataLayer = FindTerminalDataLayer<UComponent>();
         return dataLayer != null ? dataLayer.Contains<UComponent>(entityId) : false;
     }
 
     public override void Set<UComponent>(Guid entityId, in UComponent component)
     {
-        var dataLayer = FindDataLayer<UComponent>()
+        var dataLayer = FindTerminalDataLayer<UComponent>()
             ?? throw new NotSupportedException("No suitable data layer for specified component");
         dataLayer.Set(entityId, component);
     }
@@ -228,7 +236,7 @@ public class CompositeLayer<TComponent, TSublayer>
 
     public override Guid Singleton<UComponent>()
     {
-        var dataLayer = FindDataLayer<UComponent>();
+        var dataLayer = FindTerminalDataLayer<UComponent>();
         if (dataLayer == null) {
             throw new KeyNotFoundException("Singleton not found: " + typeof(UComponent));
         }
@@ -237,7 +245,7 @@ public class CompositeLayer<TComponent, TSublayer>
 
     public override IEnumerable<Guid> Query<UComponent>()
     {
-        var dataLayer = FindDataLayer<UComponent>();
+        var dataLayer = FindTerminalDataLayer<UComponent>();
         if (dataLayer == null) {
             return Enumerable.Empty<Guid>();
         }
@@ -246,7 +254,7 @@ public class CompositeLayer<TComponent, TSublayer>
 
     public override bool Remove<UComponent>(Guid entityId)
     {
-        var dataLayer = FindDataLayer<UComponent>();
+        var dataLayer = FindTerminalDataLayer<UComponent>();
         if (dataLayer == null) {
             return false;
         }
