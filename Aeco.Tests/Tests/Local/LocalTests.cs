@@ -49,11 +49,8 @@ public static class LocalTests
         }
     }
 
-    public struct TestCommand : ICommand
+    public record struct TestCommand(string Name = "unknown") : ICommand
     {
-        public string Name = "unknown";
-        public TestCommand() {}
-
         public void Dispose()
         {
             Name = "unknown";
@@ -116,18 +113,10 @@ public static class LocalTests
         }
 
         Console.WriteLine("\n[TestCommand]");
-        ref var cmd = ref entity.Acquire<TestCommand>();
-        cmd.Name = "Test";
-        Console.WriteLine($"TestCommand.Name: {cmd.Name}");
-        cmd = ref entity.Acquire<TestCommand>();
-        cmd.Name = "Test2";
-        Console.WriteLine($"TestCommand.Name: {cmd.Name}");
-        cmd = ref entity.Acquire<TestCommand>();
-        cmd.Name = "Test3";
-        Console.WriteLine($"TestCommand.Name: {cmd.Name}");
-        cmd = ref entity.Acquire<TestCommand>();
-        cmd.Name = "Test4";
-        Console.WriteLine($"TestCommand.Name: {cmd.Name}");
+        entity.Set(new TestCommand("Test"));
+        entity.Set(new TestCommand("Test2"));
+        entity.Set(new TestCommand("Test3"));
+        entity.Set(new TestCommand("Test4"));
 
         while (entity.TryGet<TestCommand>(out var recCmd)) {
             Console.WriteLine($"TestCommand.Name: {recCmd.Name}");

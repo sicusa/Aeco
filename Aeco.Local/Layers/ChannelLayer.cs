@@ -63,8 +63,10 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
     public override ref UComponent Acquire<UComponent>(Guid entityId)
     {
         ref var channel = ref ChannelDataLayer.Acquire<Channel<UComponent>>(entityId);
-        var messageId = Guid.NewGuid();
-        channel.Messages.Enqueue(messageId);
+        if (!channel.Messages.TryPeek(out var messageId)) {
+            messageId = Guid.NewGuid();
+            channel.Messages.Enqueue(messageId);
+        }
         return ref MessageDataLayer.Acquire<UComponent>(messageId);
     }
 
