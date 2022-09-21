@@ -1,6 +1,11 @@
 namespace Aeco;
 
-public class GQuery<TBase, T1, T2>
+public interface IQuery<out TBase>
+{
+    IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer);
+}
+
+public class GQuery<TBase, T1, T2> : IQuery<TBase>
     where T1 : TBase
     where T2 : TBase
 {
@@ -40,7 +45,7 @@ public class GQuery<TBase, T1, T2>
     }
 }
 
-public class GQuery<TBase, T1, T2, T3>
+public class GQuery<TBase, T1, T2, T3> : IQuery<TBase>
     where T1 : TBase
     where T2 : TBase
     where T3 : TBase
@@ -99,7 +104,7 @@ public class GQuery<TBase, T1, T2, T3>
     }
 }
 
-public class GQuery<TBase, T1, T2, T3, T4>
+public class GQuery<TBase, T1, T2, T3, T4> : IQuery<TBase>
     where T1 : TBase
     where T2 : TBase
     where T3 : TBase
@@ -177,7 +182,7 @@ public class GQuery<TBase, T1, T2, T3, T4>
     }
 }
 
-public class GQuery<TBase, T1, T2, T3, T4, T5>
+public class GQuery<TBase, T1, T2, T3, T4, T5> : IQuery<TBase>
     where T1 : TBase
     where T2 : TBase
     where T3 : TBase
@@ -274,7 +279,7 @@ public class GQuery<TBase, T1, T2, T3, T4, T5>
     }
 }
 
-public class GQuery<TBase, T1, T2, T3, T4, T5, T6>
+public class GQuery<TBase, T1, T2, T3, T4, T5, T6> : IQuery<TBase>
     where T1 : TBase
     where T2 : TBase
     where T3 : TBase
@@ -390,7 +395,7 @@ public class GQuery<TBase, T1, T2, T3, T4, T5, T6>
     }
 }
 
-public class GQuery<TBase, T1, T2, T3, T4, T5, T6, T7>
+public class GQuery<TBase, T1, T2, T3, T4, T5, T6, T7> : IQuery<TBase>
     where T1 : TBase
     where T2 : TBase
     where T3 : TBase
