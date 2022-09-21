@@ -277,9 +277,9 @@ public class CompositeLayer<TComponent> : CompositeLayer<TComponent, ILayer<TCom
     }
 }
 
-public class CompositeLayer : CompositeLayer<object>
+public class CompositeLayer : CompositeLayer<IComponent>
 {
-    public CompositeLayer(params ILayer<object>[] sublayers)
+    public CompositeLayer(params ILayer<IComponent>[] sublayers)
         : base(sublayers)
     {
     }

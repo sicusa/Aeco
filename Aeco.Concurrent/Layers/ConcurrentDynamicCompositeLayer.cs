@@ -55,9 +55,9 @@ public class ConcurrentDynamicCompositeLayer<TComponent> : ConcurrentDynamicComp
     }
 }
 
-public class ConcurrentDynamicCompositeLayer : ConcurrentDynamicCompositeLayer<object>
+public class ConcurrentDynamicCompositeLayer : ConcurrentDynamicCompositeLayer<IComponent>
 {
-    public ConcurrentDynamicCompositeLayer(params ILayer<object>[] sublayers)
+    public ConcurrentDynamicCompositeLayer(params ILayer<IComponent>[] sublayers)
         : base(sublayers)
     {
     }

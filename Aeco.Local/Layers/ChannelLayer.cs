@@ -143,36 +143,36 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
     }
 }
 
-public class ChannelLayer<TSelectedComponent> : ChannelLayer<object, TSelectedComponent>
-    where TSelectedComponent : class
+public class ChannelLayer<TSelectedComponent> : ChannelLayer<IComponent, TSelectedComponent>
+    where TSelectedComponent : IComponent
 {
     public ChannelLayer()
     {
     }
 
-    public ChannelLayer(IDataLayer<object> messageDataLayer)
+    public ChannelLayer(IDataLayer<IComponent> messageDataLayer)
         : base(messageDataLayer)
     {
     }
 
-    public ChannelLayer(IDataLayer<IChannel> channelDataLayer, IDataLayer<object> messageDataLayer)
+    public ChannelLayer(IDataLayer<IChannel> channelDataLayer, IDataLayer<IComponent> messageDataLayer)
         : base(channelDataLayer, messageDataLayer)
     {
     }
 }
 
-public class ChannelLayer : ChannelLayer<object>
+public class ChannelLayer : ChannelLayer<IComponent>
 {
     public ChannelLayer()
     {
     }
 
-    public ChannelLayer(IDataLayer<object> messageDataLayer)
+    public ChannelLayer(IDataLayer<IComponent> messageDataLayer)
         : base(messageDataLayer)
     {
     }
 
-    public ChannelLayer(IDataLayer<IChannel> channelDataLayer, IDataLayer<object> messageDataLayer)
+    public ChannelLayer(IDataLayer<IChannel> channelDataLayer, IDataLayer<IComponent> messageDataLayer)
         : base(channelDataLayer, messageDataLayer)
     {
     }

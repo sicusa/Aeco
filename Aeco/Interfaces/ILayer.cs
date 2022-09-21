@@ -89,8 +89,8 @@ public interface IParentLayerListener<in TComponent, in TParentLayer>
     void OnLayerRemoved(TParentLayer parent);
 }
 
-public interface IParentLayerListener<in TParentLayer> : IParentLayerListener<object, TParentLayer>
-    where TParentLayer : ILayer<object>
+public interface IParentLayerListener<in TParentLayer> : IParentLayerListener<IComponent, TParentLayer>
+    where TParentLayer : ILayer<IComponent>
 {
 }
 

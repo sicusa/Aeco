@@ -115,8 +115,8 @@ public class MonoHashStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     }
 }
 
-public class MonoHashStorage<TSelectedComponent> : MonoHashStorage<object, TSelectedComponent>
-    where TSelectedComponent : notnull, new()
+public class MonoHashStorage<TSelectedComponent> : MonoHashStorage<IComponent, TSelectedComponent>
+    where TSelectedComponent : IComponent
 {
 }
 

@@ -9,11 +9,11 @@ public class PolyHashStorage<TComponent, TSelectedComponent> : CompositeStorage<
     }
 }
 
-public class PolyHashStorage<TSelectedComponent> : PolyHashStorage<object, TSelectedComponent>
-    where TSelectedComponent: notnull
+public class PolyHashStorage<TSelectedComponent> : PolyHashStorage<IComponent, TSelectedComponent>
+    where TSelectedComponent : IComponent
 {
 }
 
-public class PolyHashStorage : PolyHashStorage<object>
+public class PolyHashStorage : PolyHashStorage<IComponent>
 {
 }

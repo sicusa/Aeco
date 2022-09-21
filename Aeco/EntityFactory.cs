@@ -31,6 +31,6 @@ public class EntityFactory<TComponent> : EntityFactory<TComponent, IDataLayer<TC
 {
 }
 
-public class EntityFactory : EntityFactory<object>
+public class EntityFactory : EntityFactory<IComponent>
 {
 }

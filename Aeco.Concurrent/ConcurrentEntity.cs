@@ -180,9 +180,9 @@ public class ConcurrentEntity<TComponent>
     }
 }
 
-public class ConcurrentEntity : ConcurrentEntity<object>
+public class ConcurrentEntity : ConcurrentEntity<IComponent>
 {
-    public ConcurrentEntity(IConcurrentDataLayer<object> dataLayer, Guid id)
+    public ConcurrentEntity(IConcurrentDataLayer<IComponent> dataLayer, Guid id)
         : base(dataLayer, id)
     {
     }

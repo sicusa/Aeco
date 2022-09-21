@@ -14,8 +14,8 @@ public class PooledChannelLayer<TComponent, TSelectedComponent> : ChannelLayer<T
     }
 }
 
-public class PooledChannelLayer<TSelectedComponent> : PooledChannelLayer<object, TSelectedComponent>
-    where TSelectedComponent : class, IDisposable
+public class PooledChannelLayer<TSelectedComponent> : PooledChannelLayer<IComponent, TSelectedComponent>
+    where TSelectedComponent : IComponent, IDisposable
 {
     public PooledChannelLayer(int capacity = MonoPoolStorage.kDefaultCapacity)
         : base(capacity)

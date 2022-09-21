@@ -7,7 +7,7 @@ using Aeco.Concurrent;
 
 public static class ConcurrentTests
 {
-    public interface ITestLayer : ILayer<object>
+    public interface ITestLayer : ILayer<IComponent>
     {
         void Update(ConcurrentCompositeLayer layer);
     }

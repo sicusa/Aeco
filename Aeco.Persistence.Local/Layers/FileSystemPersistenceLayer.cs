@@ -102,8 +102,8 @@ public class ReadOnlyFileSystemPersistenceLayer<TComponent, TSelectedComponent>
 }
 
 public class ReadOnlyFileSystemPersistenceLayer<TSelectedComponent>
-    : ReadOnlyFileSystemPersistenceLayer<object, TSelectedComponent>
-    where TSelectedComponent : notnull
+    : ReadOnlyFileSystemPersistenceLayer<IComponent, TSelectedComponent>
+    where TSelectedComponent : IComponent
 {
     public ReadOnlyFileSystemPersistenceLayer(
         string dataDirectory, IEntitySerializer<TSelectedComponent> serializer)
@@ -118,16 +118,16 @@ public class ReadOnlyFileSystemPersistenceLayer<TSelectedComponent>
     }
 }
 
-public class ReadOnlyFileSystemPersistenceLayer : ReadOnlyFileSystemPersistenceLayer<object>
+public class ReadOnlyFileSystemPersistenceLayer : ReadOnlyFileSystemPersistenceLayer<IComponent>
 {
     public ReadOnlyFileSystemPersistenceLayer(
-        string dataDirectory, IEntitySerializer<object> serializer)
+        string dataDirectory, IEntitySerializer<IComponent> serializer)
         : base(dataDirectory, serializer)
     {
     }
 
     public ReadOnlyFileSystemPersistenceLayer(
-        IDataLayer<Persistent> persistentDataLayer, string dataDirectory, IEntitySerializer<object> serializer)
+        IDataLayer<Persistent> persistentDataLayer, string dataDirectory, IEntitySerializer<IComponent> serializer)
         : base(persistentDataLayer, dataDirectory, serializer)
     {
     }
@@ -196,8 +196,8 @@ public class FileSystemPersistenceLayer<TComponent, TSelectedComponent>
 }
 
 public class FileSystemPersistenceLayer<TSelectedComponent>
-    : FileSystemPersistenceLayer<object, TSelectedComponent>
-    where TSelectedComponent : notnull
+    : FileSystemPersistenceLayer<IComponent, TSelectedComponent>
+    where TSelectedComponent : IComponent
 {
     public FileSystemPersistenceLayer(
         string dataDirectory, IEntitySerializer<TSelectedComponent> serializer)
@@ -212,16 +212,16 @@ public class FileSystemPersistenceLayer<TSelectedComponent>
     }
 }
 
-public class FileSystemPersistenceLayer : FileSystemPersistenceLayer<object>
+public class FileSystemPersistenceLayer : FileSystemPersistenceLayer<IComponent>
 {
     public FileSystemPersistenceLayer(
-        string dataDirectory, IEntitySerializer<object> serializer)
+        string dataDirectory, IEntitySerializer<IComponent> serializer)
         : base(dataDirectory, serializer)
     {
     }
 
     public FileSystemPersistenceLayer(
-        IDataLayer<Persistent> persistentDataLayer, string dataDirectory, IEntitySerializer<object> serializer)
+        IDataLayer<Persistent> persistentDataLayer, string dataDirectory, IEntitySerializer<IComponent> serializer)
         : base(persistentDataLayer, dataDirectory, serializer)
     {
     }

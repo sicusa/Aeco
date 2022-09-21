@@ -54,9 +54,9 @@ public class DynamicCompositeLayer<TComponent> : DynamicCompositeLayer<TComponen
     }
 }
 
-public class DynamicCompositeLayer : DynamicCompositeLayer<object>
+public class DynamicCompositeLayer : DynamicCompositeLayer<IComponent>
 {
-    public DynamicCompositeLayer(params ILayer<object>[] sublayers)
+    public DynamicCompositeLayer(params ILayer<IComponent>[] sublayers)
         : base(sublayers)
     {
     }

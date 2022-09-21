@@ -225,8 +225,8 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     }
 }
 
-public class MonoPoolStorage<TSelectedComponent> : MonoPoolStorage<object, TSelectedComponent>
-    where TSelectedComponent : IDisposable, new()
+public class MonoPoolStorage<TSelectedComponent> : MonoPoolStorage<IComponent, TSelectedComponent>
+    where TSelectedComponent : IComponent, IDisposable, new()
 {
 }
 

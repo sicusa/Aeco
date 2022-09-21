@@ -73,9 +73,9 @@ public class Entity<TComponent>
     }
 }
 
-public class Entity : Entity<object>
+public class Entity : Entity<IComponent>
 {
-    public Entity(IDataLayer<object> dataLayer, Guid id)
+    public Entity(IDataLayer<IComponent> dataLayer, Guid id)
         : base(dataLayer, id)
     {
     }

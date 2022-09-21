@@ -57,9 +57,9 @@ public class ConcurrentCompositeLayer<TComponent> : ConcurrentCompositeLayer<TCo
     }
 }
 
-public class ConcurrentCompositeLayer : ConcurrentCompositeLayer<object>
+public class ConcurrentCompositeLayer : ConcurrentCompositeLayer<IComponent>
 {
-    public ConcurrentCompositeLayer(params ILayer<object>[] sublayers)
+    public ConcurrentCompositeLayer(params ILayer<IComponent>[] sublayers)
         : base(sublayers)
     {
     }

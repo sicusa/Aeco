@@ -6,6 +6,6 @@ public class VirtualLayer<TComponent> : ILayer<TComponent>
         => throw new NotImplementedException();
 }
 
-public class VirtualLayer : VirtualLayer<object>
+public class VirtualLayer : VirtualLayer<IComponent>
 {
 }
