@@ -23,8 +23,9 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
 
     private int _cellarCount;
     private Guid _singleton = Guid.Empty;
-    private const int kLower31BitMask = 0x7FFFFFFF;
+    private bool _existsTemp;
 
+    private const int kLower31BitMask = 0x7FFFFFFF;
 
     public MonoPoolStorage(int capacity = MonoPoolStorage.kDefaultCapacity)
     {
@@ -95,7 +96,7 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
         }
     }
 
-    private ref Block<UComponent> AcquireBlock<UComponent>(Guid entityId)
+    private ref Block<UComponent> AcquireBlock<UComponent>(Guid entityId, out bool exists)
         where UComponent : TComponent
     {
         var convertedBlocks = _blocks as Block<UComponent>[]
@@ -110,11 +111,13 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
             if (_singleton == Guid.Empty) {
                 _singleton = entityId;
             }
+            exists = false;
             return ref block;
         }
 
         while (true) {
             if (block.Id == entityId) {
+                exists = true;
                 return ref block;
             }
             index = block.NextBlockIndex;
@@ -133,6 +136,7 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
                 if (_singleton == Guid.Empty) {
                     _singleton = entityId;
                 }
+                exists = false;
                 return ref bucket;
             }
             block = ref convertedBlocks[index];
@@ -140,53 +144,10 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     }
     
     public override ref UComponent Acquire<UComponent>(Guid entityId)
-        => ref AcquireBlock<UComponent>(entityId).Data;
+        => ref AcquireBlock<UComponent>(entityId, out _existsTemp).Data;
 
     public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
-    {
-        var convertedBlocks = _blocks as Block<UComponent>[]
-            ?? throw new NotSupportedException("Component not supported");
-
-        int index = GetIndex(entityId);
-        ref var block = ref convertedBlocks[index];
-
-        if (block.Id == Guid.Empty) {
-            block.Id = entityId;
-            _entityIds.Add(entityId);
-            if (_singleton == Guid.Empty) {
-                _singleton = entityId;
-            }
-            exists = false;
-            return ref block.Data;
-        }
-
-        while (true) {
-            if (block.Id == entityId) {
-                exists = true;
-                return ref block.Data;
-            }
-            index = block.NextBlockIndex;
-            if (index == -1) {
-                int bucketIndex = convertedBlocks.Length - 1;
-                while (bucketIndex > 0 && convertedBlocks[bucketIndex].Id != Guid.Empty) {
-                    --bucketIndex;
-                }
-                if (bucketIndex == -1) {
-                    throw new InvalidOperationException("PoolStorage is full");
-                }
-                ref var bucket = ref convertedBlocks[bucketIndex];
-                bucket.Id = entityId;
-                block.NextBlockIndex = bucketIndex;
-                _entityIds.Add(entityId);
-                if (_singleton == Guid.Empty) {
-                    _singleton = entityId;
-                }
-                exists = false;
-                return ref bucket.Data;
-            }
-            block = ref convertedBlocks[index];
-        }
-    }
+        => ref AcquireBlock<UComponent>(entityId, out exists).Data;
 
     public override bool Contains<UComponent>(Guid entityId)
         => _entityIds.Contains(entityId);
@@ -269,7 +230,7 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
 
     public override void Set<UComponent>(Guid entityId, in UComponent component)
     {
-        ref var block = ref AcquireBlock<UComponent>(entityId);
+        ref var block = ref AcquireBlock<UComponent>(entityId, out var _);
         block.Data = component;
     }
 

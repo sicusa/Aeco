@@ -13,6 +13,7 @@ public class MonoHashStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     private SortedSet<Guid> _entityIds = new();
 
     private Guid _singleton;
+    private bool _existsTemp;
 
     public override bool CheckSupported(Type componentType)
         => typeof(TSelectedComponent) == componentType;
@@ -37,21 +38,7 @@ public class MonoHashStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     }
 
     public override ref UComponent Acquire<UComponent>(Guid entityId)
-    {
-        var convertedDict = _dict as Dictionary<Guid, UComponent>
-            ?? throw new NotSupportedException("Component not supported");
-
-        ref UComponent comp = ref CollectionsMarshal.GetValueRefOrNullRef(convertedDict, entityId);
-        if (Unsafe.IsNullRef(ref comp)) {
-            convertedDict.Add(entityId, new UComponent());
-            _entityIds.Add(entityId);
-            if (_singleton == Guid.Empty) {
-                _singleton = entityId;
-            }
-            return ref CollectionsMarshal.GetValueRefOrNullRef(convertedDict, entityId);
-        }
-        return ref comp;
-    }
+        => ref Acquire<UComponent>(entityId, out _existsTemp);
     
     public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
     {
