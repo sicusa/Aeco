@@ -23,6 +23,8 @@ public interface IDataLayer<in TComponent> : ILayer<TComponent>
 
     bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent;
+    ref readonly UComponent Inspect<UComponent>(Guid entityId)
+        where UComponent : TComponent;
     ref UComponent Require<UComponent>(Guid entityId)
         where UComponent : TComponent;
     ref UComponent Acquire<UComponent>(Guid entityId)

@@ -43,6 +43,10 @@ public class Entity<TComponent, TDataLayer> : IEntity<TComponent>
         where UComponent : TComponent
         => _dataLayer.TryGet<UComponent>(Id, out component);
 
+    public ref readonly UComponent Inspect<UComponent>()
+        where UComponent : TComponent
+        => ref _dataLayer.Inspect<UComponent>(Id);
+
     public ref UComponent Require<UComponent>()
         where UComponent : TComponent
         => ref _dataLayer.Require<UComponent>(Id);

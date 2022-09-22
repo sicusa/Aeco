@@ -18,6 +18,9 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
 
     public abstract bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent;
+    public virtual ref readonly UComponent Inspect<UComponent>(Guid entityId)
+        where UComponent : TComponent
+        => ref Require<UComponent>(entityId);
     public abstract ref UComponent Require<UComponent>(Guid entityId)
         where UComponent : TComponent;
     public abstract ref UComponent Acquire<UComponent>(Guid entityId)

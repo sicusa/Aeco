@@ -77,6 +77,19 @@ public class ConcurrentEntity<TComponent, TDataLayer> : IConcurrentEntity<TCompo
         }
     }
 
+    public ref readonly UComponent Inspect<UComponent>()
+        where UComponent : TComponent
+    {
+        var lockSlim = _dataLayer.LockSlim;
+        lockSlim.EnterReadLock();
+        try {
+            return ref _dataLayer.Inspect<UComponent>(Id);
+        }
+        finally {
+            lockSlim.ExitReadLock();
+        }
+    }
+
     public void Require<UComponent>(Action<UComponent> callback)
         where UComponent : TComponent
     {
