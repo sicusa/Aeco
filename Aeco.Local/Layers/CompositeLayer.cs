@@ -9,6 +9,8 @@ public class CompositeLayer<TComponent, TSublayer>
     , ITrackableDataLayer<TComponent>
     where TSublayer : ILayer<TComponent>
 {
+    public virtual bool IsTerminalDataLayer => false;
+
     public IEnumerable<Guid> Entities => _entities.Keys;
     public IObservable<Guid> EntityCreated => EntityCreatedSubject;
     public IObservable<Guid> EntityDisposed => EntityDisposedSubject;
@@ -142,7 +144,8 @@ public class CompositeLayer<TComponent, TSublayer>
                     || !dataLayer.CheckSupported(compT)) {
                 continue;
             }
-            if (sublayer is ICompositeDataLayer<TComponent, TSublayer> compositeDataLayer) {
+            if (sublayer is ICompositeDataLayer<TComponent, TSublayer> compositeDataLayer
+                    && !compositeDataLayer.IsTerminalDataLayer) {
                 var terminalDataLayer = compositeDataLayer.FindTerminalDataLayer<UComponent>();
                 if (terminalDataLayer == null) {
                     continue;

@@ -64,6 +64,7 @@ public interface ICompositeDataLayer<in TComponent, out TSublayer>
     : ICompositeLayer<TComponent, TSublayer>, IDataLayer<TComponent>
     where TSublayer : ILayer<TComponent>
 {
+    bool IsTerminalDataLayer { get; }
     IDataLayer<TComponent>? FindTerminalDataLayer<UComponent>()
         where UComponent : TComponent;
 }
