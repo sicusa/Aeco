@@ -29,6 +29,8 @@ public interface IDataLayer<in TComponent> : ILayer<TComponent>
         where UComponent : TComponent;
     ref UComponent Acquire<UComponent>(Guid entityId)
         where UComponent : TComponent, new();
+    ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+        where UComponent : TComponent, new();
     bool Contains<UComponent>(Guid entityId)
         where UComponent : TComponent;
     bool Remove<UComponent>(Guid entityId)

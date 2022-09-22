@@ -70,6 +70,16 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
         return ref MessageDataLayer.Acquire<UComponent>(messageId);
     }
 
+    public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+    {
+        ref var channel = ref ChannelDataLayer.Acquire<Channel<UComponent>>(entityId);
+        if (!channel.Messages.TryPeek(out var messageId)) {
+            messageId = Guid.NewGuid();
+            channel.Messages.Enqueue(messageId);
+        }
+        return ref MessageDataLayer.Acquire<UComponent>(messageId, out exists);
+    }
+
     public override bool Contains<UComponent>(Guid entityId)
     {
         try {

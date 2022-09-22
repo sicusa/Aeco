@@ -25,6 +25,8 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
         where UComponent : TComponent;
     public abstract ref UComponent Acquire<UComponent>(Guid entityId)
         where UComponent : TComponent, new();
+    public abstract ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+        where UComponent : TComponent, new();
     public abstract bool Contains<UComponent>(Guid entityId)
         where UComponent : TComponent;
     public abstract bool Remove<UComponent>(Guid entityId)

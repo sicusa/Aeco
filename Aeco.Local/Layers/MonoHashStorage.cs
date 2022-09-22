@@ -35,7 +35,7 @@ public class MonoHashStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
         }
         return ref comp;
     }
-    
+
     public override ref UComponent Acquire<UComponent>(Guid entityId)
     {
         var convertedDict = _dict as Dictionary<Guid, UComponent>
@@ -50,6 +50,25 @@ public class MonoHashStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
             }
             return ref CollectionsMarshal.GetValueRefOrNullRef(convertedDict, entityId);
         }
+        return ref comp;
+    }
+    
+    public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+    {
+        var convertedDict = _dict as Dictionary<Guid, UComponent>
+            ?? throw new NotSupportedException("Component not supported");
+
+        ref UComponent comp = ref CollectionsMarshal.GetValueRefOrNullRef(convertedDict, entityId);
+        if (Unsafe.IsNullRef(ref comp)) {
+            convertedDict.Add(entityId, new UComponent());
+            _entityIds.Add(entityId);
+            if (_singleton == Guid.Empty) {
+                _singleton = entityId;
+            }
+            exists = false;
+            return ref CollectionsMarshal.GetValueRefOrNullRef(convertedDict, entityId);
+        }
+        exists = true;
         return ref comp;
     }
 

@@ -57,6 +57,9 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
     public override ref UComponent Acquire<UComponent>(Guid entityId)
         => ref AcquireSubstorage<UComponent>().Acquire<UComponent>(entityId);
 
+    public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+        => ref AcquireSubstorage<UComponent>().Acquire<UComponent>(entityId, out exists);
+
     public override bool Contains<UComponent>(Guid entityId)
     {
         var substorage = FindSubstorage<UComponent>();

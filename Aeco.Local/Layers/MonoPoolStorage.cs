@@ -142,6 +142,52 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     public override ref UComponent Acquire<UComponent>(Guid entityId)
         => ref AcquireBlock<UComponent>(entityId).Data;
 
+    public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+    {
+        var convertedBlocks = _blocks as Block<UComponent>[]
+            ?? throw new NotSupportedException("Component not supported");
+
+        int index = GetIndex(entityId);
+        ref var block = ref convertedBlocks[index];
+
+        if (block.Id == Guid.Empty) {
+            block.Id = entityId;
+            _entityIds.Add(entityId);
+            if (_singleton == Guid.Empty) {
+                _singleton = entityId;
+            }
+            exists = false;
+            return ref block.Data;
+        }
+
+        while (true) {
+            if (block.Id == entityId) {
+                exists = true;
+                return ref block.Data;
+            }
+            index = block.NextBlockIndex;
+            if (index == -1) {
+                int bucketIndex = convertedBlocks.Length - 1;
+                while (bucketIndex > 0 && convertedBlocks[bucketIndex].Id != Guid.Empty) {
+                    --bucketIndex;
+                }
+                if (bucketIndex == -1) {
+                    throw new InvalidOperationException("PoolStorage is full");
+                }
+                ref var bucket = ref convertedBlocks[bucketIndex];
+                bucket.Id = entityId;
+                block.NextBlockIndex = bucketIndex;
+                _entityIds.Add(entityId);
+                if (_singleton == Guid.Empty) {
+                    _singleton = entityId;
+                }
+                exists = false;
+                return ref bucket.Data;
+            }
+            block = ref convertedBlocks[index];
+        }
+    }
+
     public override bool Contains<UComponent>(Guid entityId)
         => _entityIds.Contains(entityId);
 

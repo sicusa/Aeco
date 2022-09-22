@@ -184,6 +184,13 @@ public class CompositeLayer<TComponent, TSublayer>
         return ref dataLayer.Acquire<UComponent>(entityId);
     }
 
+    public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+    {
+        var dataLayer = FindTerminalDataLayer<UComponent>()
+            ?? throw new NotSupportedException("No suitable data layer for specified component");
+        return ref dataLayer.Acquire<UComponent>(entityId, out exists);
+    }
+
     public override bool Contains<UComponent>(Guid entityId)
     {
         var dataLayer = FindTerminalDataLayer<UComponent>();
