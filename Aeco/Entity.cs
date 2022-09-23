@@ -54,6 +54,10 @@ public class Entity<TComponent, TDataLayer> : IEntity<TComponent>
     public ref UComponent Acquire<UComponent>()
         where UComponent : TComponent, new()
         => ref _dataLayer.Acquire<UComponent>(Id);
+
+    public ref UComponent Acquire<UComponent>(out bool exists)
+        where UComponent : TComponent, new()
+        => ref _dataLayer.Acquire<UComponent>(Id, out exists);
     
     public bool Contains<UComponent>()
         where UComponent : TComponent

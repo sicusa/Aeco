@@ -9,6 +9,13 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
 {
     public IEntityFactory<TComponent, LocalDataLayerBase<TComponent, TSelectedComponent>>? EntityFactory { get; set; }
     
+    public virtual IReadOnlyEntity<TComponent> GetReadOnlyEntity<UComponent>()
+        where UComponent : TComponent
+        => GetReadOnlyEntity(Singleton<UComponent>());
+    public virtual IEntity<TComponent> GetEntity<UComponent>()
+        where UComponent : TComponent
+        => GetEntity(Singleton<UComponent>());
+
     public virtual bool CheckSupported(Type componentType)
         => typeof(TSelectedComponent).IsAssignableFrom(componentType);
 
@@ -40,9 +47,6 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
     public abstract IEnumerable<object> GetAll(Guid entityId);
     public abstract Guid Singleton<UComponent>()
         where UComponent : TComponent;
-    public virtual IEntity<TComponent> GetEntity<UComponent>()
-        where UComponent : TComponent
-        => GetEntity(Singleton<UComponent>());
     public abstract IEnumerable<Guid> Query<UComponent>()
         where UComponent : TComponent;
 }

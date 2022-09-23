@@ -3,6 +3,9 @@ namespace Aeco.Local;
 public abstract class LocalLayerBase<TComponent> : ILayer<TComponent>
 {
     private Dictionary<Guid, IEntity<TComponent>>? _entities;
+
+    public IReadOnlyEntity<TComponent> GetReadOnlyEntity(Guid id)
+        => GetEntity(id);
     
     public IEntity<TComponent> GetEntity(Guid id)
     {

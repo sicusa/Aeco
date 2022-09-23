@@ -117,20 +117,6 @@ public class ConcurrentEntity<TComponent, TDataLayer> : IConcurrentEntity<TCompo
         }
     }
 
-    public void Acquire<UComponent>(Action<UComponent> callback)
-        where UComponent : TComponent, new()
-    {
-        var lockSlim = _dataLayer.LockSlim;
-        lockSlim.EnterWriteLock();
-        try {
-            ref var comp = ref _dataLayer.Acquire<UComponent>(Id);
-            callback(comp);
-        }
-        finally {
-            lockSlim.ExitWriteLock();
-        }
-    }
-
     public ref UComponent Acquire<UComponent>()
         where UComponent : TComponent, new()
     {
@@ -138,6 +124,19 @@ public class ConcurrentEntity<TComponent, TDataLayer> : IConcurrentEntity<TCompo
         lockSlim.EnterWriteLock();
         try {
             return ref _dataLayer.Acquire<UComponent>(Id);
+        }
+        finally {
+            lockSlim.ExitWriteLock();
+        }
+    }
+
+    public ref UComponent Acquire<UComponent>(out bool exists)
+        where UComponent : TComponent, new()
+    {
+        var lockSlim = _dataLayer.LockSlim;
+        lockSlim.EnterWriteLock();
+        try {
+            return ref _dataLayer.Acquire<UComponent>(Id, out exists);
         }
         finally {
             lockSlim.ExitWriteLock();

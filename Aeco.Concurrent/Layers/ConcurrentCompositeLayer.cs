@@ -17,6 +17,13 @@ public class ConcurrentCompositeLayer<TComponent, TSublayer>
     {
     }
 
+    public virtual IReadOnlyConcurrentEntity<TComponent> GetReadOnlyConcurrentEntity<UComponent>()
+        where UComponent : TComponent
+        => GetReadOnlyConcurrentEntity(Singleton<UComponent>());
+
+    public virtual IReadOnlyConcurrentEntity<TComponent> GetReadOnlyConcurrentEntity(Guid id)
+        => GetConcurrentEntity(id);
+
     public virtual IConcurrentEntity<TComponent> GetConcurrentEntity<UComponent>()
         where UComponent : TComponent
         => GetConcurrentEntity(Singleton<UComponent>());
