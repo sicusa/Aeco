@@ -1,10 +1,8 @@
 namespace Aeco.Concurrent;
 
-using System.Collections.Generic;
 using System.Reactive.Subjects;
 
-public class ConcurrentDynamicCompositeLayer<TComponent, TSublayer>
-    : ConcurrentCompositeLayer<TComponent, TSublayer>, IConcurrentDataLayer<TComponent>
+public class ConcurrentDynamicCompositeLayer<TComponent, TSublayer> : ConcurrentCompositeLayer<TComponent, TSublayer>
     where TSublayer : ILayer<TComponent>
 {
     public IObservable<TSublayer> SublayerAdded => _sublayerAdded;
