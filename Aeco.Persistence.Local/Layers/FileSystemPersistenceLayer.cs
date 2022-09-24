@@ -10,6 +10,7 @@ using Aeco.Serialization;
 
 public class ReadOnlyFileSystemPersistenceLayer<TComponent, TSelectedComponent>
     : VirtualLayer<TComponent>, IPersistenceLayer<TComponent, TSelectedComponent>
+    , IParentLayerListener<TComponent, ITrackableDataLayer<TComponent>>
     where TSelectedComponent : TComponent
 {
     public IReadOnlySet<Guid> SavedEntities => _savedEntities;
