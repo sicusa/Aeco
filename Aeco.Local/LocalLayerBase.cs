@@ -15,7 +15,7 @@ public abstract class LocalLayerBase<TComponent> : ILayer<TComponent>
         if (_entities.TryGetValue(id, out var entity)) {
             return entity;
         }
-        entity = CreateEntity(id);
+        entity = RawCreateEntity(id);
         entity.Disposed.Subscribe(OnEntityDisposed);
         return entity;
     }
@@ -25,5 +25,5 @@ public abstract class LocalLayerBase<TComponent> : ILayer<TComponent>
         _entities!.Remove(entity.Id);
     }
 
-    protected abstract IEntity<TComponent> CreateEntity(Guid id);
+    protected abstract IEntity<TComponent> RawCreateEntity(Guid id);
 }

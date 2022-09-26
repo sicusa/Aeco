@@ -42,9 +42,9 @@ public class CompositeLayer<TComponent, TSublayer>
         }
     }
 
-    protected override IEntity<TComponent> CreateEntity(Guid id)
+    protected override IEntity<TComponent> RawCreateEntity(Guid id)
     {
-        var entity = base.CreateEntity(id);
+        var entity = base.RawCreateEntity(id);
         _entities[entity.Id] = entity;
         EntityCreatedSubject.OnNext(id);
         entity.Disposed.Subscribe(ReleaseEntity);

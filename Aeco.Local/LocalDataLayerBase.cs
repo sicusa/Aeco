@@ -19,7 +19,7 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
     public virtual bool CheckSupported(Type componentType)
         => typeof(TSelectedComponent).IsAssignableFrom(componentType);
 
-    protected override IEntity<TComponent> CreateEntity(Guid id)
+    protected override IEntity<TComponent> RawCreateEntity(Guid id)
         => EntityFactory != null ? EntityFactory.GetEntity(this, id)
             : new Entity<TComponent, LocalDataLayerBase<TComponent, TSelectedComponent>>(this, id);
 
