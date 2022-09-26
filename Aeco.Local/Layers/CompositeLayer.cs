@@ -164,6 +164,11 @@ public class CompositeLayer<TComponent, TSublayer>
         return null;
     }
 
+    public IDataLayer<TComponent> RequireTerminalDataLayer<UComponent>()
+        where UComponent : TComponent
+        => FindTerminalDataLayer<UComponent>()
+            ?? throw new NotSupportedException("No suitable data layer for component: " + typeof(UComponent));
+
     public override bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
     {
         var dataLayer = FindTerminalDataLayer<UComponent>();
@@ -176,22 +181,19 @@ public class CompositeLayer<TComponent, TSublayer>
 
     public override ref UComponent Require<UComponent>(Guid entityId)
     {
-        var dataLayer = FindTerminalDataLayer<UComponent>()
-            ?? throw new NotSupportedException("No suitable data layer for specified component");
+        var dataLayer = RequireTerminalDataLayer<UComponent>();
         return ref dataLayer.Require<UComponent>(entityId);
     }
 
     public override ref UComponent Acquire<UComponent>(Guid entityId)
     {
-        var dataLayer = FindTerminalDataLayer<UComponent>()
-            ?? throw new NotSupportedException("No suitable data layer for specified component");
+        var dataLayer = RequireTerminalDataLayer<UComponent>();
         return ref dataLayer.Acquire<UComponent>(entityId);
     }
 
     public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
     {
-        var dataLayer = FindTerminalDataLayer<UComponent>()
-            ?? throw new NotSupportedException("No suitable data layer for specified component");
+        var dataLayer = RequireTerminalDataLayer<UComponent>();
         return ref dataLayer.Acquire<UComponent>(entityId, out exists);
     }
 
@@ -202,11 +204,7 @@ public class CompositeLayer<TComponent, TSublayer>
     }
 
     public override void Set<UComponent>(Guid entityId, in UComponent component)
-    {
-        var dataLayer = FindTerminalDataLayer<UComponent>()
-            ?? throw new NotSupportedException("No suitable data layer for specified component");
-        dataLayer.Set(entityId, component);
-    }
+        => RequireTerminalDataLayer<UComponent>().Set(entityId, component);
 
     public override IEnumerable<object> GetAll(Guid entityId)
         => _dataLayers.SelectMany(s => s.Key.GetAll(entityId));

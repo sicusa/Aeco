@@ -99,6 +99,8 @@ public interface IReadOnlyCompositeDataLayer<in TComponent, out TSublayer>
     bool IsTerminalDataLayer { get; }
     IDataLayer<TComponent>? FindTerminalDataLayer<UComponent>()
         where UComponent : TComponent;
+    IDataLayer<TComponent> RequireTerminalDataLayer<UComponent>()
+        where UComponent : TComponent;
 }
 
 public interface ICompositeDataLayer<in TComponent, out TSublayer>
