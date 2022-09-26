@@ -253,6 +253,13 @@ public class CompositeLayer<TComponent, TSublayer>
             dataLayer.Clear(entityId);
         }
     }
+
+    public override void Clear()
+    {
+        foreach (var (dataLayer, _) in _dataLayers) {
+            dataLayer.Clear();
+        }
+    }
 }
 
 public class CompositeLayer<TComponent> : CompositeLayer<TComponent, ILayer<TComponent>>

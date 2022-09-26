@@ -118,4 +118,9 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
             sub.Clear(entityId);
         }
     }
+
+    public override void Clear()
+    {
+        _substorages.Clear();
+    }
 }

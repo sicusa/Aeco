@@ -18,6 +18,8 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
         public Block() {}
     }
 
+    public int Capacity => _blocks.Length;
+
     private Block<TSelectedComponent>[] _blocks;
     private SortedSet<Guid> _entityIds = new();
 
@@ -264,6 +266,16 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
 
     public override void Clear(Guid entityId)
         => RawRemove(entityId);
+
+    public override void Clear()
+    {
+        _blocks = new Block<TSelectedComponent>[_blocks.Length];
+        if (default(TSelectedComponent) == null) {
+            for (int i = 0; i != _blocks.Length; ++i) {
+                _blocks[i].Data = new TSelectedComponent();
+            }
+        }
+    }
 }
 
 public class MonoPoolStorage<TSelectedComponent> : MonoPoolStorage<IComponent, TSelectedComponent>

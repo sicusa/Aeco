@@ -43,6 +43,7 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
     public abstract void Set<UComponent>(Guid entityId, in UComponent component)
         where UComponent : TComponent;
     public abstract void Clear(Guid entityId);
+    public abstract void Clear();
 
     public abstract IEnumerable<object> GetAll(Guid entityId);
     public abstract Guid Singleton<UComponent>()

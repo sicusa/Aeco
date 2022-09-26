@@ -133,10 +133,12 @@ public class MonoHashStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     }
 
     public override void Clear(Guid entityId)
+        => RawRemove(entityId);
+
+    public override void Clear()
     {
-        if (RawRemove(entityId) && _singleton == entityId) {
-            ResetSingleton();
-        }
+        _dict.Clear();
+        _entityIds.Clear();
     }
 }
 

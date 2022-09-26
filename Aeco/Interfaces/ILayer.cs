@@ -65,6 +65,7 @@ public interface IDataLayer<in TComponent>
         where UComponent : TComponent;
     IEnumerable<object> GetAll(Guid entityId);
     void Clear(Guid entityId);
+    void Clear();
 }
 
 public interface IReadOnlyTrackableDataLayer<in TComponent>

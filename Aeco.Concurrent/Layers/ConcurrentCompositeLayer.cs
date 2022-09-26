@@ -125,6 +125,17 @@ public class ConcurrentCompositeLayer<TComponent, TSublayer> : CompositeLayer<TC
         }
     }
 
+    public override void Clear()
+    {
+        _lockSlim.EnterWriteLock();
+        try {
+            base.Clear();
+        }
+        finally {
+            _lockSlim.ExitWriteLock();
+        }
+    }
+
     public override IEnumerable<object> GetAll(Guid entityId)
     {
         _lockSlim.EnterReadLock();

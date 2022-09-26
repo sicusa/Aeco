@@ -163,6 +163,12 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
             channel.Messages.Clear();
         }
     }
+
+    public override void Clear()
+    {
+        ChannelDataLayer.Clear();
+        MessageDataLayer.Clear();
+    }
 }
 
 public class ChannelLayer<TSelectedComponent> : ChannelLayer<IComponent, TSelectedComponent>
