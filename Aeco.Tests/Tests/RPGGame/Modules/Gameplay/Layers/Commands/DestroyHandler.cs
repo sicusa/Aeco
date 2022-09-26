@@ -1,8 +1,8 @@
 namespace Aeco.Tests.RPGGame.Gameplay;
 
-public class DestroyHandler : VirtualLayer, IGameUpdateLayer
+public class DestroyHandler : VirtualLayer, IGameLateUpdateLayer
 {
-    public void Update(RPGGame game)
+    public void LateUpdate(RPGGame game)
     {
         foreach (var entityId in game.Query<Destroy>()) {
             game.Clear(entityId);
