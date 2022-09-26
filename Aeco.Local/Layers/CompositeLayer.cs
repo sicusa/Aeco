@@ -127,11 +127,41 @@ public class CompositeLayer<TComponent, TSublayer>
         return default(T);
     }
 
+    public virtual T? GetSublayerRecursively<T>()
+    {
+        foreach (var sublayer in _sublayerList) {
+            if (sublayer is T result) {
+                return result;
+            }
+            if (sublayer is ICompositeLayer<TComponent, TSublayer> compositeLayer) {
+                var sublayerRes = compositeLayer.GetSublayerRecursively<T>();
+                if (sublayerRes != null) {
+                    return sublayerRes;
+                }
+            }
+        }
+        return default(T);
+    }
+
     public virtual IEnumerable<T> GetSublayers<T>()
     {
         foreach (var sublayer in _sublayerList) {
             if (sublayer is T result) {
                 yield return result;
+            }
+        }
+    }
+
+    public virtual IEnumerable<T> GetSublayersRecursively<T>()
+    {
+        foreach (var sublayer in _sublayerList) {
+            if (sublayer is T result) {
+                yield return result;
+            }
+            if (sublayer is ICompositeLayer<TComponent, TSublayer> compositeLayer) {
+                foreach (var sublayerRes in compositeLayer.GetSublayersRecursively<T>()) {
+                    yield return sublayerRes;
+                }
             }
         }
     }

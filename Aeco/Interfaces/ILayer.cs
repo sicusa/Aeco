@@ -83,7 +83,9 @@ public interface IReadOnlyCompositeLayer<in TComponent, out TSublayer> : IReadOn
 {
     IReadOnlyList<TSublayer> Sublayers { get; }
     T? GetSublayer<T>();
+    T? GetSublayerRecursively<T>();
     IEnumerable<T> GetSublayers<T>();
+    IEnumerable<T> GetSublayersRecursively<T>();
 }
 
 public interface ICompositeLayer<in TComponent, out TSublayer>
