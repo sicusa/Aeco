@@ -38,9 +38,6 @@ public class CompositeLayer<TComponent, TSublayer>
         }
     }
 
-    public override bool CheckSupported(Type componentType)
-        => true;
-
     protected override IEntity<TComponent> CreateEntity(Guid id)
     {
         var entity = base.CreateEntity(id);
