@@ -9,7 +9,7 @@ public class CompositeLayer<TComponent, TSublayer>
     , ITrackableDataLayer<TComponent>
     where TSublayer : ILayer<TComponent>
 {
-    public virtual bool IsTerminalDataLayer => false;
+    public virtual bool IsSublayerCachable => true;
 
     public IEnumerable<Guid> Entities => _entities.Keys;
     public IObservable<Guid> EntityCreated => EntityCreatedSubject;
@@ -148,13 +148,12 @@ public class CompositeLayer<TComponent, TSublayer>
                     || !dataLayer.CheckSupported(compT)) {
                 continue;
             }
-            if (sublayer is ICompositeDataLayer<TComponent, TSublayer> compositeDataLayer
-                    && !compositeDataLayer.IsTerminalDataLayer) {
+            if (sublayer is ICompositeDataLayer<TComponent, TSublayer> compositeDataLayer) {
                 var terminalDataLayer = compositeDataLayer.FindTerminalDataLayer<UComponent>();
                 if (terminalDataLayer == null) {
                     continue;
                 }
-                dataLayer = terminalDataLayer;
+                dataLayer = compositeDataLayer.IsSublayerCachable ? terminalDataLayer : compositeDataLayer;
             }
             ImmutableInterlocked.AddOrUpdate(ref _dataLayers, dataLayer,
                 _ => ImmutableHashSet<Type>.Empty, (_, comps) => comps.Add(compT));

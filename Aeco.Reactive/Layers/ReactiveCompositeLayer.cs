@@ -8,7 +8,7 @@ using Aeco.Local;
 public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TComponent, TSublayer>
     where TSublayer : ILayer<TComponent>
 {
-    public override bool IsTerminalDataLayer => true;
+    public override bool IsSublayerCachable => false;
 
     public IDataLayer<IReactiveEvent> EventDataLayer { get; }
 

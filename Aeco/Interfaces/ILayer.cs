@@ -96,7 +96,7 @@ public interface IReadOnlyCompositeDataLayer<in TComponent, out TSublayer>
     : IReadOnlyCompositeLayer<TComponent, TSublayer>, IReadOnlyDataLayer<TComponent>
     where TSublayer : IReadOnlyLayer<TComponent>
 {
-    bool IsTerminalDataLayer { get; }
+    bool IsSublayerCachable { get; }
     IDataLayer<TComponent>? FindTerminalDataLayer<UComponent>()
         where UComponent : TComponent;
     IDataLayer<TComponent> RequireTerminalDataLayer<UComponent>()
