@@ -9,8 +9,8 @@ public class PolyPoolStorage<TComponent, TSelectedComponent> : CompositeStorage<
     }
 }
 
-public class PolyPoolStorage<TSelectedComponent> : PolyPoolStorage<object, TSelectedComponent>
-    where TSelectedComponent : IDisposable
+public class PolyPoolStorage<TSelectedComponent> : PolyPoolStorage<IComponent, TSelectedComponent>
+    where TSelectedComponent : IComponent, IDisposable
 {
     public PolyPoolStorage(int capacity = MonoPoolStorage.DefaultCapacity)
         : base(capacity)
