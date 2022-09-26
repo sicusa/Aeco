@@ -59,6 +59,8 @@ public static class LocalTests
 
     public static void Run()
     {
+        Console.WriteLine("== Local ==");
+
         var entityFactory = new EntityFactory();
 
         var compositeLayer = new CompositeLayer(

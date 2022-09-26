@@ -1,43 +1,73 @@
 namespace Aeco.Tests.RPGGame;
 
 using Aeco.Local;
-using Aeco.Serialization;
 using Aeco.Serialization.Json;
-using Aeco.Persistence;
 using Aeco.Persistence.Local;
 
-public class RPGGame : CompositeLayer
+using Aeco.Tests.RPGGame.Character;
+
+public class RPGGame : LoggedCompositeLayer
 {
     public float Time { get; private set; }
     public float DeltaTime { get; private set; }
 
-    private IGameLayer[] _gameLayers;
+    private IGameUpdateLayer[] _updateLayers;
+    private IGameLateUpdateLayer[] _lateUpdateLayers;
 
     public RPGGame(Config config)
-        : base(
-            new PolyPoolStorage<ICommand>(),
-            new MonoPoolStorage<Spell>(),
-            new PolyHashStorage(),
+        : base("RPGGame:",
+            new Character.Layers(config.EventDataLayer),
+            new Map.Layers(config.EventDataLayer),
+            new Gameplay.Layers(),
 
-            new FileSystemPersistenceLayer<ISavedComponent>(
-                "./Save", new JsonEntitySerializer<ISavedComponent>()),
-            new ReadOnlyFileSystemPersistenceLayer(
-                "./Data", new JsonEntitySerializer<IComponent>()),
+            new ShortLivedCompositeLayer(
+                config.EventDataLayer
+            ),
 
-            new AttackInterpreter(),
-            new DestroyInterpreter())
+            new PooledChannelLayer<IGameCommand>(),
+            new PolyPoolStorage<IPooledGameComponent>(),
+            new PolyHashStorage<IGameComponent>(),
+
+            new FileSystemPersistenceLayer<IGameComponent>(
+                "./Save", new JsonEntitySerializer<IGameComponent>())
+            //new ReadOnlyFileSystemPersistenceLayer(
+            //    "./Data", new JsonEntitySerializer<IComponent>())
+        )
     {
-        EntityFactory = new EntityFactory();
-        _gameLayers = GetSublayers<IGameLayer>().ToArray();
+        EntityFactory = new EntityFactory<IComponent>();
+        _updateLayers = GetSublayersRecursively<IGameUpdateLayer>().ToArray();
+        _lateUpdateLayers = GetSublayersRecursively<IGameLateUpdateLayer>().ToArray();
+    }
+
+    public void Initialize()
+    {
+        Console.WriteLine("RPGGame Initialize");
+
+        foreach (var layer in GetSublayersRecursively<IGameInitializeLayer>()) {
+            layer.Initialize(this);
+        }
+
+        // Initialize map
+        var mapId = Guid.NewGuid();
+        Acquire<Map.Map>(mapId);
+
+        // Initialize player
+        this.CreateEntity().AsPlayer(mapId);
     }
 
     public void Update(float deltaTime)
     {
+        Console.WriteLine("RPGGame Update");
+
         DeltaTime = deltaTime;
         Time += DeltaTime;
 
-        for (int i = 0; i < _gameLayers.Length; ++i) {
-            _gameLayers[i].Update(this);
+        for (int i = 0; i < _updateLayers.Length; ++i) {
+            _updateLayers[i].Update(this);
+        }
+
+        for (int i = 0; i < _lateUpdateLayers.Length; ++i) {
+            _lateUpdateLayers[i].LateUpdate(this);
         }
     }
 }
