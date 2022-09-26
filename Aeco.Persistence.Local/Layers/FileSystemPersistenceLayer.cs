@@ -39,7 +39,7 @@ public class ReadOnlyFileSystemPersistenceLayer<TComponent, TSelectedComponent>
         PersistentDataLayer = persistentDataLayer;
     }
 
-    private void UpdateSavedEntitiesSet()
+    protected virtual void UpdateSavedEntitiesSet()
     {
         _savedEntities.Clear();
         if (_dirInfo == null) {
@@ -148,9 +148,14 @@ public class FileSystemPersistenceLayer<TComponent, TSelectedComponent>
         IDataLayer<Persistent> persistentDataLayer, string dataDirectory, IEntitySerializer<TSelectedComponent> serializer)
         : base(persistentDataLayer, dataDirectory, serializer)
     {
+    }
+
+    protected override void UpdateSavedEntitiesSet()
+    {
         if (!Directory.Exists(DataDirectory)) {
             Directory.CreateDirectory(DataDirectory);
         }
+        base.UpdateSavedEntitiesSet();
     }
 
     protected override IDisposable CreateSubscription(ITrackableDataLayer<TComponent> parent)
