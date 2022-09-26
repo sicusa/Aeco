@@ -1,5 +1,7 @@
 namespace Aeco.Tests.RPGGame.Character;
 
+using System.Runtime.Serialization;
+
 using Aeco.Tests.RPGGame.Map;
 
 public interface IWeapon
@@ -12,10 +14,13 @@ public interface IWeapon
     void Attack(RPGGame game, Guid actorId, Guid targetId);
 }
 
+[DataContract]
 public class LongSword : IWeapon
 {
     public string Name => "Long Sword";
     public string Description => "This is a long sword.";
+
+    [DataMember]
     public float Damage { get; set; } = 1;
 
     public virtual IEnumerable<(int, int)> GetEffectiveArea(RPGGame game, Guid actorId)
@@ -38,6 +43,7 @@ public class LongSword : IWeapon
     }
 }
 
+[DataContract]
 public class PoisonousLongSword : LongSword
 {
     public override void Attack(RPGGame game, Guid actorId, Guid targetId)

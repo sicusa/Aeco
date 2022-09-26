@@ -27,6 +27,7 @@ public class RPGGame : LoggedCompositeLayer
             new PooledChannelLayer<IGameCommand>(),
             new PolyPoolStorage<IPooledGameComponent>(),
             new PolyHashStorage<IGameComponent>(),
+            new PolyHashStorage(),
 
             new FileSystemPersistenceLayer<IGameComponent>(
                 "./Save", new JsonEntitySerializer<IGameComponent>())

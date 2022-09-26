@@ -4,6 +4,7 @@ using Aeco.Tests;
 using Aeco.Tests.RPGGame;
 using Aeco.Tests.RPGGame.Map;
 using Aeco.Tests.RPGGame.Character;
+using Aeco.Persistence;
 
 var game = new RPGGame(new Config());
 game.Initialize();
@@ -12,8 +13,8 @@ game.Initialize();
 
 game.Update(0.5f);
 
-var mapId = game.Singleton<Map>();
-var mapBlocks = game.Require<Map>(mapId).Blocks;
+var map = game.GetEntity<Map>();
+var mapBlocks = game.Require<Map>(map.Id).Blocks;
 
 var player = game.GetEntity<Player>();
 player.Acquire<Equipments>().Weapon = new LongSword();
@@ -30,7 +31,7 @@ rot.Value = Direction.Left;
 game.Update(0.5f);
 Console.WriteLine("Found in map: " + mapBlocks[pos].Contains(player.Id)); // false
 
-var enemy = game.CreateEntity().AsEnemy(mapId);
+var enemy = game.CreateEntity().AsEnemy(map.Id);
 
 // frame 2
 
@@ -65,3 +66,12 @@ player.Acquire<Attack>();
 
 game.Update(0.5f);
 Console.WriteLine("Enemy Alive: " + enemy.Contains<Health>());
+
+player.Acquire<Persistent>();
+player.Dispose();
+
+enemy.Acquire<Persistent>();
+enemy.Dispose();
+
+map.Acquire<Persistent>();
+map.Dispose();

@@ -14,7 +14,7 @@ public struct Enemy : IPooledGameComponent
 
 public static class EnemyExtensions
 {
-    public static IEntity<IGameComponent> AsEnemy(this IEntity<IGameComponent> entity, Guid mapId)
+    public static IEntity<IComponent> AsEnemy(this IEntity<IComponent> entity, Guid mapId)
     {
         entity.Acquire<Enemy>();
         entity.Acquire<InMap>().MapId = mapId;
