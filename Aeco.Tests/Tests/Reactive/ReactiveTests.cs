@@ -21,24 +21,18 @@ public static class ReactiveTests
         }
     }
 
-    public struct Rotation : IReactiveComponent
-    {
-        public int Angle;
-
-        public void Dispose()
-        {
-            Angle = 0;
-        }
-    }
-
     public static void Run()
     {
         Console.WriteLine("== Reactive ==");
 
-        var world = new ReactiveCompositeLayer(
-            new PolyPoolStorage<IReactiveComponent>(),
-            new PolyHashStorage<IReactiveEvent<Position>>(),
-            new PolyHashStorage<IReactiveEvent<Rotation>>());
+        var eventStorage = new PolyHashStorage<IReactiveEvent>();
+
+        var world = new CompositeLayer(
+            eventStorage,
+            new ReactiveCompositeLayer(
+                eventDataLayer: eventStorage,
+                new PolyPoolStorage<IReactiveComponent>(),
+                new PolyHashStorage<IReactiveEvent<Position>>()));
 
         var entity = world.CreateEntity();
         entity.Acquire<Position>();
