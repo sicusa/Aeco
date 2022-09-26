@@ -2,7 +2,7 @@ namespace Aeco.Tests.RPGGame.Character;
 
 using Aeco.Tests.RPGGame.Gameplay;
 
-public class DeadCharacterHandler : VirtualLayer, IGameUpdateLayer
+public class CharacterDeadListener : VirtualLayer, IGameUpdateLayer
 {
     public void Update(RPGGame game)
     {

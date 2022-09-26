@@ -13,7 +13,9 @@ public class Layers : CompositeLayer
 
             // state updaters
             new HealthUpdator(),
-            new DeadCharacterHandler()
+
+            // listeners
+            new CharacterDeadListener()
         )
     {
     }

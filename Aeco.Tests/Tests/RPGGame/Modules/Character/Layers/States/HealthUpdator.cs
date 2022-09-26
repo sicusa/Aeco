@@ -1,7 +1,5 @@
 namespace Aeco.Tests.RPGGame.Character;
 
-using Aeco.Tests.RPGGame.Gameplay;
-
 public class HealthUpdator : VirtualLayer, IGameUpdateLayer
 {
     public void Update(RPGGame game)
@@ -19,7 +17,6 @@ public class HealthUpdator : VirtualLayer, IGameUpdateLayer
             }
             if (health.Value <= 0) {
                 game.Acquire<Dead>(id);
-                game.Acquire<Destroy>(id);
             }
         }
     }
