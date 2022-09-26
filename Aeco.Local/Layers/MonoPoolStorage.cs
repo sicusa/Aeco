@@ -27,7 +27,7 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
 
     private const int kLower31BitMask = 0x7FFFFFFF;
 
-    public MonoPoolStorage(int capacity = MonoPoolStorage.kDefaultCapacity)
+    public MonoPoolStorage(int capacity = MonoPoolStorage.DefaultCapacity)
     {
         _blocks = new Block<TSelectedComponent>[capacity];
         _cellarCount = (int)(0.86 * capacity);
@@ -277,16 +277,16 @@ public class MonoPoolStorage<TSelectedComponent> : MonoPoolStorage<IComponent, T
 
 public static class MonoPoolStorage
 {
-    public const int kDefaultCapacity = 256;
+    public const int DefaultCapacity = 256;
 
-    public static IDataLayer<TComponent> CreateUnsafe<TComponent>(Type selectedComponentType, int capacity = kDefaultCapacity)
+    public static IDataLayer<TComponent> CreateUnsafe<TComponent>(Type selectedComponentType, int capacity = DefaultCapacity)
     {
         var type = typeof(MonoPoolStorage<,>).MakeGenericType(
             new Type[] {typeof(TComponent), selectedComponentType});
         return (IDataLayer<TComponent>)Activator.CreateInstance(type, new object[] {capacity})!;
     }
 
-    public static Func<Type, IDataLayer<TComponent>> MakeUnsafeCreator<TComponent>(int capacity = kDefaultCapacity)
+    public static Func<Type, IDataLayer<TComponent>> MakeUnsafeCreator<TComponent>(int capacity = DefaultCapacity)
         => selectedComponentType =>
             CreateUnsafe<TComponent>(selectedComponentType, capacity);
 }
