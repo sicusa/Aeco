@@ -1,58 +1,161 @@
 namespace Aeco.Concurrent;
 
-using System.Collections.Concurrent;
-
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Aeco.Local;
 
-public class ConcurrentCompositeLayer<TComponent, TSublayer>
-    : CompositeLayer<TComponent, TSublayer>, IConcurrentDataLayer<TComponent>
+public class ConcurrentCompositeLayer<TComponent, TSublayer> : CompositeLayer<TComponent, TSublayer>
     where TSublayer : ILayer<TComponent>
 {
-    public ReaderWriterLockSlim LockSlim { get; } = new();
-
-    private ConcurrentDictionary<Guid, IConcurrentEntity<TComponent>> _concurrentEntities = new();
+    private ReaderWriterLockSlim _lockSlim = new();
 
     public ConcurrentCompositeLayer(params TSublayer[] sublayers)
         : base(sublayers)
     {
     }
 
-    public virtual IReadOnlyConcurrentEntity<TComponent> GetReadOnlyConcurrentEntity<UComponent>()
-        where UComponent : TComponent
-        => GetReadOnlyConcurrentEntity(Singleton<UComponent>());
-
-    public virtual IReadOnlyConcurrentEntity<TComponent> GetReadOnlyConcurrentEntity(Guid id)
-        => GetConcurrentEntity(id);
-
-    public virtual IConcurrentEntity<TComponent> GetConcurrentEntity<UComponent>()
-        where UComponent : TComponent
-        => GetConcurrentEntity(Singleton<UComponent>());
-
-    public virtual IConcurrentEntity<TComponent> GetConcurrentEntity(Guid id)
-        => _concurrentEntities.AddOrUpdate(id, RawCreateConcurrentEntity, (id, e) => e);
-
-    private IConcurrentEntity<TComponent> RawCreateConcurrentEntity(Guid id)
+    public override bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
     {
-        var entity = new ConcurrentEntity<TComponent>(this, id);
-        EntityCreatedSubject.OnNext(id);
-        entity.Disposed.Subscribe(ReleaseEntity);
-        return entity;
-    }
-
-    private void ReleaseEntity(IEntity<TComponent> entity)
-    {
-        if (_concurrentEntities.TryRemove(new(entity.Id, (IConcurrentEntity<TComponent>)entity))) {
-            EntityDisposedSubject.OnNext(entity.Id);
+        _lockSlim.EnterReadLock();
+        try {
+            return base.TryGet(entityId, out component);
+        }
+        finally {
+            _lockSlim.ExitReadLock();
         }
     }
 
-    public override bool ContainsEntity(Guid id)
-        => base.ContainsEntity(id) || _concurrentEntities.ContainsKey(id);
-
-    public override void ClearEntities()
+    public override ref readonly UComponent Inspect<UComponent>(Guid entityId)
     {
-        base.ClearEntities();
-        _concurrentEntities.Clear();
+        _lockSlim.EnterReadLock();
+        try {
+            return ref base.Inspect<UComponent>(entityId);
+        }
+        finally {
+            _lockSlim.ExitReadLock();
+        }
+    }
+
+    public override bool Contains<UComponent>(Guid entityId)
+    {
+        _lockSlim.EnterReadLock();
+        try {
+            return base.Contains<UComponent>(entityId);
+        }
+        finally {
+            _lockSlim.ExitReadLock();
+        }
+    }
+
+    public override ref UComponent Require<UComponent>(Guid entityId)
+    {
+        _lockSlim.EnterReadLock();
+        try {
+            return ref base.Require<UComponent>(entityId);
+        }
+        finally {
+            _lockSlim.ExitReadLock();
+        }
+    }
+
+    public override ref UComponent Acquire<UComponent>(Guid entityId)
+    {
+        _lockSlim.EnterWriteLock();
+        try {
+            return ref base.Acquire<UComponent>(entityId);
+        }
+        finally {
+            _lockSlim.ExitWriteLock();
+        }
+    }
+
+    public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+    {
+        _lockSlim.EnterWriteLock();
+        try {
+            return ref base.Acquire<UComponent>(entityId, out exists);
+        }
+        finally {
+            _lockSlim.ExitWriteLock();
+        }
+    }
+
+    public override bool Remove<UComponent>(Guid entityId)
+    {
+        _lockSlim.EnterWriteLock();
+        try {
+            return base.Remove<UComponent>(entityId);
+        }
+        finally {
+            _lockSlim.ExitWriteLock();
+        }
+    }
+
+    public override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    {
+        _lockSlim.EnterWriteLock();
+        try {
+            return base.Remove(entityId, out component);
+        }
+        finally {
+            _lockSlim.ExitWriteLock();
+        }
+    }
+
+    public override void Set<UComponent>(Guid entityId, in UComponent component)
+    {
+        _lockSlim.EnterWriteLock();
+        try {
+            base.Set(entityId, component);
+        }
+        finally {
+            _lockSlim.ExitWriteLock();
+        }
+    }
+
+    public override void Clear(Guid entityId)
+    {
+        _lockSlim.EnterWriteLock();
+        try {
+            base.Clear(entityId);
+        }
+        finally {
+            _lockSlim.ExitWriteLock();
+        }
+    }
+
+    public override IEnumerable<object> GetAll(Guid entityId)
+    {
+        _lockSlim.EnterReadLock();
+        try {
+            return base.GetAll(entityId);
+        }
+        finally {
+            _lockSlim.ExitReadLock();
+        }
+    }
+
+    public override Guid Singleton<UComponent>()
+    {
+        _lockSlim.EnterReadLock();
+        try {
+            return base.Singleton<UComponent>();
+        }
+        finally {
+            _lockSlim.ExitReadLock();
+        }
+    }
+
+    public override IEnumerable<Guid> Query<UComponent>()
+    {
+        _lockSlim.EnterReadLock();
+        try {
+            return base.Query<UComponent>();
+        }
+        finally {
+            _lockSlim.ExitReadLock();
+        }
     }
 }
 

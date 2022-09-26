@@ -1,7 +1,5 @@
 namespace Aeco.Tests;
 
-using System.Diagnostics.CodeAnalysis;
-
 using Aeco.Local;
 using Aeco.Concurrent;
 
@@ -26,10 +24,11 @@ public static class ConcurrentTests
 
     public class TestConcurrentLayer : VirtualLayer, ITestLayer
     {
+        public Guid ChannelId { get; init; }
+
         public void Update(ConcurrentCompositeLayer world)
         {
-            var channel = world.GetConcurrentEntity<TestChannel>();
-            while (channel.Remove<EchoCmd>(out var cmd)) {
+            while (world.Remove<EchoCmd>(ChannelId, out var cmd)) {
                 Console.WriteLine("Received: " + cmd.Id);
             }
         }
@@ -37,14 +36,16 @@ public static class ConcurrentTests
 
     public static void Run()
     {
+        var channelId = Guid.NewGuid();
+
         var world = new ConcurrentCompositeLayer(
             new PooledChannelLayer(),
             new PolyHashStorage(),
-            new TestConcurrentLayer());
+            new TestConcurrentLayer { ChannelId = channelId } );
 
         var testLayers = world.GetSublayers<ITestLayer>().ToArray();
         
-        var channel = world.CreateConcurrentEntity();
+        var channel = world.GetEntity(channelId);
         channel.Acquire<TestChannel>();
 
         new Thread(() => {
@@ -67,7 +68,6 @@ public static class ConcurrentTests
             }
         }).Start();
 
-        var lockSlim = world.LockSlim;
         while (true) {
             foreach (var layer in testLayers) {
                 layer.Update(world);
