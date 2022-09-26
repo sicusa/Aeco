@@ -263,11 +263,7 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     }
 
     public override void Clear(Guid entityId)
-    {
-        if (RawRemove(entityId) && _singleton == entityId) {
-            ResetSingleton();
-        }
-    }
+        => RawRemove(entityId);
 }
 
 public class MonoPoolStorage<TSelectedComponent> : MonoPoolStorage<IComponent, TSelectedComponent>
