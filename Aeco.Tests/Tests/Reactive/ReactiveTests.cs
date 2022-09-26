@@ -37,17 +37,17 @@ public static class ReactiveTests
 
         var world = new ReactiveCompositeLayer(
             new PolyPoolStorage<IReactiveComponent>(),
-            new PolyHashStorage<IReactiveEvent>());
+            new PolyHashStorage<IReactiveEvent<Position>>(),
+            new PolyHashStorage<IReactiveEvent<Rotation>>());
 
         var entity = world.CreateEntity();
         entity.Acquire<Position>();
-        entity.Acquire<Rotation>();
 
-        Console.WriteLine(entity.Remove<Created<Position>>());
-        Console.WriteLine(entity.Remove<Modified<Position>>());
+        Console.WriteLine(entity.Remove<Created<Position>>()); // true
+        Console.WriteLine(entity.Remove<Modified<Position>>()); // false
 
         entity.Acquire<Position>().X = 10;
-        Console.WriteLine(entity.Remove<Created<Position>>());
-        Console.WriteLine(entity.Remove<Modified<Position>>());
+        Console.WriteLine(entity.Remove<Created<Position>>()); // false
+        Console.WriteLine(entity.Remove<Modified<Position>>()); // true
     }
 }

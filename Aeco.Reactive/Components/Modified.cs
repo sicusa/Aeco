@@ -1,6 +1,6 @@
 namespace Aeco.Reactive;
 
-public struct Modified<TComponent> : IReactiveEvent
+public struct Modified<TComponent> : IReactiveEvent<TComponent>
 {
     public void Dispose()
     {

@@ -2,8 +2,8 @@ namespace Aeco.Reactive;
 
 using System.Reactive.Subjects;
 
-public class ReactiveDynamicCompositeLayer<TSublayer> : ReactiveCompositeLayer<TSublayer>
-    where TSublayer : ILayer<IComponent>
+public class ReactiveDynamicCompositeLayer<TComponent, TSublayer> : ReactiveCompositeLayer<TComponent, TSublayer>
+    where TSublayer : ILayer<TComponent>
 {
     public IObservable<TSublayer> SublayerAdded => _sublayerAdded;
     public IObservable<TSublayer> SublayerRemoved => _sublayerRemoved;
@@ -11,8 +11,8 @@ public class ReactiveDynamicCompositeLayer<TSublayer> : ReactiveCompositeLayer<T
     private Subject<TSublayer> _sublayerAdded = new();
     private Subject<TSublayer> _sublayerRemoved = new();
 
-    public ReactiveDynamicCompositeLayer(params TSublayer[] sublayers)
-        : base(sublayers)
+    public ReactiveDynamicCompositeLayer(IDataLayer<IReactiveEvent> eventDataLayer, params TSublayer[] sublayers)
+        : base(eventDataLayer, sublayers)
     {
     }
 
@@ -45,10 +45,18 @@ public class ReactiveDynamicCompositeLayer<TSublayer> : ReactiveCompositeLayer<T
     }
 }
 
-public class ReactiveDynamicCompositeLayer : ReactiveDynamicCompositeLayer<ILayer<IComponent>>
+public class ReactiveDynamicCompositeLayer<TComponent> : ReactiveDynamicCompositeLayer<TComponent, ILayer<TComponent>>
 {
-    public ReactiveDynamicCompositeLayer(params ILayer<IComponent>[] sublayers)
-        : base(sublayers)
+    public ReactiveDynamicCompositeLayer(IDataLayer<IReactiveEvent> eventDataLayer, params ILayer<TComponent>[] sublayers)
+        : base(eventDataLayer, sublayers)
+    {
+    }
+}
+
+public class ReactiveDynamicCompositeLayer : ReactiveDynamicCompositeLayer<IComponent>
+{
+    public ReactiveDynamicCompositeLayer(IDataLayer<IReactiveEvent> eventDataLayer, params ILayer<IComponent>[] sublayers)
+        : base(eventDataLayer, sublayers)
     {
     }
 }
