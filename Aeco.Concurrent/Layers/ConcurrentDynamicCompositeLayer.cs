@@ -18,7 +18,7 @@ public class ConcurrentDynamicCompositeLayer<TComponent, TSublayer> : Concurrent
 
     public bool AddSublayer(TSublayer sublayer)
     {
-        if (!RawAddSublayer(sublayer)) {
+        if (!InternalAddSublayer(sublayer)) {
             return false;
         }
         _sublayerAdded.OnNext(sublayer);
@@ -30,7 +30,7 @@ public class ConcurrentDynamicCompositeLayer<TComponent, TSublayer> : Concurrent
 
     public bool RemoveSublayer(TSublayer sublayer)
     {
-        if (!RawRemoveSublayer(sublayer)) {
+        if (!InternalRemoveSublayer(sublayer)) {
             return false;
         }
         _sublayerRemoved.OnNext(sublayer);

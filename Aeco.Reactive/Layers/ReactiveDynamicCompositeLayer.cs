@@ -18,7 +18,7 @@ public class ReactiveDynamicCompositeLayer<TComponent, TSublayer> : ReactiveComp
 
     public bool AddSublayer(TSublayer sublayer)
     {
-        if (!RawAddSublayer(sublayer)) {
+        if (!InternalAddSublayer(sublayer)) {
             return false;
         }
         _sublayerAdded.OnNext(sublayer);
@@ -30,7 +30,7 @@ public class ReactiveDynamicCompositeLayer<TComponent, TSublayer> : ReactiveComp
 
     public bool RemoveSublayer(TSublayer sublayer)
     {
-        if (!RawRemoveSublayer(sublayer)) {
+        if (!InternalRemoveSublayer(sublayer)) {
             return false;
         }
         _sublayerRemoved.OnNext(sublayer);

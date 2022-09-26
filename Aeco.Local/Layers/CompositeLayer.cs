@@ -30,11 +30,15 @@ public class CompositeLayer<TComponent, TSublayer>
         ImmutableDictionary<IDataLayer<TComponent>, ImmutableHashSet<Type>>.Empty;
     private ImmutableDictionary<Type, IDataLayer<TComponent>> _dataLayerCache =
         ImmutableDictionary<Type, IDataLayer<TComponent>>.Empty;
+
+    public CompositeLayer()
+    {
+    }
     
     public CompositeLayer(params TSublayer[] sublayers)
     {
         foreach (var sublayer in sublayers) {
-            RawAddSublayer(sublayer);
+            InternalAddSublayer(sublayer);
         }
     }
 
@@ -63,7 +67,7 @@ public class CompositeLayer<TComponent, TSublayer>
         }
     }
 
-    protected bool RawAddSublayer(TSublayer sublayer)
+    protected bool InternalAddSublayer(TSublayer sublayer)
     {
         var changed = ImmutableInterlocked.Update(
             ref _sublayerSet, (sublayers, sublayer) => sublayers.Add(sublayer), sublayer);
@@ -81,7 +85,7 @@ public class CompositeLayer<TComponent, TSublayer>
         return true;
     }
 
-    protected bool RawRemoveSublayer(TSublayer sublayer)
+    protected bool InternalRemoveSublayer(TSublayer sublayer)
     {
         var changed = ImmutableInterlocked.Update(
             ref _sublayerSet, (sublayers, sublayer) => sublayers.Remove(sublayer), sublayer);
