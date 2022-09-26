@@ -7,21 +7,12 @@ using System.Collections.Generic;
 
 public class JsonEntitySerializer<TComponent> : IEntitySerializer<TComponent>
 {
-    private List<Type> _componentTypes;
     private DataContractJsonSerializer _serializer;
-
-    private static readonly Type kComponentType = typeof(TComponent);
-    private static readonly Type kDataContractType = typeof(DataContractAttribute);
 
     public JsonEntitySerializer()
     {
-        _componentTypes = AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(s => s.GetTypes())
-            .Where(t => kComponentType.IsAssignableFrom(t) && Attribute.IsDefined(t, kDataContractType))
-            .ToList();
-
         _serializer = new DataContractJsonSerializer(
-            typeof(IEnumerable<TComponent>), _componentTypes);
+            typeof(IEnumerable<TComponent>), SerializationUtils.KnownTypes);
     }
 
     public void Write(Stream stream, IDataLayer<TComponent> dataLayer, Guid entityId)
@@ -30,8 +21,8 @@ public class JsonEntitySerializer<TComponent> : IEntitySerializer<TComponent>
             stream,
             dataLayer.GetAll(entityId).Where(p => {
                 var type = p.GetType();
-                return kComponentType.IsAssignableFrom(type)
-                    && Attribute.IsDefined(type, kDataContractType);
+                return typeof(TComponent).IsAssignableFrom(type)
+                    && Attribute.IsDefined(type, typeof(DataContractAttribute));
             }).Select(p => (TComponent)p));
     }
 

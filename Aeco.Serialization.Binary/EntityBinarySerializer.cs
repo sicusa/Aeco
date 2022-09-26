@@ -6,21 +6,12 @@ using System.Collections.Generic;
 
 public class BinaryEntitySerializer<TComponent> : IEntitySerializer<TComponent>
 {
-    private List<Type> _componentTypes;
     private DataContractSerializer _serializer;
-
-    private static readonly Type kComponentType = typeof(TComponent);
-    private static readonly Type kDataContractType = typeof(DataContractAttribute);
 
     public BinaryEntitySerializer()
     {
-        _componentTypes = AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(s => s.GetTypes())
-            .Where(p => kComponentType.IsAssignableFrom(p) && Attribute.IsDefined(p, kDataContractType))
-            .ToList();
-
         _serializer = new DataContractSerializer(
-            typeof(IEnumerable<TComponent>), _componentTypes);
+            typeof(IEnumerable<TComponent>), SerializationUtils.KnownTypes);
     }
 
     public void Write(Stream stream, IDataLayer<TComponent> dataLayer, Guid entityId)
@@ -29,8 +20,8 @@ public class BinaryEntitySerializer<TComponent> : IEntitySerializer<TComponent>
             stream,
             dataLayer.GetAll(entityId).Where(p => {
                 var type = p.GetType();
-                return kComponentType.IsAssignableFrom(type)
-                    && Attribute.IsDefined(type, kDataContractType);
+                return typeof(TComponent).IsAssignableFrom(type)
+                    && Attribute.IsDefined(type, typeof(DataContractAttribute));
             }).Select(p => (TComponent)p));
     }
 

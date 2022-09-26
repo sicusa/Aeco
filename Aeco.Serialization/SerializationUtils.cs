@@ -2,6 +2,24 @@ namespace Aeco.Serialization;
 
 using System.Reflection;
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
+
+public static class SerializationUtils
+{
+    private static List<Type>? s_knownTypes;
+    
+    public static List<Type> KnownTypes {
+        get {
+            if (s_knownTypes == null) {
+                s_knownTypes = AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(s => s.GetTypes())
+                    .Where(t => Attribute.IsDefined(t, typeof(DataContractAttribute)))
+                    .ToList();
+            }
+            return s_knownTypes;
+        }
+    }
+}
 
 public static class SerializationUtils<TComponent>
 {
