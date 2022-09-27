@@ -86,6 +86,9 @@ public class SingletonStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
     public override bool Contains<UComponent>(Guid entityId)
         => _id == entityId;
 
+    public override bool Contains<UComponent>()
+        => _id != Guid.Empty;
+
     public override bool Remove<UComponent>(Guid entityId)
     {
         if (_id != entityId) {

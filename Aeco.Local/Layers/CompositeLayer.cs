@@ -235,6 +235,12 @@ public class CompositeLayer<TComponent, TSublayer>
         return dataLayer != null ? dataLayer.Contains<UComponent>(entityId) : false;
     }
 
+    public override bool Contains<UComponent>()
+    {
+        var dataLayer = FindTerminalDataLayer<UComponent>();
+        return dataLayer != null ? dataLayer.Contains<UComponent>() : false;
+    }
+
     public override void Set<UComponent>(Guid entityId, in UComponent component)
         => RequireTerminalDataLayer<UComponent>().Set(entityId, component);
 

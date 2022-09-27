@@ -91,6 +91,9 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
         }
     }
 
+    public override bool Contains<UComponent>()
+        => ChannelDataLayer.Contains<Channel<UComponent>>();
+
     public override Guid Singleton<UComponent>()
     {
         var id = ChannelDataLayer.Singleton<Channel<UComponent>>();

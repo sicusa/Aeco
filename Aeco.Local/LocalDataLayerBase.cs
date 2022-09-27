@@ -30,6 +30,8 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
         => ref Require<UComponent>(entityId);
     public abstract bool Contains<UComponent>(Guid entityId)
         where UComponent : TComponent;
+    public abstract bool Contains<UComponent>()
+        where UComponent : TComponent;
 
     public abstract ref UComponent Require<UComponent>(Guid entityId)
         where UComponent : TComponent;

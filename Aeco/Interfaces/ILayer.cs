@@ -38,6 +38,8 @@ public interface IReadOnlyDataLayer<in TComponent> : IReadOnlyLayer<TComponent>
         where UComponent : TComponent;
     bool Contains<UComponent>(Guid entityId)
         where UComponent : TComponent;
+    bool Contains<UComponent>()
+        where UComponent : TComponent;
 
     Guid Singleton<UComponent>()
         where UComponent : TComponent;

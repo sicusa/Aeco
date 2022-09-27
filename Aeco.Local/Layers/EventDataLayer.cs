@@ -31,6 +31,9 @@ public class EventDataLayer<TComponent, TSelectedComponent>
     public override bool Contains<UComponent>(Guid entityId)
         => false;
 
+    public override bool Contains<UComponent>()
+        => false;
+
     public override bool Remove<UComponent>(Guid entityId)
         => false;
 

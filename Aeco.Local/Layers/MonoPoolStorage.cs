@@ -154,6 +154,9 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     public override bool Contains<UComponent>(Guid entityId)
         => _entityIds.Contains(entityId);
 
+    public override bool Contains<UComponent>()
+        => _singleton != Guid.Empty;
+
     private void ResetSingleton()
     {
         _singleton = _entityIds.Count != 0 ? _entityIds.First() : Guid.Empty;
