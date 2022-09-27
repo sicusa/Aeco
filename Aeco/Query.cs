@@ -1,8 +1,8 @@
 namespace Aeco;
 
-public interface IQuery<out TBase>
+public interface IQuery<out TComponent>
 {
-    IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer);
+    IEnumerable<Guid> Query(IDataLayer<TComponent> dataLayer);
 }
 
 public class GQuery<TBase, T1, T2> : IQuery<TBase>
