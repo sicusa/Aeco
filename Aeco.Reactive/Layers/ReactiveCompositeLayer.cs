@@ -23,24 +23,20 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
     public override ref UComponent Acquire<UComponent>(Guid entityId)
     {
         ref UComponent comp = ref base.Acquire<UComponent>(entityId, out _existsTemp);
-        if (_existsTemp) {
-            EventDataLayer.Acquire<Modified<UComponent>>(entityId);
-        }
-        else {
+        if (!_existsTemp) {
             EventDataLayer.Acquire<Created<UComponent>>(entityId);
         }
+        EventDataLayer.Acquire<Modified<UComponent>>(entityId);
         return ref comp;
     }
 
     public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
     {
         ref UComponent comp = ref base.Acquire<UComponent>(entityId, out exists);
-        if (exists) {
-            EventDataLayer.Acquire<Modified<UComponent>>(entityId);
-        }
-        else {
+        if (!exists) {
             EventDataLayer.Acquire<Created<UComponent>>(entityId);
         }
+        EventDataLayer.Acquire<Modified<UComponent>>(entityId);
         return ref comp;
     }
 
