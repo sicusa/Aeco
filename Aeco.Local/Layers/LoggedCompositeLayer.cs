@@ -34,7 +34,7 @@ public class LoggedCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCompo
         var dataLayer = FindTerminalDataLayer<UComponent>();
         bool success;
         if (dataLayer == null) {
-            component = default(UComponent);
+            component = default;
             success = false;
         }
         else {
@@ -109,7 +109,7 @@ public class LoggedCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCompo
         var dataLayer = FindTerminalDataLayer<UComponent>();
         bool success;
         if (dataLayer == null) {
-            component = default(UComponent);
+            component = default;
             success = false;
         }
         else {

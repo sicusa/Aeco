@@ -85,7 +85,7 @@ public class MonoHashStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     public override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
     {
         if (!_entityIds.Remove(entityId)) {
-            component = default(UComponent);
+            component = default;
             return false;
         }
 

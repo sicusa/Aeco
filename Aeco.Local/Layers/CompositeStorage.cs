@@ -39,7 +39,7 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
     {
         var substorage = FindSubstorage<UComponent>();
         if (substorage == null) {
-            component = default(UComponent);
+            component = default;
             return false;
         }
         return substorage.TryGet<UComponent>(entityId, out component);
@@ -82,7 +82,7 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
     {
         var substorage = FindSubstorage<UComponent>();
         if (substorage == null) {
-            component = default(UComponent);
+            component = default;
             return false;
         }
         return substorage.Remove<UComponent>(entityId, out component);

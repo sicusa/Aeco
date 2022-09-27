@@ -56,7 +56,7 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
         ref var block = ref convertedBlocks[index];
 
         if (block.Id == Guid.Empty) {
-            component = default(UComponent);
+            component = default;
             return false;
         }
 
@@ -67,7 +67,7 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
             }
             index = block.NextBlockIndex;
             if (index == -1) {
-                component = default(UComponent);
+                component = default;
                 return false;
             }
             block = ref convertedBlocks[index];
@@ -201,7 +201,7 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
         ref var block = ref convertedBlocks[index];
 
         if (block.Id == Guid.Empty) {
-            component = default(UComponent);
+            component = default;
             return false;
         }
 
@@ -223,7 +223,7 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
             prevIndex = index;
             index = block.NextBlockIndex;
             if (index == -1) {
-                component = default(UComponent);
+                component = default;
                 return false;
             }
             block = ref convertedBlocks[index];

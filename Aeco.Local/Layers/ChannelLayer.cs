@@ -49,7 +49,7 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
                 && channel.Messages.TryPeek(out var messageId)) {
             return MessageDataLayer.TryGet<UComponent>(messageId, out component);
         }
-        component = default(UComponent);
+        component = default;
         return false;
     }
 
@@ -127,7 +127,7 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
                 && channel.Messages.TryDequeue(out var messageId)) {
             return MessageDataLayer.Remove<UComponent>(messageId, out component);
         }
-        component = default(UComponent);
+        component = default;
         return false;
     }
 

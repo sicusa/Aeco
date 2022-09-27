@@ -124,7 +124,7 @@ public class CompositeLayer<TComponent, TSublayer>
                 return result;
             }
         }
-        return default(T);
+        return default;
     }
 
     public virtual T? GetSublayerRecursively<T>()
@@ -140,7 +140,7 @@ public class CompositeLayer<TComponent, TSublayer>
                 }
             }
         }
-        return default(T);
+        return default;
     }
 
     public virtual IEnumerable<T> GetSublayers<T>()
@@ -202,7 +202,7 @@ public class CompositeLayer<TComponent, TSublayer>
     {
         var dataLayer = FindTerminalDataLayer<UComponent>();
         if (dataLayer == null) {
-            component = default(UComponent);
+            component = default;
             return false;
         }
         return dataLayer.TryGet<UComponent>(entityId, out component);
@@ -270,7 +270,7 @@ public class CompositeLayer<TComponent, TSublayer>
     {
         var dataLayer = FindTerminalDataLayer<UComponent>();
         if (dataLayer == null) {
-            component = default(UComponent);
+            component = default;
             return false;
         }
         return dataLayer.Remove<UComponent>(entityId, out component);
