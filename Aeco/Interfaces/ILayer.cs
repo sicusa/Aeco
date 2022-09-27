@@ -94,6 +94,11 @@ public interface ICompositeLayer<in TComponent, out TSublayer>
 {
 }
 
+public interface ICompositeLayer<in TComponent>
+    : ICompositeLayer<TComponent, ILayer<TComponent>>
+{
+}
+
 public interface IReadOnlyCompositeDataLayer<in TComponent, out TSublayer>
     : IReadOnlyCompositeLayer<TComponent, TSublayer>, IReadOnlyDataLayer<TComponent>
     where TSublayer : IReadOnlyLayer<TComponent>
