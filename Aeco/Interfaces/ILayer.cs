@@ -53,15 +53,23 @@ public interface IDataLayer<in TComponent>
 
     ref UComponent Require<UComponent>(Guid entityId)
         where UComponent : TComponent;
+    ref UComponent Require<UComponent>()
+        where UComponent : TComponent;
     ref UComponent Acquire<UComponent>(Guid entityId)
         where UComponent : TComponent, new();
     ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
         where UComponent : TComponent, new();
     bool Remove<UComponent>(Guid entityId)
         where UComponent : TComponent;
+    bool Remove<UComponent>()
+        where UComponent : TComponent;
     bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent;
+    bool Remove<UComponent>([MaybeNullWhen(false)] out UComponent component)
+        where UComponent : TComponent;
     void Set<UComponent>(Guid entityId, in UComponent component)
+        where UComponent : TComponent;
+    void Set<UComponent>(in UComponent component)
         where UComponent : TComponent;
     IEnumerable<object> GetAll(Guid entityId);
     void Clear(Guid entityId);
