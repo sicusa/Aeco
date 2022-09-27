@@ -21,6 +21,16 @@ public static class ReactiveTests
         }
     }
 
+    public struct Rotation : IReactiveComponent
+    {
+        public int Angle;
+
+        public void Dispose()
+        {
+            Angle = 0;
+        }
+    }
+
     public static void Run()
     {
         Console.WriteLine("== Reactive ==");
@@ -38,10 +48,21 @@ public static class ReactiveTests
         entity.Acquire<Position>();
 
         Console.WriteLine(entity.Remove<Created<Position>>()); // true
-        Console.WriteLine(entity.Remove<Modified<Position>>()); // false
+        Console.WriteLine(entity.Remove<Modified<Position>>()); // true
 
         entity.Acquire<Position>().X = 10;
         Console.WriteLine(entity.Remove<Created<Position>>()); // false
         Console.WriteLine(entity.Remove<Modified<Position>>()); // true
+
+        entity.Acquire<Rotation>().Angle = 1;
+
+        var another = world.CreateEntity();
+        another.Acquire<Position>();
+        another.Acquire<Rotation>();
+
+        Group<Position, Rotation> group = new();
+        foreach (var id in group.Query(world)) {
+            Console.WriteLine(id);
+        }
     }
 }
