@@ -26,6 +26,7 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
         if (!_existsTemp) {
             EventDataLayer.Acquire<Created<UComponent>>(entityId);
             EventDataLayer.Acquire<AnyCreated<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+            EventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
         }
         EventDataLayer.Acquire<Modified<UComponent>>(entityId);
         EventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
@@ -38,6 +39,7 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
         if (!exists) {
             EventDataLayer.Acquire<Created<UComponent>>(entityId);
             EventDataLayer.Acquire<AnyCreated<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+            EventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
         }
         EventDataLayer.Acquire<Modified<UComponent>>(entityId);
         EventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
@@ -64,6 +66,7 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
         if (base.Remove<UComponent>(entityId)) {
             EventDataLayer.Acquire<Removed<UComponent>>(entityId);
             EventDataLayer.Acquire<AnyRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+            EventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
             return true;
         }
         return false;
@@ -74,6 +77,7 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
         if (base.Remove<UComponent>(entityId, out component)) {
             EventDataLayer.Acquire<Removed<UComponent>>(entityId);
             EventDataLayer.Acquire<AnyRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+            EventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
             return true;
         }
         return false;
