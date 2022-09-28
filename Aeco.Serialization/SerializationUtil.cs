@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 
-public static class SerializationUtils
+public static class SerializationUtil
 {
     private static List<Type>? s_knownTypes;
     
@@ -21,7 +21,7 @@ public static class SerializationUtils
     }
 }
 
-public static class SerializationUtils<TComponent>
+public static class SerializationUtil<TComponent>
 {
     private static volatile MethodInfo? s_setMethodInfo;
     private static ImmutableDictionary<Type, MethodInfo> s_genericMethods =

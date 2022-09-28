@@ -11,7 +11,7 @@ public class BinaryEntitySerializer<TComponent> : IEntitySerializer<TComponent>
     public BinaryEntitySerializer()
     {
         _serializer = new DataContractSerializer(
-            typeof(IEnumerable<TComponent>), SerializationUtils.KnownTypes);
+            typeof(IEnumerable<TComponent>), SerializationUtil.KnownTypes);
     }
 
     public void Write(Stream stream, IDataLayer<TComponent> dataLayer, Guid entityId)
@@ -30,7 +30,7 @@ public class BinaryEntitySerializer<TComponent> : IEntitySerializer<TComponent>
         var components = (TComponent[]?)_serializer.ReadObject(stream);
         if (components == null) { return false; }
 
-        SerializationUtils<TComponent>.Set(dataLayer, entityId, components);
+        SerializationUtil<TComponent>.Set(dataLayer, entityId, components);
         return true;
     }
 }
