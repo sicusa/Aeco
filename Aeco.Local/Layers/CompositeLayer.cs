@@ -251,8 +251,7 @@ public class CompositeLayer<TComponent, TSublayer>
         => RequireTerminalDataLayer<UComponent>().Set(entityId, component);
 
     public override IEnumerable<object> GetAll(Guid entityId)
-        => Sublayers.Where(s => s is IDataLayer<TComponent>)
-            .SelectMany(s => ((IDataLayer<TComponent>)s).GetAll(entityId));
+        => _dataLayers.Keys.SelectMany(s => s.GetAll(entityId));
 
     public override Guid Singleton<UComponent>()
     {
