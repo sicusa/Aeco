@@ -34,7 +34,7 @@ public static class EntityUtil
 
                     while (true) {
                         if (!e.MoveNext()) { yield break; }
-                        compare = e.Current.CompareTo(prevE);
+                        compare = e.Current.CompareTo(prevE.Current);
                         if (compare >= 0) { break; }
                     }
                     if (compare != 0) { hit = false; }
