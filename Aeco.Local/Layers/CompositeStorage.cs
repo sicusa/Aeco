@@ -130,6 +130,8 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
 
     public override void Clear()
     {
-        _substorages.Clear();
+        foreach (var sub in _substorages.Values) {
+            sub.Clear();
+        }
     }
 }
