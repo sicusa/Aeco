@@ -119,7 +119,7 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
     }
 
     public override IEnumerable<Guid> Query()
-        => EntityUtil.Intersect(_substorages.Values.Select(s => s.Query()), _substorages.Count);
+        => EntityUtil.Union(_substorages.Values.Select(s => s.Query()), _substorages.Count);
 
     public override IEnumerable<object> GetAll(Guid entityId)
         => _substorages.Values.SelectMany(sub => sub.GetAll(entityId));

@@ -49,4 +49,47 @@ public static class EntityUtil
             pool.Return(enums);
         }
     }
+
+    public static IEnumerable<Guid> Union(IEnumerable<IEnumerable<Guid>> orderedEnums, int count)
+        => count == 1 ? orderedEnums.First() : RawUnion(orderedEnums, count);
+
+    private static IEnumerable<Guid> RawUnion(IEnumerable<IEnumerable<Guid>> orderedEnums, int count)
+    {
+        var pool = ArrayPool<IEnumerator<Guid>>.Shared;
+        var enums = pool.Rent(count);
+
+        try {
+            int i = 0;
+            foreach (var orderedEnum in orderedEnums) {
+                if (i >= count) { break; }
+                enums[i] = orderedEnum.GetEnumerator();
+                ++i;
+            }
+
+            var headEnum = enums[0];
+            int compare;
+
+            while (true) {
+                if (!headEnum.MoveNext()) { yield break; }
+                yield return headEnum.Current;
+
+                for (i = 1; i < count; ++i) {
+                    var prevE = enums[i - 1];
+                    var e = enums[i];
+
+                    while (true) {
+                        if (!e.MoveNext()) { yield break; }
+                        compare = e.Current.CompareTo(prevE.Current);
+                        if (compare >= 0) { break; }
+                    }
+                    if (compare != 0) {
+                        yield return e.Current;
+                    }
+                }
+            }
+        }
+        finally {
+            pool.Return(enums);
+        }
+    }
 }
