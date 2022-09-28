@@ -28,6 +28,9 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
     public virtual ref readonly UComponent Inspect<UComponent>(Guid entityId)
         where UComponent : TComponent
         => ref Require<UComponent>(entityId);
+    public virtual ref readonly UComponent Inspect<UComponent>()
+        where UComponent : TComponent
+        => ref Inspect<UComponent>(Singleton<UComponent>());
     public abstract bool Contains<UComponent>(Guid entityId)
         where UComponent : TComponent;
     public abstract bool Contains<UComponent>()

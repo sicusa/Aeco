@@ -36,6 +36,8 @@ public interface IReadOnlyDataLayer<in TComponent> : IReadOnlyLayer<TComponent>
         where UComponent : TComponent;
     ref readonly UComponent Inspect<UComponent>(Guid entityId)
         where UComponent : TComponent;
+    ref readonly UComponent Inspect<UComponent>()
+        where UComponent : TComponent;
     bool Contains<UComponent>(Guid entityId)
         where UComponent : TComponent;
     bool Contains<UComponent>()
