@@ -81,31 +81,19 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
     }
 
     public override bool Contains<UComponent>(Guid entityId)
-    {
-        try {
-            ref var channel = ref ChannelDataLayer.Require<Channel<UComponent>>(entityId);
-            return channel.Messages.Count != 0;
-        }
-        catch {
-            return false;
-        }
-    }
+        => ChannelDataLayer.Contains<Channel<UComponent>>(entityId);
 
     public override bool Contains<UComponent>()
         => ChannelDataLayer.Contains<Channel<UComponent>>();
 
     public override Guid Singleton<UComponent>()
-    {
-        var id = ChannelDataLayer.Singleton<Channel<UComponent>>();
-        if (ChannelDataLayer.Require<Channel<UComponent>>(id).Messages.Count == 0) {
-            throw new KeyNotFoundException("Singleton not found");
-        }
-        return id;
-    }
+        => ChannelDataLayer.Singleton<Channel<UComponent>>();
 
     public override IEnumerable<Guid> Query<UComponent>()
-        => ChannelDataLayer.Query<Channel<UComponent>>()
-            .Where(id => ChannelDataLayer.Require<Channel<UComponent>>(id).Messages.Count != 0);
+        => ChannelDataLayer.Query<Channel<UComponent>>();
+
+    public override IEnumerable<Guid> Query()
+        => ChannelDataLayer.Query();
 
     public override void Set<UComponent>(Guid entityId, in UComponent component)
     {
@@ -119,6 +107,9 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
     {
         if (ChannelDataLayer.TryGet<Channel<UComponent>>(entityId, out var channel)
                 && channel.Messages.TryDequeue(out var messageId)) {
+            if (channel.Messages.Count == 0) {
+                ChannelDataLayer.Remove<Channel<UComponent>>(entityId);
+            }
             return MessageDataLayer.Remove<UComponent>(messageId);
         }
         return false;
@@ -128,23 +119,13 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
     {
         if (ChannelDataLayer.TryGet<Channel<UComponent>>(entityId, out var channel)
                 && channel.Messages.TryDequeue(out var messageId)) {
+            if (channel.Messages.Count == 0) {
+                ChannelDataLayer.Remove<Channel<UComponent>>(entityId);
+            }
             return MessageDataLayer.Remove<UComponent>(messageId, out component);
         }
         component = default;
         return false;
-    }
-
-    public virtual bool RemoveChannel<UComponent>(Guid entityId)
-        where UComponent : IComponent
-    {
-        if (!ChannelDataLayer.TryGet<Channel<UComponent>>(entityId, out var channel)) {
-            return false;
-        }
-        foreach (var messageId in channel.Messages) {
-            MessageDataLayer.Clear(messageId);
-        }
-        ChannelDataLayer.Remove<Channel<UComponent>>(entityId);
-        return true;
     }
 
     public override IEnumerable<object> GetAll(Guid entityId)
@@ -163,8 +144,8 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
             foreach (var messageId in channel.Messages) {
                 MessageDataLayer.Clear(messageId);
             }
-            channel.Messages.Clear();
         }
+        ChannelDataLayer.Clear(entityId);
     }
 
     public override void Clear()
