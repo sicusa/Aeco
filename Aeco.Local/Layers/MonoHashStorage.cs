@@ -142,6 +142,7 @@ public class MonoHashStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     {
         _dict.Clear();
         _entityIds.Clear();
+        _singleton = Guid.Empty;
     }
 }
 
