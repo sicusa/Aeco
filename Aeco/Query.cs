@@ -24,9 +24,9 @@ public class GenericQuery<TBase, T1, T2> : IQuery<TBase>
             hit = true;
 
             while (true) {
+                if (!e2.MoveNext()) { yield break; }
                 compare = e2.Current.CompareTo(e1.Current);
                 if (compare >= 0) { break; }
-                if (!e2.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
@@ -56,16 +56,16 @@ public class GenericQuery<TBase, T1, T2, T3> : IQuery<TBase>
             hit = true;
 
             while (true) {
+                if (!e2.MoveNext()) { yield break; }
                 compare = e2.Current.CompareTo(e1.Current);
                 if (compare >= 0) { break; }
-                if (!e2.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e3.MoveNext()) { yield break; }
                 compare = e3.Current.CompareTo(e2.Current);
                 if (compare >= 0) { break; }
-                if (!e3.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
@@ -97,23 +97,23 @@ public class GenericQuery<TBase, T1, T2, T3, T4> : IQuery<TBase>
             hit = true;
 
             while (true) {
+                if (!e2.MoveNext()) { yield break; }
                 compare = e2.Current.CompareTo(e1.Current);
                 if (compare >= 0) { break; }
-                if (!e2.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e3.MoveNext()) { yield break; }
                 compare = e3.Current.CompareTo(e2.Current);
                 if (compare >= 0) { break; }
-                if (!e3.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e4.MoveNext()) { yield break; }
                 compare = e4.Current.CompareTo(e3.Current);
                 if (compare >= 0) { break; }
-                if (!e4.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
@@ -147,30 +147,30 @@ public class GenericQuery<TBase, T1, T2, T3, T4, T5> : IQuery<TBase>
             hit = true;
 
             while (true) {
+                if (!e2.MoveNext()) { yield break; }
                 compare = e2.Current.CompareTo(e1.Current);
                 if (compare >= 0) { break; }
-                if (!e2.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e3.MoveNext()) { yield break; }
                 compare = e3.Current.CompareTo(e2.Current);
                 if (compare >= 0) { break; }
-                if (!e3.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e4.MoveNext()) { yield break; }
                 compare = e4.Current.CompareTo(e3.Current);
                 if (compare >= 0) { break; }
-                if (!e4.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e5.MoveNext()) { yield break; }
                 compare = e5.Current.CompareTo(e4.Current);
                 if (compare >= 0) { break; }
-                if (!e5.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
@@ -206,37 +206,37 @@ public class GenericQuery<TBase, T1, T2, T3, T4, T5, T6> : IQuery<TBase>
             hit = true;
 
             while (true) {
+                if (!e2.MoveNext()) { yield break; }
                 compare = e2.Current.CompareTo(e1.Current);
                 if (compare >= 0) { break; }
-                if (!e2.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e3.MoveNext()) { yield break; }
                 compare = e3.Current.CompareTo(e2.Current);
                 if (compare >= 0) { break; }
-                if (!e3.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e4.MoveNext()) { yield break; }
                 compare = e4.Current.CompareTo(e3.Current);
                 if (compare >= 0) { break; }
-                if (!e4.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e5.MoveNext()) { yield break; }
                 compare = e5.Current.CompareTo(e4.Current);
                 if (compare >= 0) { break; }
-                if (!e5.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e6.MoveNext()) { yield break; }
                 compare = e6.Current.CompareTo(e5.Current);
                 if (compare >= 0) { break; }
-                if (!e6.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
@@ -274,44 +274,44 @@ public class GenericQuery<TBase, T1, T2, T3, T4, T5, T6, T7> : IQuery<TBase>
             hit = true;
 
             while (true) {
+                if (!e2.MoveNext()) { yield break; }
                 compare = e2.Current.CompareTo(e1.Current);
                 if (compare >= 0) { break; }
-                if (!e2.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e3.MoveNext()) { yield break; }
                 compare = e3.Current.CompareTo(e2.Current);
                 if (compare >= 0) { break; }
-                if (!e3.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e4.MoveNext()) { yield break; }
                 compare = e4.Current.CompareTo(e3.Current);
                 if (compare >= 0) { break; }
-                if (!e4.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e5.MoveNext()) { yield break; }
                 compare = e5.Current.CompareTo(e4.Current);
                 if (compare >= 0) { break; }
-                if (!e5.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e6.MoveNext()) { yield break; }
                 compare = e6.Current.CompareTo(e5.Current);
                 if (compare >= 0) { break; }
-                if (!e6.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e7.MoveNext()) { yield break; }
                 compare = e7.Current.CompareTo(e6.Current);
                 if (compare >= 0) { break; }
-                if (!e7.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
@@ -351,51 +351,51 @@ public class GenericQuery<TBase, T1, T2, T3, T4, T5, T6, T7, T8> : IQuery<TBase>
             hit = true;
 
             while (true) {
+                if (!e2.MoveNext()) { yield break; }
                 compare = e2.Current.CompareTo(e1.Current);
                 if (compare >= 0) { break; }
-                if (!e2.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e3.MoveNext()) { yield break; }
                 compare = e3.Current.CompareTo(e2.Current);
                 if (compare >= 0) { break; }
-                if (!e3.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e4.MoveNext()) { yield break; }
                 compare = e4.Current.CompareTo(e3.Current);
                 if (compare >= 0) { break; }
-                if (!e4.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e5.MoveNext()) { yield break; }
                 compare = e5.Current.CompareTo(e4.Current);
                 if (compare >= 0) { break; }
-                if (!e5.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e6.MoveNext()) { yield break; }
                 compare = e6.Current.CompareTo(e5.Current);
                 if (compare >= 0) { break; }
-                if (!e6.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e7.MoveNext()) { yield break; }
                 compare = e7.Current.CompareTo(e6.Current);
                 if (compare >= 0) { break; }
-                if (!e7.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
             while (true) {
+                if (!e8.MoveNext()) { yield break; }
                 compare = e8.Current.CompareTo(e7.Current);
                 if (compare >= 0) { break; }
-                if (!e8.MoveNext()) { yield break; }
             }
             if (compare != 0) { hit = false; }
 
