@@ -211,6 +211,12 @@ public class CompositeLayer<TComponent, TSublayer>
         return dataLayer.TryGet<UComponent>(entityId, out component);
     }
 
+    public override ref readonly UComponent Inspect<UComponent>(Guid entityId)
+    {
+        var dataLayer = RequireTerminalDataLayer<UComponent>();
+        return ref dataLayer.Inspect<UComponent>(entityId);
+    }
+
     public override ref UComponent Require<UComponent>(Guid entityId)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();

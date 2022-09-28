@@ -20,6 +20,9 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
         EventDataLayer = eventDataLayer;
     }
 
+    public override ref readonly UComponent Inspect<UComponent>(Guid entityId)
+        => ref base.Require<UComponent>(entityId);
+
     public override ref UComponent Acquire<UComponent>(Guid entityId)
     {
         ref UComponent comp = ref base.Acquire<UComponent>(entityId, out _existsTemp);
@@ -81,6 +84,12 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
             return true;
         }
         return false;
+    }
+
+    public override void Clear(Guid entityId)
+    {
+        base.Clear(entityId);
+        // TODO: Clear
     }
 }
 
