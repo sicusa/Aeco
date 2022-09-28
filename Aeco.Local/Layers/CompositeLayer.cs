@@ -272,6 +272,9 @@ public class CompositeLayer<TComponent, TSublayer>
         return dataLayer.Query<UComponent>();
     }
 
+    public override IEnumerable<Guid> Query()
+        => EntityUtil.Intersect(_dataLayers.Keys.Select(l => l.Query()), _dataLayers.Count);
+
     public override bool Remove<UComponent>(Guid entityId)
     {
         var dataLayer = FindTerminalDataLayer<UComponent>();

@@ -65,4 +65,5 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
         where UComponent : TComponent;
     public abstract IEnumerable<Guid> Query<UComponent>()
         where UComponent : TComponent;
+    public abstract IEnumerable<Guid> Query();
 }

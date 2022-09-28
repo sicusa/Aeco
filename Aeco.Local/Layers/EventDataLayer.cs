@@ -57,6 +57,9 @@ public class EventDataLayer<TComponent, TSelectedComponent>
 
     public override IEnumerable<Guid> Query<UComponent>()
         => Enumerable.Empty<Guid>();
+        
+    public override IEnumerable<Guid> Query()
+        => Enumerable.Empty<Guid>();
 
     public override void Clear(Guid entityId)
     {

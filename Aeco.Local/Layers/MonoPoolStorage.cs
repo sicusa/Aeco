@@ -246,6 +246,9 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     public override IEnumerable<Guid> Query<UComponent>()
         => _entityIds;
 
+    public override IEnumerable<Guid> Query()
+        => _entityIds;
+
     public override IEnumerable<object> GetAll(Guid entityId)
     {
         int index = GetIndex(entityId);

@@ -126,6 +126,9 @@ public class MonoHashStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     public override IEnumerable<Guid> Query<UComponent>()
         => _entityIds;
 
+    public override IEnumerable<Guid> Query()
+        => _entityIds;
+
     public override IEnumerable<object> GetAll(Guid entityId)
     {
         ref var comp = ref CollectionsMarshal.GetValueRefOrNullRef(_dict, entityId);

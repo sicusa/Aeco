@@ -1,6 +1,7 @@
 namespace Aeco.Local;
 
 using System;
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 
 public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBase<TComponent, TSelectedComponent>
@@ -117,6 +118,9 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
         }
         return substorage.Query<UComponent>();
     }
+
+    public override IEnumerable<Guid> Query()
+        => EntityUtil.Intersect(_substorages.Values.Select(s => s.Query()), _substorages.Count);
 
     public override IEnumerable<object> GetAll(Guid entityId)
         => _substorages.Values.SelectMany(sub => sub.GetAll(entityId));

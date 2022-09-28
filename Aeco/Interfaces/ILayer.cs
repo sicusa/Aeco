@@ -45,6 +45,7 @@ public interface IReadOnlyDataLayer<in TComponent> : IReadOnlyLayer<TComponent>
         where UComponent : TComponent;
     IEnumerable<Guid> Query<UComponent>()
         where UComponent : TComponent;
+    IEnumerable<Guid> Query();
 }
 
 public interface IDataLayer<in TComponent>
@@ -57,10 +58,12 @@ public interface IDataLayer<in TComponent>
         where UComponent : TComponent;
     ref UComponent Require<UComponent>()
         where UComponent : TComponent;
+
     ref UComponent Acquire<UComponent>(Guid entityId)
         where UComponent : TComponent, new();
     ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
         where UComponent : TComponent, new();
+
     bool Remove<UComponent>(Guid entityId)
         where UComponent : TComponent;
     bool Remove<UComponent>()
@@ -69,10 +72,12 @@ public interface IDataLayer<in TComponent>
         where UComponent : TComponent;
     bool Remove<UComponent>([MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent;
+
     void Set<UComponent>(Guid entityId, in UComponent component)
         where UComponent : TComponent;
     void Set<UComponent>(in UComponent component)
         where UComponent : TComponent;
+
     IEnumerable<object> GetAll(Guid entityId);
     void Clear(Guid entityId);
     void Clear();

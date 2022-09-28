@@ -141,6 +141,9 @@ public class SingletonStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
     }
 
     public override IEnumerable<Guid> Query<UComponent>()
+        => Query();
+
+    public override IEnumerable<Guid> Query()
         => _id == Guid.Empty ? Enumerable.Empty<Guid>() : Enumerable.Repeat<Guid>(_id, 1);
 
     public override IEnumerable<object> GetAll(Guid entityId)
