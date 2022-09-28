@@ -272,12 +272,11 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
 
     public override void Clear()
     {
-        _blocks = new Block<TSelectedComponent>[_blocks.Length];
-        if (default(TSelectedComponent) == null) {
-            for (int i = 0; i != _blocks.Length; ++i) {
-                _blocks[i].Data = new TSelectedComponent();
-            }
+        for (int i = 0; i < _blocks.Length; ++i) {
+            _blocks[i].Id = Guid.Empty;
         }
+        _entityIds.Clear();
+        _singleton = Guid.Empty;
     }
 }
 
