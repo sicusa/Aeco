@@ -89,11 +89,9 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     {
         ref TStoredComponent? value = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, entityId, out _existsTemp);
         value = component;
-
         if (_singleton == Guid.Empty) {
             _singleton = entityId;
         }
-
         return ref value!;
     }
 
