@@ -57,11 +57,12 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
         return ref comp;
     }
 
-    public override void Set<UComponent>(Guid entityId, in UComponent component)
+    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
     {
-        base.Set(entityId, component);
+        ref UComponent comp = ref base.Set(entityId, component);
         EventDataLayer.Acquire<Modified<UComponent>>(entityId);
         EventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+        return ref comp;
     }
 
     public override bool Remove<UComponent>(Guid entityId)

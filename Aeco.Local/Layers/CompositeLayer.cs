@@ -247,8 +247,8 @@ public class CompositeLayer<TComponent, TSublayer>
         return dataLayer != null ? dataLayer.Contains<UComponent>() : false;
     }
 
-    public override void Set<UComponent>(Guid entityId, in UComponent component)
-        => RequireTerminalDataLayer<UComponent>().Set(entityId, component);
+    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
+        => ref RequireTerminalDataLayer<UComponent>().Set(entityId, component);
 
     public override IEnumerable<object> GetAll(Guid entityId)
         => _dataLayers.Keys.SelectMany(s => s.GetAll(entityId));

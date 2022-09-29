@@ -2,6 +2,7 @@ namespace Aeco.Local;
 
 using System.Reactive.Subjects;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 public class EventDataLayer<TComponent, TSelectedComponent>
     : LocalDataLayerBase<TComponent, TSelectedComponent>, IObservable<TSelectedComponent>
@@ -18,11 +19,12 @@ public class EventDataLayer<TComponent, TSelectedComponent>
     public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
         => throw new NotSupportedException("Event component only supports Set method");
 
-    public override void Set<UComponent>(Guid entityId, in UComponent component)
+    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
     {
         var convertedSubject = _subject as Subject<UComponent>
             ?? throw new NotSupportedException("Event component not supported");
         convertedSubject.OnNext(component);
+        return ref Unsafe.NullRef<UComponent>();
     }
 
     public override ref UComponent Require<UComponent>(Guid entityId)

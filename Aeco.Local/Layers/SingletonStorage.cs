@@ -115,7 +115,7 @@ public class SingletonStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
         return true;
     }
 
-    public override void Set<UComponent>(Guid entityId, in UComponent component)
+    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
     {
         var convertedData = _data as Data<UComponent>
             ?? throw new NotSupportedException("Component not supported");
@@ -130,6 +130,7 @@ public class SingletonStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
         else {
             throw new NotSupportedException("Singleton component already exists");
         }
+        return ref convertedData.Value;
     }
 
     public override Guid Singleton<UComponent>()

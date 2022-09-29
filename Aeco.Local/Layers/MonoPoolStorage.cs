@@ -233,10 +233,11 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
         }
     }
 
-    public override void Set<UComponent>(Guid entityId, in UComponent component)
+    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
     {
-        ref var block = ref AcquireBlock<UComponent>(entityId, out var _);
+        ref var block = ref AcquireBlock<UComponent>(entityId, out _existsTemp);
         block.Data = component;
+        return ref block.Data;
     }
 
     public override Guid Singleton<UComponent>()

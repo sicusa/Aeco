@@ -75,9 +75,9 @@ public interface IDataLayer<in TComponent>
     bool Remove<UComponent>([MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent;
 
-    void Set<UComponent>(Guid entityId, in UComponent component)
+    ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
         where UComponent : TComponent;
-    void Set<UComponent>(in UComponent component)
+    ref UComponent Set<UComponent>(in UComponent component)
         where UComponent : TComponent;
 
     IEnumerable<object> GetAll(Guid entityId);

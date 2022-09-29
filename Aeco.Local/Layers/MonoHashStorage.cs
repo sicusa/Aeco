@@ -45,18 +45,15 @@ public class MonoHashStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
         var convertedDict = _dict as Dictionary<Guid, UComponent>
             ?? throw new NotSupportedException("Component not supported");
 
-        ref UComponent comp = ref CollectionsMarshal.GetValueRefOrNullRef(convertedDict, entityId);
-        if (Unsafe.IsNullRef(ref comp)) {
-            convertedDict.Add(entityId, new UComponent());
+        ref UComponent? comp = ref CollectionsMarshal.GetValueRefOrAddDefault(convertedDict, entityId, out exists);
+        if (!exists) {
+            comp = new UComponent();
             _entityIds.Add(entityId);
             if (_singleton == Guid.Empty) {
                 _singleton = entityId;
             }
-            exists = false;
-            return ref CollectionsMarshal.GetValueRefOrNullRef(convertedDict, entityId);
         }
-        exists = true;
-        return ref comp;
+        return ref comp!;
     }
 
     public override bool Contains<UComponent>(Guid entityId)
@@ -104,19 +101,19 @@ public class MonoHashStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
         return true;
     }
 
-    public override void Set<UComponent>(Guid entityId, in UComponent component)
+    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
     {
         var convertedDict = _dict as Dictionary<Guid, UComponent>
             ?? throw new NotSupportedException("Component not supported");
         
-        if (convertedDict.ContainsKey(entityId)) {
-            convertedDict[entityId] = component;
-            return;
-        }
-        convertedDict.Add(entityId, component);
+        ref UComponent? value = ref CollectionsMarshal.GetValueRefOrAddDefault(convertedDict, entityId, out _existsTemp);
+        value = component;
+
         if (_singleton == Guid.Empty) {
             _singleton = entityId;
         }
+
+        return ref value!;
     }
 
     public override Guid Singleton<UComponent>()

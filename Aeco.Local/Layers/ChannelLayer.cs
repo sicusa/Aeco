@@ -95,12 +95,12 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
     public override IEnumerable<Guid> Query()
         => ChannelDataLayer.Query();
 
-    public override void Set<UComponent>(Guid entityId, in UComponent component)
+    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
     {
         ref var channel = ref ChannelDataLayer.Acquire<Channel<UComponent>>(entityId);
         var messageId = Guid.NewGuid();
         channel.Messages.Enqueue(messageId);
-        MessageDataLayer.Set<UComponent>(messageId, component);
+        return ref MessageDataLayer.Set<UComponent>(messageId, component);
     }
 
     public override bool Remove<UComponent>(Guid entityId)

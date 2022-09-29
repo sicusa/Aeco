@@ -103,11 +103,11 @@ public class ConcurrentCompositeLayer<TComponent, TSublayer> : CompositeLayer<TC
         }
     }
 
-    public override void Set<UComponent>(Guid entityId, in UComponent component)
+    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
     {
         _lockSlim.EnterWriteLock();
         try {
-            base.Set(entityId, component);
+            return ref base.Set(entityId, component);
         }
         finally {
             _lockSlim.ExitWriteLock();

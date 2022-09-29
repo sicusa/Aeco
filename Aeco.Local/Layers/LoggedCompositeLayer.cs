@@ -89,11 +89,11 @@ public class LoggedCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCompo
         return success;
     }
 
-    public override void Set<UComponent>(Guid entityId, in UComponent component)
+    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();
         Log($"Set [{typeof(UComponent)}] {entityId} ({dataLayer})");
-        dataLayer.Set<UComponent>(entityId, component);
+        return ref dataLayer.Set<UComponent>(entityId, component);
     }
 
     public override bool Remove<UComponent>(Guid entityId)
