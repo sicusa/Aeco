@@ -12,13 +12,9 @@ public class CameraMatricesUpdator : VirtualLayer, IGLUpdateLayer
             ref readonly var camera = ref context.Inspect<Camera>(id);
             ref var matrices = ref context.Acquire<CameraMatrices>(id);
 
-            ref readonly var pos = ref context.Inspect<Position>(id);
-            ref readonly var transformMatrices = ref context.Inspect<TransformMatrices>(id);
-
             var size = context.Require<Window>().Current!.ClientSize;
             float aspectRatio = (float)size.X / (float)size.Y;
 
-            Matrix4x4.Invert(transformMatrices.World, out matrices.View);
             matrices.Projection = Matrix4x4.CreatePerspectiveFieldOfView(
                 OpenTK.Mathematics.MathHelper.DegreesToRadians(camera.FieldOfView),
                 aspectRatio, camera.NearPlaneDistance, camera.FarPlaneDistance);

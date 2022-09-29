@@ -12,6 +12,7 @@ public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLay
         foreach (var id in _ids) {
             if (_updatedIds.Contains(id)) { continue; }
             _updatedIds.Add(id);
+            context.Acquire<WorldViewChanged>(id);
 
             ref var matrices = ref context.Acquire<TransformMatrices>(id);
             matrices.Combined = matrices.Scale * matrices.Rotation * matrices.Translation;
@@ -38,6 +39,7 @@ public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLay
     {
         if (_updatedIds.Contains(id)) { return; }
         _updatedIds.Add(id);
+        context.Acquire<WorldViewChanged>(id);
         context.Acquire<TransformMatricesChanged>(id, out bool exists);
 
         ref var matrices = ref context.Acquire<TransformMatrices>(id);

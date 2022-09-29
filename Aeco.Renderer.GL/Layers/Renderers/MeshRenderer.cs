@@ -13,7 +13,9 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLRenderLayer
 
     public void OnRender(IDataLayer<IComponent> context, float deltaTime)
     {
-        ref var cameraMatrices = ref context.Acquire<CameraMatrices>(context.Singleton<Camera>());
+        var cameraId = context.Singleton<Camera>();
+        ref var cameraMatrices = ref context.Acquire<CameraMatrices>(cameraId);
+        ref var worldView = ref context.Acquire<WorldView>(cameraId);
         UniformLocations uniforms;
 
         foreach (var id in _g.Query(context)) {
@@ -40,7 +42,7 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLRenderLayer
 
                 ref var matrices = ref context.Acquire<TransformMatrices>(id);
                 GL.UniformMatrix4(uniforms.World, 1, true, ref matrices.World.M11);
-                GL.UniformMatrix4(uniforms.View, 1, true, ref cameraMatrices.View.M11);
+                GL.UniformMatrix4(uniforms.View, 1, true, ref worldView.View.M11);
                 GL.UniformMatrix4(uniforms.Projection, 1, true, ref cameraMatrices.Projection.M11);
 
                 ref readonly var mesh = ref context.Inspect<Mesh>(renderable.Mesh);
