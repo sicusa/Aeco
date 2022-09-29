@@ -9,5 +9,5 @@ public struct WorldView : IGLObject
     public Vector3 Up;
     public Vector3 Right;
 
-    public void Dispose() { this = default; }
+    public void Dispose() { this = new(); }
 }

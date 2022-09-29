@@ -4,5 +4,5 @@ public struct AppliedParent : IGLObject
 {
     public Guid Id;
 
-    public void Dispose() { this = default; }
+    public void Dispose() { this = new(); }
 }

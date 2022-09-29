@@ -4,5 +4,5 @@ public struct TextureHandle : IGLObject
 {
     public int Value;
 
-    public void Dispose() { this = default; }
+    public void Dispose() { this = new(); }
 }

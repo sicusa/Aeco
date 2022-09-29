@@ -12,5 +12,5 @@ public struct TransformMatrices : IGLObject, IDisposable
 
     public TransformMatrices() {}
 
-    public void Dispose() { this = default; }
+    public void Dispose() { this = new(); }
 }

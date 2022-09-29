@@ -12,5 +12,5 @@ public struct ShaderProgramHandle : IGLObject
     public int Value;
     public UniformLocations UniformLocations;
 
-    public void Dispose() { this = default; }
+    public void Dispose() { this = new(); }
 }

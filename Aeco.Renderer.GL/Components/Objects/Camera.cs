@@ -11,5 +11,5 @@ public struct Camera : IGLReactiveObject
 
     public Camera() {}
 
-    public void Dispose() { this = default; }
+    public void Dispose() { this = new(); }
 }

@@ -19,5 +19,5 @@ public struct Texture : IGLReactiveObject
 
     public Texture() { }
 
-    public void Dispose() { this = default; }
+    public void Dispose() { this = new(); }
 }

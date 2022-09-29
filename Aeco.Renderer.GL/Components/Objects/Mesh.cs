@@ -8,5 +8,5 @@ public struct Mesh : IGLReactiveObject
     [DataMember] public float[] Vertices;
     [DataMember] public uint[] Indeces;
 
-    public void Dispose() { this = default; }
+    public void Dispose() { this = new(); }
 }

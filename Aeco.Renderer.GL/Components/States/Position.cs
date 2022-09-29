@@ -8,7 +8,7 @@ public struct Position : IGLReactiveObject, IDisposable
 {
     [DataMember] public Vector3 Value;
 
-    public void Dispose() { this = default; }
+    public void Dispose() { this = new(); }
 
     public static implicit operator Vector3(in Position pos)
         => pos.Value;

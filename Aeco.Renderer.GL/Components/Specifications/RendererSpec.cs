@@ -22,5 +22,5 @@ public struct RendererSpec : IComponent, IDisposable
     
     public RendererSpec() {}
 
-    public void Dispose() { this = default; }
+    public void Dispose() { this = new(); }
 }

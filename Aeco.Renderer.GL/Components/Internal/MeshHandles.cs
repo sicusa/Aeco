@@ -6,5 +6,5 @@ public struct MeshHandles : IGLObject
     public int VertexBuffer;
     public int ElementBuffer;
 
-    public void Dispose() { this = default; }
+    public void Dispose() { this = new(); }
 }

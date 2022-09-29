@@ -5,5 +5,5 @@ public struct ShaderProgram : IGLReactiveObject
     public string VertexShader;
     public string FragmentShader;
 
-    public void Dispose() { this = default; }
+    public void Dispose() { this = new(); }
 }

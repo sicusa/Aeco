@@ -8,5 +8,5 @@ public struct MeshRenderable : IGLReactiveObject
     [DataMember] public Guid Mesh;
     [DataMember] public Guid[] Materials;
 
-    public void Dispose() { this = default; }
+    public void Dispose() { this = new(); }
 }

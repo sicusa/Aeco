@@ -8,5 +8,5 @@ public struct Children : IGLObject
 
     public Children() {}
 
-    public void Dispose() { this = default; }
+    public void Dispose() { this = new(); }
 }

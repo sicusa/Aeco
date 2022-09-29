@@ -7,5 +7,5 @@ public struct Parent : IGLReactiveObject, IDisposable
 {
     [DataMember] public Guid Id;
 
-    public void Dispose() { this = default; }
+    public void Dispose() { this = new(); }
 }

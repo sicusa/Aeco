@@ -8,5 +8,5 @@ public struct Material : IGLReactiveObject
     [DataMember] public Guid ShaderProgram;
     [DataMember] public Guid Texture;
 
-    public void Dispose() { this = default; }
+    public void Dispose() { this = new(); }
 }
