@@ -1,12 +1,14 @@
 namespace Aeco.Tests.RPGGame;
 
 using Aeco.Local;
+using Aeco.Reactive;
 using Aeco.Serialization.Json;
 using Aeco.Persistence.Local;
 
+using Aeco.Renderer.GL;
 using Aeco.Tests.RPGGame.Character;
 
-public class RPGGame : LoggedCompositeLayer
+public class RPGGame : GLRendererCompositeLayer
 {
     public float Time { get; private set; }
     public float DeltaTime { get; private set; }
@@ -15,10 +17,12 @@ public class RPGGame : LoggedCompositeLayer
     private IGameLateUpdateLayer[] _lateUpdateLayers;
 
     public RPGGame(Config config)
-        : base("RPGGame:",
+        : base(
+            eventDataLayer: config.EventDataLayer,
+/*
             new Character.Layers(config.EventDataLayer),
             new Map.Layers(config.EventDataLayer),
-            new Gameplay.Layers(),
+            new Gameplay.Layers(),*/
 
             new ShortLivedCompositeLayer(
                 config.EventDataLayer
@@ -40,9 +44,11 @@ public class RPGGame : LoggedCompositeLayer
         _lateUpdateLayers = GetSublayersRecursively<IGameLateUpdateLayer>().ToArray();
     }
 
-    public void Initialize()
+    protected override void Load()
     {
-        Console.WriteLine("RPGGame Initialize");
+        base.Load();
+
+        Console.WriteLine("RPGGame loading...");
 
         foreach (var layer in GetSublayersRecursively<IGameInitializeLayer>()) {
             layer.Initialize(this);
@@ -56,9 +62,9 @@ public class RPGGame : LoggedCompositeLayer
         this.CreateEntity().AsPlayer(mapId);
     }
 
-    public void Update(float deltaTime)
+    protected override void Update(float deltaTime)
     {
-        Console.WriteLine("RPGGame Update");
+        base.Update(deltaTime);
 
         DeltaTime = deltaTime;
         Time += DeltaTime;
@@ -66,7 +72,6 @@ public class RPGGame : LoggedCompositeLayer
         for (int i = 0; i < _updateLayers.Length; ++i) {
             _updateLayers[i].Update(this);
         }
-
         for (int i = 0; i < _lateUpdateLayers.Length; ++i) {
             _lateUpdateLayers[i].LateUpdate(this);
         }
