@@ -18,10 +18,7 @@ public class CameraMatricesUpdator : VirtualLayer, IGLUpdateLayer
             var size = context.Require<Window>().Current!.ClientSize;
             float aspectRatio = (float)size.X / (float)size.Y;
 
-            var cameraDir = Vector3.Normalize(Vector3.Transform(Vector3.UnitZ, transformMatrices.World));
-            var cameraUp = Vector3.Normalize(Vector3.Transform(Vector3.UnitY, transformMatrices.World));
-            matrices.View = Matrix4x4.CreateLookAt(pos, cameraDir, cameraUp);
-
+            Matrix4x4.Invert(transformMatrices.World, out matrices.View);
             matrices.Projection = Matrix4x4.CreatePerspectiveFieldOfView(
                 OpenTK.Mathematics.MathHelper.DegreesToRadians(camera.FieldOfView),
                 aspectRatio, camera.NearPlaneDistance, camera.FarPlaneDistance);
