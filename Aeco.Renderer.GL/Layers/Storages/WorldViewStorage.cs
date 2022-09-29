@@ -40,7 +40,7 @@ public class WorldViewStorage : MonoPoolStorage<WorldView>, IGLLoadLayer
 
     private void CalcualteView(ref WorldView view, Guid entityId)
     {
-        ref readonly var matrices = ref _context.Inspect<TransformMatrices>(entityId);
+        ref var matrices = ref _context.Acquire<TransformMatrices>(entityId);
         ref var vmat = ref view.View;
         Matrix4x4.Invert(matrices.World, out vmat);
 

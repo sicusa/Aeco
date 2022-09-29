@@ -11,7 +11,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using Aeco.Local;
 using Aeco.Reactive;
 
-public class GLRendererCompositeLayer : LoggedCompositeLayer
+public class GLRendererCompositeLayer : CompositeLayer
 {
     private class InternalWindow : GameWindow
     {
@@ -100,6 +100,7 @@ public class GLRendererCompositeLayer : LoggedCompositeLayer
                     new PolyHashStorage<IGLReactiveObject>()
                 ),
                 new WorldViewStorage(),
+                new PolyPoolStorage<IGLObject>(),
 
                 new DefaultTextureLoader(),
                 new TextureInitializer(),
