@@ -1,5 +1,7 @@
 ﻿using System.Numerics;
 
+using OpenTK.Windowing.GraphicsLibraryFramework;
+
 using Aeco.Renderer.GL;
 
 // LocalTests.Run();
@@ -26,42 +28,48 @@ ref var material = ref game.Acquire<Material>(materialId);
 material.ShaderProgram = GLRendererCompositeLayer.DefaultShaderProgramId;
 material.Texture = textureId;
 
-var firstId = Guid.Empty;
-var prevId = Guid.Empty;
-for (int i = 0; i < 50; ++i) {
+Guid CreateCube(in Vector3 pos, Guid? parent = null)
+{
     var renderableId = Guid.NewGuid();
-    ref var renderable = ref game.Acquire<MeshRenderable>(renderableId);
+    ref var renderable = ref game!.Acquire<MeshRenderable>(renderableId);
     renderable.Mesh = Polygons.Cube;
     renderable.Materials = new Guid[] { materialId };
-    game.Acquire<Position>(renderableId).Value = new Vector3(i * 0.1f - 0.1f, 0, 0);
-    if (prevId != Guid.Empty) {
-        game.Acquire<Parent>(renderableId).Id = prevId;
+    if (parent != null) {
+        game.Acquire<Parent>(renderableId).Id = parent.Value;
     }
-    else {
-        firstId = renderableId;
-        game.Acquire<Scale>(renderableId).Value = new Vector3(0.2f);
-    }
-    prevId = renderableId;
+    game.Acquire<Position>(renderableId).Value = pos;
+    return renderableId;
 }
 
-float x = 0;
-float y = 0;
-var window = game.Require<Window>().Current!;
+Guid prevId = CreateCube(Vector3.Zero);
+game.Acquire<Scale>(prevId).Value = new Vector3(0.2f);
+
+for (int i = 0; i < 50; ++i) {
+    prevId = CreateCube(new Vector3(i * 0.1f - 0.1f, 0, 0), prevId);
+    game.Acquire<Scale>(prevId).Value = new Vector3(0.95f);
+}
 
 float Lerp(float firstFloat, float secondFloat, float by)
     => firstFloat * (1 - by) + secondFloat * by;
 
+var window = game.Require<Aeco.Renderer.GL.Window>().Current!;
+
+float rate = 10;
+float sensitivity = 0.005f;
+float x = 0;
+float y = 0;
+
 window.UpdateFrame += e => {
-    float rate = game.DeltaTime * 10;
-    x = Lerp(x, -window.MousePosition.X * 0.005f, rate);
-    y = Lerp(y, window.MousePosition.Y * 0.005f, rate);
+    float scaledRate = game.DeltaTime * rate;
+    x = Lerp(x, window.MousePosition.X * sensitivity, scaledRate);
+    y = Lerp(y, window.MousePosition.Y * sensitivity, scaledRate);
 
-    //game.Acquire<Position>(cameraId).Value = new Vector3(0, 0, game.Time);
-    //game.Acquire<Rotation>(cameraId).Value = Quaternion.CreateFromYawPitchRoll(0, 0, game.Time);
+    var rot = Quaternion.CreateFromYawPitchRoll(x, -y, 0);
+    game.Acquire<Rotation>(cameraId).Value = rot;
 
+    float time = game.Time;
     foreach (var id in game.Query<MeshRenderable>()) {
-        game.Acquire<Rotation>(id).Value = Quaternion.CreateFromYawPitchRoll(x, y, 0);
-        // game.Acquire<Position>(id).Value = new Vector3(x, y, 0);
+        game.Acquire<Rotation>(id).Value = Quaternion.CreateFromYawPitchRoll(time, time, time);
     }
 };
 
