@@ -85,6 +85,41 @@ public interface IDataLayer<in TComponent>
     void Clear();
 }
 
+public interface IReadOnlyMonoDataLayer<in TComponent, TStoredComponent> : IReadOnlyDataLayer<TComponent>
+    where TStoredComponent : TComponent
+{
+    IReadOnlyEntity<TStoredComponent> GetReadOnlyEntity();
+
+    bool TryGet(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component);
+    ref readonly TStoredComponent Inspect(Guid entityId);
+    ref readonly TStoredComponent Inspect();
+    bool Contains(Guid entityId);
+    bool Contains();
+
+    Guid Singleton();
+}
+
+public interface IMonoDataLayer<in TComponent, TStoredComponent>
+    : IReadOnlyMonoDataLayer<TComponent, TStoredComponent>, IDataLayer<TComponent>
+    where TStoredComponent : TComponent
+{
+    IEntity<TStoredComponent> GetEntity();
+
+    ref TStoredComponent Require(Guid entityId);
+    ref TStoredComponent Require();
+
+    ref TStoredComponent Acquire(Guid entityId);
+    ref TStoredComponent Acquire(Guid entityId, out bool exists);
+
+    bool Remove(Guid entityId);
+    bool Remove();
+    bool Remove(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component);
+    bool Remove([MaybeNullWhen(false)] out TStoredComponent component);
+
+    ref TStoredComponent Set(Guid entityId, in TStoredComponent component);
+    ref TStoredComponent Set(in TStoredComponent component);
+}
+
 public interface IReadOnlyTrackableDataLayer<in TComponent>
     : IReadOnlyDataLayer<TComponent>, IReadOnlyTrackableLayer<TComponent>
 {

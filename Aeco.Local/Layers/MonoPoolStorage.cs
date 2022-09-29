@@ -5,22 +5,22 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBase<TComponent, TSelectedComponent>
-    where TSelectedComponent : TComponent, IDisposable, new()
+public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerBase<TComponent, TStoredComponent>
+    where TStoredComponent : TComponent, IDisposable, new()
 {
     [StructLayout(LayoutKind.Sequential)]
-    private struct Block<T>
+    private struct Block
     {
         public Guid Id = Guid.Empty;
         public int NextBlockIndex = -1;
         [AllowNull]
-        public T Data = default;
+        public TStoredComponent Data = default;
         public Block() {}
     }
 
     public int Capacity => _blocks.Length;
 
-    private Block<TSelectedComponent>[] _blocks;
+    private Block[] _blocks;
     private SortedSet<Guid> _entityIds = new();
 
     private int _cellarCount;
@@ -31,29 +31,23 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
 
     public MonoPoolStorage(int capacity = MonoPoolStorage.DefaultCapacity)
     {
-        _blocks = new Block<TSelectedComponent>[capacity];
+        _blocks = new Block[capacity];
         _cellarCount = (int)(0.86 * capacity);
 
-        if (default(TSelectedComponent) == null) {
+        if (default(TStoredComponent) == null) {
             for (int i = 0; i != _blocks.Length; ++i) {
-                _blocks[i].Data = new TSelectedComponent();
+                _blocks[i].Data = new TStoredComponent();
             }
         }
     }
-
-    public override bool CheckSupported(Type componentType)
-        => typeof(TSelectedComponent) == componentType;
     
     private int GetIndex(Guid entityId)
         => (entityId.GetHashCode() & kLower31BitMask) % _cellarCount;
 
-    public override bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public override bool TryGet(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
     {
-        var convertedBlocks = _blocks as Block<UComponent>[]
-            ?? throw new NotSupportedException("Component not supported");
-
         int index = GetIndex(entityId);
-        ref var block = ref convertedBlocks[index];
+        ref var block = ref _blocks[index];
 
         if (block.Id == Guid.Empty) {
             component = default;
@@ -70,17 +64,14 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
                 component = default;
                 return false;
             }
-            block = ref convertedBlocks[index];
+            block = ref _blocks[index];
         }
     }
 
-    public override ref UComponent Require<UComponent>(Guid entityId)
+    public override ref TStoredComponent Require(Guid entityId)
     {
-        var convertedBlocks = _blocks as Block<UComponent>[]
-            ?? throw new NotSupportedException("Component not supported");
-
         int index = GetIndex(entityId);
-        ref var block = ref convertedBlocks[index];
+        ref var block = ref _blocks[index];
 
         if (block.Id == Guid.Empty) {
             throw new KeyNotFoundException("Component not found");
@@ -94,18 +85,14 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
             if (index == -1) {
                 throw new KeyNotFoundException("Component not found");
             }
-            block = ref convertedBlocks[index];
+            block = ref _blocks[index];
         }
     }
 
-    private ref Block<UComponent> AcquireBlock<UComponent>(Guid entityId, out bool exists)
-        where UComponent : TComponent
+    private ref Block AcquireBlock(Guid entityId, out bool exists)
     {
-        var convertedBlocks = _blocks as Block<UComponent>[]
-            ?? throw new NotSupportedException("Component not supported");
-
         int index = GetIndex(entityId);
-        ref var block = ref convertedBlocks[index];
+        ref var block = ref _blocks[index];
 
         if (block.Id == Guid.Empty) {
             block.Id = entityId;
@@ -124,14 +111,14 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
             }
             index = block.NextBlockIndex;
             if (index == -1) {
-                int bucketIndex = convertedBlocks.Length - 1;
-                while (bucketIndex > 0 && convertedBlocks[bucketIndex].Id != Guid.Empty) {
+                int bucketIndex = _blocks.Length - 1;
+                while (bucketIndex > 0 && _blocks[bucketIndex].Id != Guid.Empty) {
                     --bucketIndex;
                 }
                 if (bucketIndex == -1) {
                     throw new InvalidOperationException("PoolStorage is full");
                 }
-                ref var bucket = ref convertedBlocks[bucketIndex];
+                ref var bucket = ref _blocks[bucketIndex];
                 bucket.Id = entityId;
                 block.NextBlockIndex = bucketIndex;
                 _entityIds.Add(entityId);
@@ -141,20 +128,20 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
                 exists = false;
                 return ref bucket;
             }
-            block = ref convertedBlocks[index];
+            block = ref _blocks[index];
         }
     }
     
-    public override ref UComponent Acquire<UComponent>(Guid entityId)
-        => ref AcquireBlock<UComponent>(entityId, out _existsTemp).Data;
+    public override ref TStoredComponent Acquire(Guid entityId)
+        => ref AcquireBlock(entityId, out _existsTemp).Data;
 
-    public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
-        => ref AcquireBlock<UComponent>(entityId, out exists).Data;
+    public override ref TStoredComponent Acquire(Guid entityId, out bool exists)
+        => ref AcquireBlock(entityId, out exists).Data;
 
-    public override bool Contains<UComponent>(Guid entityId)
+    public override bool Contains(Guid entityId)
         => _entityIds.Contains(entityId);
 
-    public override bool Contains<UComponent>()
+    public override bool Contains()
         => _singleton != Guid.Empty;
 
     private void ResetSingleton()
@@ -192,16 +179,13 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
         }
     }
 
-    public override bool Remove<UComponent>(Guid entityId)
+    public override bool Remove(Guid entityId)
         => RawRemove(entityId);
 
-    public override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public override bool Remove(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
     {
-        var convertedBlocks = _blocks as Block<UComponent>[]
-            ?? throw new NotSupportedException("Component not supported");
-
         int index = GetIndex(entityId);
-        ref var block = ref convertedBlocks[index];
+        ref var block = ref _blocks[index];
 
         if (block.Id == Guid.Empty) {
             component = default;
@@ -211,7 +195,7 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
         int prevIndex = index;
         while (true) {
             if (block.Id == entityId) {
-                convertedBlocks[prevIndex].NextBlockIndex = block.NextBlockIndex;
+                _blocks[prevIndex].NextBlockIndex = block.NextBlockIndex;
                 component = block.Data;
 
                 block.Id = Guid.Empty;
@@ -229,23 +213,20 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
                 component = default;
                 return false;
             }
-            block = ref convertedBlocks[index];
+            block = ref _blocks[index];
         }
     }
 
-    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
+    public override ref TStoredComponent Set(Guid entityId, in TStoredComponent component)
     {
-        ref var block = ref AcquireBlock<UComponent>(entityId, out _existsTemp);
+        ref var block = ref AcquireBlock(entityId, out _existsTemp);
         block.Data = component;
         return ref block.Data;
     }
 
-    public override Guid Singleton<UComponent>()
+    public override Guid Singleton()
         => _singleton != Guid.Empty ? _singleton
             : throw new KeyNotFoundException("Singleton not found");
-
-    public override IEnumerable<Guid> Query<UComponent>()
-        => _entityIds;
 
     public override IEnumerable<Guid> Query()
         => _entityIds;
@@ -284,8 +265,8 @@ public class MonoPoolStorage<TComponent, TSelectedComponent> : LocalDataLayerBas
     }
 }
 
-public class MonoPoolStorage<TSelectedComponent> : MonoPoolStorage<IComponent, TSelectedComponent>
-    where TSelectedComponent : IComponent, IDisposable, new()
+public class MonoPoolStorage<TStoredComponent> : MonoPoolStorage<IComponent, TStoredComponent>
+    where TStoredComponent : IComponent, IDisposable, new()
 {
 }
 

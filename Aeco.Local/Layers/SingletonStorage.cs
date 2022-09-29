@@ -3,34 +3,23 @@ namespace Aeco.Local;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-public class SingletonStorage<TComponent, TSelectedComponent> : LocalDataLayerBase<TComponent, TSelectedComponent>
-    where TSelectedComponent : TComponent, IDisposable, new()
+public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayerBase<TComponent, TStoredComponent>
+    where TStoredComponent : TComponent, IDisposable, new()
 {
-    private class Data<T>
-    {
-        [AllowNull]
-        public T Value;
-    }
-
     private Guid _id;
-    private Data<TSelectedComponent> _data = new();
+    private TStoredComponent _data = new();
 
     public SingletonStorage()
     {
-        if (_data.Value == null) {
-            _data.Value = new();
+        if (_data == null) {
+            _data = new();
         }
     }
 
-    public override bool CheckSupported(Type componentType)
-        => typeof(TSelectedComponent) == componentType;
-    
-    public override bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public override bool TryGet(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
     {
         if (_id == entityId) {
-            var convertedData = _data as Data<UComponent>
-                ?? throw new NotSupportedException("Component not supported");
-            component = convertedData.Value;
+            component = _data;
             return true;
         }
         else {
@@ -39,101 +28,85 @@ public class SingletonStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
         }
     }
 
-    public override ref UComponent Require<UComponent>(Guid entityId)
+    public override ref TStoredComponent Require(Guid entityId)
     {
         if (entityId != _id) {
             throw new KeyNotFoundException("Singleton component not found");
         }
-        var convertedData = _data as Data<UComponent>
-            ?? throw new NotSupportedException("Component not supported");
-        return ref convertedData.Value;
+        return ref _data;
     }
 
-    public override ref UComponent Acquire<UComponent>(Guid entityId)
+    public override ref TStoredComponent Acquire(Guid entityId)
     {
-        var convertedData = _data as Data<UComponent>
-            ?? throw new NotSupportedException("Component not supported");
-
         if (_id == Guid.Empty) {
             _id = entityId;
-            return ref convertedData.Value;
+            return ref _data;
         }
         else if (_id == entityId) {
-            return ref convertedData.Value;
+            return ref _data;
         }
-
         throw new NotSupportedException("Singleton component already exists");
     }
 
-    public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+    public override ref TStoredComponent Acquire(Guid entityId, out bool exists)
     {
-        var convertedData = _data as Data<UComponent>
-            ?? throw new NotSupportedException("Component not supported");
-
         if (_id == Guid.Empty) {
             _id = entityId;
             exists = false;
-            return ref convertedData.Value;
+            return ref _data;
         }
         else if (_id == entityId) {
             exists = true;
-            return ref convertedData.Value;
+            return ref _data;
         }
-
         throw new NotSupportedException("Singleton component already exists");
     }
 
-    public override bool Contains<UComponent>(Guid entityId)
+    public override bool Contains(Guid entityId)
         => _id == entityId;
 
-    public override bool Contains<UComponent>()
+    public override bool Contains()
         => _id != Guid.Empty;
 
-    public override bool Remove<UComponent>(Guid entityId)
+    public override bool Remove(Guid entityId)
     {
         if (_id != entityId) {
             return false;
         }
         _id = Guid.Empty;
-        _data.Value.Dispose();
+        _data.Dispose();
         return true;
     }
 
-    public override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public override bool Remove(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
     {
         if (_id != entityId) {
             component = default;
             return false;
         }
-
-        var convertedData = _data as Data<UComponent>
-            ?? throw new NotSupportedException("Component not supported");
-        component = convertedData.Value;
+        component = _data;
 
         _id = Guid.Empty;
-        _data.Value.Dispose();
+        _data.Dispose();
         return true;
     }
 
-    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
+    public override ref TStoredComponent Set(Guid entityId, in TStoredComponent component)
     {
-        var convertedData = _data as Data<UComponent>
-            ?? throw new NotSupportedException("Component not supported");
-
         if (_id == Guid.Empty) {
             _id = entityId;
-            convertedData.Value = component;
+            _data = component;
         }
         else if (_id == entityId) {
-            convertedData.Value = component;
+            _data = component;
         }
         else {
             throw new NotSupportedException("Singleton component already exists");
         }
-        return ref convertedData.Value;
+        return ref _data;
     }
 
-    public override Guid Singleton<UComponent>()
+    public override Guid Singleton()
     {
         if (_id == Guid.Empty) {
             throw new KeyNotFoundException("Singleton not found");
@@ -141,32 +114,29 @@ public class SingletonStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
         return _id;
     }
 
-    public override IEnumerable<Guid> Query<UComponent>()
-        => Query();
-
     public override IEnumerable<Guid> Query()
         => _id == Guid.Empty ? Enumerable.Empty<Guid>() : Enumerable.Repeat<Guid>(_id, 1);
 
     public override IEnumerable<object> GetAll(Guid entityId)
-        => _id == entityId ? Enumerable.Repeat<object>(_data.Value, 1) : Enumerable.Empty<object>();
+        => _id == entityId ? Enumerable.Repeat<object>(_data, 1) : Enumerable.Empty<object>();
 
     public override void Clear(Guid entityId)
     {
         if (_id == entityId) {
             _id = Guid.Empty;
-            _data.Value.Dispose();
+            _data.Dispose();
         }
     }
 
     public override void Clear()
     {
         _id = Guid.Empty;
-        _data.Value.Dispose();
+        _data.Dispose();
     }
 }
 
-public class SingletonStorage<TSelectedComponent> : SingletonStorage<IComponent, TSelectedComponent>
-    where TSelectedComponent : IComponent, IDisposable, new()
+public class SingletonStorage<TStoredComponent> : SingletonStorage<IComponent, TStoredComponent>
+    where TStoredComponent : IComponent, IDisposable, new()
 {
 }
 
