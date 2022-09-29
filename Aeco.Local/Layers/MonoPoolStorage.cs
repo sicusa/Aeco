@@ -13,8 +13,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     {
         public Guid Id = Guid.Empty;
         public int NextBlockIndex = -1;
-        [AllowNull]
-        public TStoredComponent Data = default;
+        public TStoredComponent Data = new();
         public Block() {}
     }
 
@@ -33,12 +32,6 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     {
         _blocks = new Block[capacity];
         _cellarCount = (int)(0.86 * capacity);
-
-        if (default(TStoredComponent) == null) {
-            for (int i = 0; i != _blocks.Length; ++i) {
-                _blocks[i].Data = new TStoredComponent();
-            }
-        }
     }
     
     private int GetIndex(Guid entityId)
