@@ -1,6 +1,5 @@
 namespace Aeco.Renderer.GL;
 
-using System.Reflection;
 using System.Diagnostics.CodeAnalysis;
 
 using OpenTK.Graphics.OpenGL4;

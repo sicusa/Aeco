@@ -1,7 +1,5 @@
 namespace Aeco.Renderer.GL;
 
-using Aeco.Reactive;
-
 public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLayer
 {
     private List<Guid> _ids = new();

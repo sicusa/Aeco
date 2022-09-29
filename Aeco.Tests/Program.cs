@@ -1,13 +1,6 @@
 ﻿using System.Numerics;
-using System.Reflection;
 
-using Aeco;
 using Aeco.Renderer.GL;
-using Aeco.Reactive;
-
-using Aeco.Tests;
-using Aeco.Tests.RPGGame.Character;
-using Aeco.Persistence;
 
 // LocalTests.Run();
 // ReactiveTests.Run();
@@ -64,7 +57,7 @@ window.UpdateFrame += e => {
     y = Lerp(y, window.MousePosition.Y * 0.005f, rate);
 
     //game.Acquire<Position>(cameraId).Value = new Vector3(0, 0, game.Time);
-    game.Acquire<Rotation>(cameraId).Value = Quaternion.CreateFromYawPitchRoll(0, 0, game.Time);
+    //game.Acquire<Rotation>(cameraId).Value = Quaternion.CreateFromYawPitchRoll(0, 0, game.Time);
 
     foreach (var id in game.Query<MeshRenderable>()) {
         game.Acquire<Rotation>(id).Value = Quaternion.CreateFromYawPitchRoll(x, y, 0);
