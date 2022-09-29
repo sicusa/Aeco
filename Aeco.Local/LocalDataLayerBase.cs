@@ -38,7 +38,8 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
 
     public abstract ref UComponent Require<UComponent>(Guid entityId)
         where UComponent : TComponent;
-    public ref UComponent Require<UComponent>() where UComponent : TComponent
+    public ref UComponent Require<UComponent>()
+        where UComponent : TComponent
         => ref Require<UComponent>(Singleton<UComponent>());
 
     public abstract ref UComponent Acquire<UComponent>(Guid entityId)
@@ -48,16 +49,19 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
 
     public abstract bool Remove<UComponent>(Guid entityId)
         where UComponent : TComponent;
-    public bool Remove<UComponent>() where UComponent : TComponent
+    public bool Remove<UComponent>()
+        where UComponent : TComponent
         => Remove<UComponent>(Singleton<UComponent>());
     public abstract bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent;
-    public bool Remove<UComponent>([MaybeNullWhen(false)] out UComponent component) where UComponent : TComponent
+    public bool Remove<UComponent>([MaybeNullWhen(false)] out UComponent component)
+        where UComponent : TComponent
         => Remove<UComponent>(Singleton<UComponent>(), out component);
 
     public abstract ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
         where UComponent : TComponent;
-    public ref UComponent Set<UComponent>(in UComponent component) where UComponent : TComponent
+    public ref UComponent Set<UComponent>(in UComponent component)
+        where UComponent : TComponent
         => ref Set<UComponent>(Singleton<UComponent>(), component);
 
     public abstract void Clear(Guid entityId);
