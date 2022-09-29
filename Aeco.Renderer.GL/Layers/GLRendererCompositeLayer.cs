@@ -73,10 +73,6 @@ public class GLRendererCompositeLayer : CompositeLayer
         {
             base.OnUpdateFrame(e);
             _context.Update((float)e.Time);
-
-            if (KeyboardState.IsKeyPressed(Keys.A)) {
-                _context.Clear();
-            }
         }
 
         protected override void OnResize(ResizeEventArgs e)
