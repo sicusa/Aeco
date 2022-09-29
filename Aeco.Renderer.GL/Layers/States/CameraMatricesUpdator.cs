@@ -9,7 +9,7 @@ public class CameraMatricesUpdator : VirtualLayer, IGLUpdateLayer
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
         foreach (var id in _q.Query(context)) {
-            ref readonly var camera = ref context.Acquire<Camera>(id);
+            ref readonly var camera = ref context.Inspect<Camera>(id);
             ref var matrices = ref context.Acquire<CameraMatrices>(id);
 
             ref readonly var pos = ref context.Inspect<Position>(id);
