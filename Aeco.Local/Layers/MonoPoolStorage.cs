@@ -11,10 +11,9 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     [StructLayout(LayoutKind.Sequential)]
     private struct Block
     {
-        public Guid Id = Guid.Empty;
-        public int NextBlockIndex = -1;
-        public TStoredComponent Data = new();
-        public Block() {}
+        public Guid Id;
+        public int NextBlockIndex;
+        public TStoredComponent Data;
     }
 
     public int Capacity => _blocks.Length;
@@ -32,6 +31,10 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     {
         _blocks = new Block[capacity];
         _cellarCount = (int)(0.86 * capacity);
+        for (int i = 0; i < _blocks.Length; ++i) {
+            _blocks[i].NextBlockIndex = -1;
+            _blocks[i].Data = new();
+        }
     }
     
     private int GetIndex(Guid entityId)
@@ -111,9 +114,11 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
                 if (bucketIndex == -1) {
                     throw new InvalidOperationException("PoolStorage is full");
                 }
+
                 ref var bucket = ref _blocks[bucketIndex];
                 bucket.Id = entityId;
                 block.NextBlockIndex = bucketIndex;
+
                 _entityIds.Add(entityId);
                 if (_singleton == Guid.Empty) {
                     _singleton = entityId;
@@ -155,16 +160,21 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         while (true) {
             if (block.Id == entityId) {
                 _blocks[prevIndex].NextBlockIndex = block.NextBlockIndex;
+
                 block.Id = Guid.Empty;
                 block.Data.Dispose();
+                block.NextBlockIndex = -1;
+
                 _entityIds.Remove(entityId);
                 if (_singleton == entityId) {
                     ResetSingleton();
                 }
                 return true;
             }
+            
             prevIndex = index;
             index = block.NextBlockIndex;
+
             if (index == -1) {
                 return false;
             }
@@ -192,7 +202,8 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
                 component = block.Data;
 
                 block.Id = Guid.Empty;
-                _blocks[index].Data.Dispose();
+                block.Data.Dispose();
+                block.NextBlockIndex = -1;
 
                 _entityIds.Remove(entityId);
                 if (_singleton == entityId) {
@@ -251,7 +262,12 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     public override void Clear()
     {
         for (int i = 0; i < _blocks.Length; ++i) {
-            _blocks[i].Id = Guid.Empty;
+            ref var block = ref _blocks[i];
+            if (block.Id != Guid.Empty) {
+                _blocks[i].Id = Guid.Empty;
+                _blocks[i].Data.Dispose();
+                _blocks[i].NextBlockIndex = -1;
+            }
         }
         _entityIds.Clear();
         _singleton = Guid.Empty;
