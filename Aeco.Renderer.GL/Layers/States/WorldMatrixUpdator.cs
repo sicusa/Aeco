@@ -1,65 +1,48 @@
 namespace Aeco.Renderer.GL;
 
-public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLayer
-{
-    private List<Guid> _ids = new();
-    private HashSet<Guid> _updatedIds = new();
+using Aeco.Reactive;
 
+public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer
+{
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
-        _ids.AddRange(context.Query<TransformMatricesChanged>());
-
-        foreach (var id in _ids) {
-            if (_updatedIds.Contains(id)) { continue; }
-            _updatedIds.Add(id);
-            context.Acquire<WorldViewChanged>(id);
-
-            ref var matrices = ref context.Acquire<TransformMatrices>(id);
-            matrices.Combined = matrices.Scale * matrices.Rotation * matrices.Translation;
-
-            if (context.TryGet<AppliedParent>(id, out var parent)) {
-                ref readonly var parentMatrices = ref context.Inspect<TransformMatrices>(parent.Id);
-                matrices.World = matrices.Combined * parentMatrices.World;
-            }
-            else {
-                matrices.World = matrices.Combined;
-            }
-
-            if (context.TryGet<Children>(id, out var children)) {
-                foreach (var child in children.Ids) {
-                    Recurse(context, child, matrices);
-                }
-            }
-        }
-
-        _ids.Clear();
+        Traverse(context, GLRendererLayer.RootId);
+        context.RemoveAll<ChildrenTransformMatricesDirty>();
     }
 
-    private void Recurse(IDataLayer<IComponent> context, Guid id, in TransformMatrices parentMatrices)
+    private void Traverse(IDataLayer<IComponent> context, Guid id)
     {
-        if (_updatedIds.Contains(id)) { return; }
-        _updatedIds.Add(id);
-        context.Acquire<WorldViewChanged>(id);
-        context.Acquire<TransformMatricesChanged>(id, out bool changed);
-
-        ref var matrices = ref context.Acquire<TransformMatrices>(id);
-        if (changed) {
-            matrices.Combined = matrices.Scale * matrices.Rotation * matrices.Translation;
+        if (!context.TryGet<Children>(id, out var children)) {
+            return;
         }
-        matrices.World = matrices.Combined * parentMatrices.World;
+        ref var matrices = ref context.Acquire<TransformMatrices>(id);
+        foreach (var childId in children.Ids) {
+            if (context.Contains<TransformMatricesDirty>(childId)) {
+                ref var childMatrices = ref context.Acquire<TransformMatrices>(id);
+                childMatrices.Combined = childMatrices.Scale * childMatrices.Rotation * childMatrices.Translation;
+                childMatrices.World = matrices.Combined * matrices.World;
+                UpdateRecursively(context, childId, ref childMatrices);
+            }
+            else if (context.Contains<ChildrenTransformMatricesDirty>()) {
+                Traverse(context, id);
+            }
+        }
+    }
+
+    private void UpdateRecursively(IDataLayer<IComponent> context, Guid id, ref TransformMatrices matrices)
+    {
+        context.Acquire<WorldViewChanged>(id);
+        context.Remove<TransformMatricesDirty>(id);
 
         if (context.TryGet<Children>(id, out var children)) {
-            foreach (var child in children.Ids) {
-                Recurse(context, child, matrices);
+            foreach (var childId in children.Ids) {
+                ref var childMatrices = ref context.Acquire<TransformMatrices>(childId);
+                if (context.Contains<TransformMatricesDirty>(childId)) {
+                    childMatrices.Combined = childMatrices.Scale * childMatrices.Rotation * childMatrices.Translation;
+                }
+                childMatrices.World = childMatrices.Combined * matrices.World;
+                UpdateRecursively(context, childId, ref childMatrices);
             }
         }
-    }
-
-    public void OnLateUpdate(IDataLayer<IComponent> context, float deltaTime)
-    {
-        foreach (var id in _updatedIds) {
-            context.Remove<TransformMatricesChanged>(id);
-        }
-        _updatedIds.Clear();
     }
 }

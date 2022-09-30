@@ -1,6 +1,6 @@
 namespace Aeco.Renderer.GL;
 
-public struct TransformMatricesChanged : IGLObject
+public struct TransformMatricesDirty : IGLObject
 {
     public void Dispose() { }
 }

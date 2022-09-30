@@ -4,7 +4,7 @@ using System.Numerics;
 
 public class CameraMatricesUpdator : VirtualLayer, IGLUpdateLayer
 {
-    private Query<TransformMatricesChanged, Camera> _q = new();
+    private Query<TransformMatricesDirty, Camera> _q = new();
 
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
