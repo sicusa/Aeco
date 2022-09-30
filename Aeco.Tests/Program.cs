@@ -28,30 +28,27 @@ ref var material = ref game.Acquire<Material>(materialId);
 material.ShaderProgram = GLRenderer.DefaultShaderProgramId;
 material.Texture = textureId;
 
-Guid CreateCube(in Vector3 pos, Guid? parent = null)
+Guid CreateCube(in Vector3 pos, Guid parentId)
 {
     var renderableId = Guid.NewGuid();
     ref var renderable = ref game!.Acquire<MeshRenderable>(renderableId);
     renderable.Mesh = Polygons.Cube;
     renderable.Materials = new Guid[] { materialId };
-    if (parent != null) {
-        game.Acquire<Parent>(renderableId).Id = parent.Value;
-    }
+    game.Acquire<Parent>(renderableId).Id = parentId;
     game.Acquire<Position>(renderableId).Value = pos;
     return renderableId;
 }
 
 Guid prevId = CreateCube(Vector3.Zero, GLRenderer.RootId);
-game.Acquire<Scale>(prevId).Value = new Vector3(0.2f);
+game.Acquire<Scale>(prevId).Value = new Vector3(0.1f);
 
 for (int i = 0; i < 50; ++i) {
     prevId = CreateCube(new Vector3(i * 0.1f - 0.1f, 0, 0), prevId);
     game.Acquire<Scale>(prevId).Value = new Vector3(0.95f);
 }
 
-Guid rotatorId = CreateCube(Vector3.Zero);
+Guid rotatorId = CreateCube(Vector3.Zero, GLRenderer.RootId);
 game.Acquire<Scale>(rotatorId).Value = new Vector3(0.1f);
-game.Acquire<Parent>(cameraId).Id = rotatorId;
 
 float Lerp(float firstFloat, float secondFloat, float by)
     => firstFloat * (1 - by) + secondFloat * by;
