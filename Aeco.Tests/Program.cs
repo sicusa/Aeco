@@ -49,6 +49,10 @@ for (int i = 0; i < 50; ++i) {
     game.Acquire<Scale>(prevId).Value = new Vector3(0.95f);
 }
 
+Guid rotatorId = CreateCube(Vector3.Zero);
+game.Acquire<Scale>(rotatorId).Value = new Vector3(0.1f);
+game.Acquire<Parent>(cameraId).Id = rotatorId;
+
 float Lerp(float firstFloat, float secondFloat, float by)
     => firstFloat * (1 - by) + secondFloat * by;
 
@@ -59,18 +63,24 @@ float sensitivity = 0.005f;
 float x = 0;
 float y = 0;
 
-window.UpdateFrame += e => {
+window.RenderFrame += e => {
     float scaledRate = game.DeltaTime * rate;
     x = Lerp(x, window.MousePosition.X * sensitivity, scaledRate);
     y = Lerp(y, window.MousePosition.Y * sensitivity, scaledRate);
 
+    float time = game.Time;
+    foreach (var id in game.Query<MeshRenderable>()) {
+        if (id == rotatorId) { continue; }
+        game.Acquire<Rotation>(id).Value = Quaternion.CreateFromYawPitchRoll(x, -y, 0);
+    }
+
+    ref var rotatorView = ref game.Acquire<WorldView>(rotatorId);
+    game.Acquire<Position>(rotatorId).Value += rotatorView.Forward * game.DeltaTime * 2;
+    game.Acquire<Rotation>(rotatorId).Value *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, game.DeltaTime);
+
     var rot = Quaternion.CreateFromYawPitchRoll(x, -y, 0);
     game.Acquire<Rotation>(cameraId).Value = rot;
 
-    float time = game.Time;
-    foreach (var id in game.Query<MeshRenderable>()) {
-        game.Acquire<Rotation>(id).Value = Quaternion.CreateFromYawPitchRoll(time, time, time);
-    }
 };
 
 game.Run();
