@@ -13,13 +13,7 @@ public abstract class MatrixUpdatorBase<TProperty> : VirtualLayer, IGLUpdateLaye
             ref readonly var property = ref context.Inspect<TProperty>(id);
             ref var matrices = ref context.Acquire<TransformMatrices>(id);
             UpdateMatrices(ref matrices, property);
-
-            context.Acquire<TransformMatricesDirty>(id);
-            var currId = id;
-            while (context.TryGet<Parent>(currId, out var parent)) {
-                context.Acquire<ChildrenTransformMatricesDirty>(parent.Id);
-                currId = parent.Id;
-            }
+            TransformMatricesDirty.Tag(context, id);
         }
     }
 
