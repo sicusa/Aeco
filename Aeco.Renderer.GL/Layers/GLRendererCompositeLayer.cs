@@ -94,11 +94,11 @@ public class GLRendererCompositeLayer : CompositeLayer
     public GLRendererCompositeLayer(IDataLayer<IReactiveEvent> eventDataLayer, params ILayer<IComponent>[] sublayers)
         : base(
             new ILayer<IComponent>[] {
-                new SingletonStorage<Window>(),
                 new ReactiveCompositeLayer(
                     eventDataLayer: eventDataLayer,
-                    new PolyHashStorage<IGLReactiveObject>()
+                    new PolyPoolStorage<IGLReactiveObject>()
                 ),
+                new SingletonStorage<Window>(),
                 new WorldViewStorage(),
                 new PolyPoolStorage<IGLObject>(),
 
