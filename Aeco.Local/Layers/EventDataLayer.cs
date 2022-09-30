@@ -45,6 +45,10 @@ public class EventDataLayer<TComponent, TSelectedComponent>
         return false;
     }
 
+    public override void RemoveAll<UComponent>()
+    {
+    }
+
     public override Guid Singleton<UComponent>()
         => throw new KeyNotFoundException("Singleton not found");
 

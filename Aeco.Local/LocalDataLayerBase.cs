@@ -57,6 +57,8 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
     public bool Remove<UComponent>([MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
         => Remove<UComponent>(Singleton<UComponent>(), out component);
+    public abstract void RemoveAll<UComponent>()
+        where UComponent : TComponent;
 
     public abstract ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
         where UComponent : TComponent;

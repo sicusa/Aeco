@@ -128,6 +128,12 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
         return false;
     }
 
+    public override void RemoveAll<UComponent>()
+    {
+        MessageDataLayer.RemoveAll<UComponent>();
+        ChannelDataLayer.RemoveAll<Channel<UComponent>>();
+    }
+
     public override IEnumerable<object> GetAll(Guid entityId)
         => ChannelDataLayer.GetAll(entityId)
             .Select(comp => comp as IChannel)

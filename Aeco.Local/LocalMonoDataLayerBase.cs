@@ -65,6 +65,8 @@ public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
         => Convert<UComponent>().Remove(entityId);
     public sealed override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
         => Convert<UComponent>().Remove(entityId, out component);
+    public sealed override void RemoveAll<UComponent>()
+        => Convert<UComponent>().Clear();
     public sealed override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
         => ref Convert<UComponent>().Set(entityId, component);
     public sealed override IEnumerable<Guid> Query<UComponent>()

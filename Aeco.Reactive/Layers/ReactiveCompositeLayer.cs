@@ -87,6 +87,16 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
         return false;
     }
 
+    public override void RemoveAll<UComponent>()
+    {
+        foreach (var id in Query<UComponent>()) {
+            EventDataLayer.Acquire<Removed<UComponent>>(id);
+            EventDataLayer.Acquire<AnyRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+            EventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+        }
+        base.RemoveAll<UComponent>();
+    }
+
     public override void Clear(Guid entityId)
     {
         foreach (var comp in GetAll(entityId)) {

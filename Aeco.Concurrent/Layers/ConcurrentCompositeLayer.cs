@@ -103,6 +103,17 @@ public class ConcurrentCompositeLayer<TComponent, TSublayer> : CompositeLayer<TC
         }
     }
 
+    public override void RemoveAll<UComponent>()
+    {
+        _lockSlim.EnterWriteLock();
+        try {
+            base.RemoveAll<UComponent>();
+        }
+        finally {
+            _lockSlim.ExitWriteLock();
+        }
+    }
+
     public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
     {
         _lockSlim.EnterWriteLock();
