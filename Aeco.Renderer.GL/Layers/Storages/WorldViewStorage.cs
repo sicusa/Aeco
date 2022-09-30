@@ -46,7 +46,7 @@ public class WorldViewStorage : MonoPoolStorage<WorldView>, IGLLoadLayer
 
         view.Right = Vector3.Normalize(new Vector3(vmat.M11, vmat.M12, vmat.M13));
         view.Up = Vector3.Normalize(new Vector3(vmat.M21, vmat.M22, vmat.M23));
-        view.Forward = Vector3.Normalize(new Vector3(vmat.M31, vmat.M32, vmat.M33));
+        view.Forward = -Vector3.Normalize(new Vector3(vmat.M31, vmat.M32, vmat.M33));
 
         _context.Remove<WorldViewChanged>(entityId);
     }
