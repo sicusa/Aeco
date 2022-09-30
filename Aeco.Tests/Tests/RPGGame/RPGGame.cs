@@ -8,7 +8,7 @@ using Aeco.Persistence.Local;
 using Aeco.Renderer.GL;
 using Aeco.Tests.RPGGame.Character;
 
-public class RPGGame : GLRendererCompositeLayer
+public class RPGGame : GLRendererLayer
 {
     public float Time { get; private set; }
     public float DeltaTime { get; private set; }

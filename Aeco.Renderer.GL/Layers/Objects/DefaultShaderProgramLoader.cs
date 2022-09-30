@@ -17,7 +17,7 @@ public class DefaultShaderProgramLoader : VirtualLayer, IGLLoadLayer
             throw new FileNotFoundException("Failed to load default fragment shader");
         }
 
-        ref var program = ref context.Acquire<ShaderProgram>(GLRendererCompositeLayer.DefaultShaderProgramId);
+        ref var program = ref context.Acquire<ShaderProgram>(GLRendererLayer.DefaultShaderProgramId);
         using (var reader = new StreamReader(vertStream, System.Text.Encoding.UTF8)) {
             program.VertexShader = reader.ReadToEnd();
         }
@@ -25,7 +25,7 @@ public class DefaultShaderProgramLoader : VirtualLayer, IGLLoadLayer
             program.FragmentShader = reader.ReadToEnd();
         }
 
-        context.Acquire<DefaultShaderProgram>(GLRendererCompositeLayer.DefaultShaderProgramId);
+        context.Acquire<DefaultShaderProgram>(GLRendererLayer.DefaultShaderProgramId);
         Console.WriteLine("Default shader program loaded.");
     }
 }

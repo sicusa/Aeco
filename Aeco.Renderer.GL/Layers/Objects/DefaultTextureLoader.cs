@@ -13,9 +13,9 @@ public class DefaultTextureLoader : VirtualLayer, IGLLoadLayer
             throw new FileNotFoundException("Failed to load default texture");
         }
 
-        ref var texture = ref context.Acquire<Texture>(GLRendererCompositeLayer.DefaultTextureId);
+        ref var texture = ref context.Acquire<Texture>(GLRendererLayer.DefaultTextureId);
         texture.Stream = stream;
-        context.Acquire<DefaultShaderProgram>(GLRendererCompositeLayer.DefaultTextureId);
+        context.Acquire<DefaultShaderProgram>(GLRendererLayer.DefaultTextureId);
         Console.WriteLine("Default texture loaded.");
     }
 }

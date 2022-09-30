@@ -11,14 +11,14 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using Aeco.Local;
 using Aeco.Reactive;
 
-public class GLRendererCompositeLayer : CompositeLayer
+public class GLRendererLayer : CompositeLayer
 {
     private class InternalWindow : GameWindow
     {
-        private GLRendererCompositeLayer _context;
+        private GLRendererLayer _context;
         private System.Numerics.Vector4 _clearColor;
 
-        public InternalWindow(GLRendererCompositeLayer context, in RendererSpec spec)
+        public InternalWindow(GLRendererLayer context, in RendererSpec spec)
             : base(
                 new GameWindowSettings {
                     RenderFrequency = spec.RenderFrequency,
@@ -85,13 +85,14 @@ public class GLRendererCompositeLayer : CompositeLayer
 
     public static Guid DefaultShaderProgramId { get; } = Guid.Parse("fa55827a-852c-4de2-b47e-3df941ec7619");
     public static Guid DefaultTextureId { get; } = Guid.Parse("9a621b14-5b03-4b12-a3ac-6f317a5ed431");
+    public static Guid RootId { get; } = Guid.Parse("58808b2a-9c92-487e-aef8-2b60ea766cad");
 
     private IGLRenderLayer[] _renderLayers;
     private IGLUpdateLayer[] _updateLayers;
     private IGLLateUpdateLayer[] _lateUpdateLayers;
     private IGLResizeLayer[] _resizeLayers;
 
-    public GLRendererCompositeLayer(IDataLayer<IReactiveEvent> eventDataLayer, params ILayer<IComponent>[] sublayers)
+    public GLRendererLayer(IDataLayer<IReactiveEvent> eventDataLayer, params ILayer<IComponent>[] sublayers)
         : base(
             new ILayer<IComponent>[] {
                 new ReactiveCompositeLayer(

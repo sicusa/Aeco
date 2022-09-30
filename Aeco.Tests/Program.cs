@@ -25,7 +25,7 @@ texture.Stream = InternalAssets.Load("Textures.wall.jpg");
 
 var materialId = Guid.NewGuid();
 ref var material = ref game.Acquire<Material>(materialId);
-material.ShaderProgram = GLRendererCompositeLayer.DefaultShaderProgramId;
+material.ShaderProgram = GLRendererLayer.DefaultShaderProgramId;
 material.Texture = textureId;
 
 Guid CreateCube(in Vector3 pos, Guid? parent = null)
