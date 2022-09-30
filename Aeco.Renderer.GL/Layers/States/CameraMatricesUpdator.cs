@@ -2,9 +2,11 @@ namespace Aeco.Renderer.GL;
 
 using System.Numerics;
 
+using Aeco.Reactive;
+
 public class CameraMatricesUpdator : VirtualLayer, IGLUpdateLayer
 {
-    private Query<TransformMatricesDirty, Camera> _q = new();
+    private Query<Modified<Camera>, Camera> _q = new();
 
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {

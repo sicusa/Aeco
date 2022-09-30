@@ -10,8 +10,8 @@ public struct TransformMatricesDirty : IGLObject
 
         var currId = id;
         while (context.TryGet<Parent>(currId, out var parent)) {
-            context.Acquire<ChildrenTransformMatricesDirty>(parent.Id);
             currId = parent.Id;
+            context.Acquire<ChildrenTransformMatricesDirty>(currId);
         }
     }
 }
