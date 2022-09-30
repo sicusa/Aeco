@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerBase<TComponent, TStoredComponent>
     where TStoredComponent : TComponent, IDisposable, new()
@@ -16,9 +17,133 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         public TStoredComponent Data;
     }
 
-    public int Capacity => _blocks.Length;
+    private class Brick
+    {
+        public Block[] Blocks;
+        public Brick? NextBrick;
 
-    private Block[] _blocks;
+        public Brick(int capacity)
+        {
+            Blocks = new Block[capacity];
+            for (int i = 0; i < Blocks.Length; ++i) {
+                ref var block = ref Blocks[i];
+                block.NextBlockIndex = -1;
+                block.Id = Guid.Empty;
+                block.Data = new();
+            }
+        }
+
+        public ref Block FindBlock(int index, Guid id)
+        {
+            int initialIndex = index;
+            ref var block = ref Blocks[index];
+
+            if (block.Id == Guid.Empty) {
+                if (block.NextBlockIndex == -1) {
+                    return ref Unsafe.NullRef<Block>();
+                }
+                else if (block.NextBlockIndex == -2) {
+                    return ref NextBrick!.FindBlock(index, id);
+                }
+            }
+
+            while (true) {
+                if (block.Id == id) {
+                    return ref block;
+                }
+                index = block.NextBlockIndex;
+                if (index == -1) {
+                    return ref Unsafe.NullRef<Block>();
+                }
+                else if (index == -2) {
+                    return ref NextBrick!.FindBlock(initialIndex, id);
+                }
+                block = ref Blocks[index];
+            }
+        }
+
+        public ref Block AcquireBlock(int index, Guid id, out bool exists)
+        {
+            ref var block = ref Blocks[index];
+
+            if (block.Id == Guid.Empty) {
+                block.Id = id;
+                exists = false;
+                return ref block;
+            }
+
+            while (true) {
+                if (block.Id == id) {
+                    exists = true;
+                    return ref block;
+                }
+
+                index = block.NextBlockIndex;
+                if (index == -1) {
+                    int bucketIndex = Blocks.Length - 1;
+                    while (bucketIndex >= 0 && Blocks[bucketIndex].Id != Guid.Empty) {
+                        --bucketIndex;
+                    }
+                    if (bucketIndex == -1) {
+                        NextBrick ??= new Brick(Blocks.Length);
+                        block.NextBlockIndex = -2;
+                        return ref NextBrick.AcquireBlock(index, id, out exists);
+                    }
+
+                    ref var bucket = ref Blocks[bucketIndex];
+                    bucket.Id = id;
+                    block.NextBlockIndex = bucketIndex;
+
+                    exists = false;
+                    return ref bucket;
+                }
+                else if (index == -2) {
+                    return ref NextBrick!.AcquireBlock(index, id, out exists);
+                }
+                block = ref Blocks[index];
+            }
+        }
+
+        public ref Block RemoveBlock(int index, Guid id)
+        {
+            ref var block = ref Blocks[index];
+            if (block.Id == Guid.Empty) {
+                if (block.NextBlockIndex == -1) {
+                    return ref Unsafe.NullRef<Block>();
+                }
+                else if (block.NextBlockIndex == -2) {
+                    return ref NextBrick!.RemoveBlock(index, id);
+                }
+            }
+            else if (block.Id == id) {
+                block.Id = Guid.Empty;
+                return ref block;
+            }
+
+            int prevIndex;
+            while (true) {
+                prevIndex = index;
+                index = block.NextBlockIndex;
+                if (index == -1) {
+                    return ref Unsafe.NullRef<Block>();
+                }
+                else if (index == -2) {
+                    return ref NextBrick!.RemoveBlock(index, id);
+                }
+                block = ref Blocks[index];
+                if (block.Id == id) {
+                    Blocks[prevIndex].NextBlockIndex = block.NextBlockIndex;
+                    block.NextBlockIndex = -1;
+                    block.Id = Guid.Empty;
+                    return ref block;
+                }
+            }
+        }
+    }
+
+    public int BrickCapacity { get; set; }
+
+    private Brick _brick;
     private SortedSet<Guid> _entityIds = new();
 
     private int _cellarCount;
@@ -27,17 +152,11 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     private const int kLower31BitMask = 0x7FFFFFFF;
 
-    public MonoPoolStorage(int capacity = MonoPoolStorage.DefaultCapacity)
+    public MonoPoolStorage(int brickCapacity = MonoPoolStorage.DefaultBrickCapacity)
     {
-        _blocks = new Block[capacity];
-        _cellarCount = (int)(0.86 * capacity);
-
-        for (int i = 0; i < capacity; ++i) {
-            ref var block = ref _blocks[i];
-            block.NextBlockIndex = -1;
-            block.Id = Guid.Empty;
-            block.Data = new();
-        }
+        BrickCapacity = brickCapacity;
+        _cellarCount = (int)(0.86 * brickCapacity);
+        _brick = new Brick(brickCapacity);
     }
     
     private int GetIndex(Guid entityId)
@@ -46,98 +165,37 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     public override bool TryGet(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
     {
         int index = GetIndex(entityId);
-        ref var block = ref _blocks[index];
-
-        if (block.Id == Guid.Empty) {
+        ref var block = ref _brick.FindBlock(index, entityId);
+        if (Unsafe.IsNullRef(ref block)) {
             component = default;
             return false;
         }
-
-        while (true) {
-            if (block.Id == entityId) {
-                component = block.Data;
-                return true;
-            }
-            index = block.NextBlockIndex;
-            if (index == -1) {
-                component = default;
-                return false;
-            }
-            block = ref _blocks[index];
-        }
+        component = block.Data;
+        return true;
     }
 
     public override ref TStoredComponent Require(Guid entityId)
     {
         int index = GetIndex(entityId);
-        ref var block = ref _blocks[index];
-
-        if (block.Id == Guid.Empty) {
+        ref var block = ref _brick.FindBlock(index, entityId);
+        if (Unsafe.IsNullRef(ref block)) {
             throw new KeyNotFoundException("Component not found");
         }
-
-        while (true) {
-            if (block.Id == entityId) {
-                return ref block.Data;
-            }
-            index = block.NextBlockIndex;
-            if (index == -1) {
-                throw new KeyNotFoundException("Component not found");
-            }
-            block = ref _blocks[index];
-        }
-    }
-
-    private ref Block AcquireBlock(Guid entityId, out bool exists)
-    {
-        int index = GetIndex(entityId);
-        ref var block = ref _blocks[index];
-
-        if (block.Id == Guid.Empty) {
-            block.Id = entityId;
-            _entityIds.Add(entityId);
-            if (_singleton == Guid.Empty) {
-                _singleton = entityId;
-            }
-            exists = false;
-            return ref block;
-        }
-
-        while (true) {
-            if (block.Id == entityId) {
-                exists = true;
-                return ref block;
-            }
-            index = block.NextBlockIndex;
-            if (index == -1) {
-                int bucketIndex = _blocks.Length - 1;
-                while (bucketIndex >= 0 && _blocks[bucketIndex].Id != Guid.Empty) {
-                    --bucketIndex;
-                }
-                if (bucketIndex == -1) {
-                    throw new InvalidOperationException("PoolStorage is full");
-                }
-
-                ref var bucket = ref _blocks[bucketIndex];
-                bucket.Id = entityId;
-                block.NextBlockIndex = bucketIndex;
-
-                _entityIds.Add(entityId);
-                if (_singleton == Guid.Empty) {
-                    _singleton = entityId;
-                }
-                exists = false;
-                return ref bucket;
-            }
-            block = ref _blocks[index];
-        }
+        return ref block.Data;
     }
     
     public override ref TStoredComponent Acquire(Guid entityId)
-        => ref AcquireBlock(entityId, out _existsTemp).Data;
+        => ref Acquire(entityId, out _existsTemp);
 
     public override ref TStoredComponent Acquire(Guid entityId, out bool exists)
-        => ref AcquireBlock(entityId, out exists).Data;
+    {
+        ref var block = ref _brick.AcquireBlock(GetIndex(entityId), entityId, out exists);
+        if (!_existsTemp) {
+            _entityIds.Add(entityId);
+            ResetSingleton();
+        }
+        return ref block.Data;
+    }
 
     public override bool Contains(Guid entityId)
         => _entityIds.Contains(entityId);
@@ -152,90 +210,45 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     private void ClearBlock(ref Block block, in Guid entityId)
     {
-        block.Id = Guid.Empty;
         block.Data.Dispose();
-
         _entityIds.Remove(entityId);
         if (_singleton == entityId) {
             ResetSingleton();
         }
     }
 
-    private bool RawRemove(Guid entityId)
+    public override bool Remove(Guid entityId)
     {
         int index = GetIndex(entityId);
-        ref var block = ref _blocks[index];
-
-        if (block.Id == Guid.Empty) {
-            if (block.NextBlockIndex == -1) {
-                return false;
-            }
+        ref var block = ref _brick.RemoveBlock(index, entityId);
+        if (Unsafe.IsNullRef(ref block)) {
+            return false;
         }
-        else if (block.Id == entityId) {
-            ClearBlock(ref block, entityId);
-            return true;
-        }
-
-        int prevIndex;
-        while (true) {
-            prevIndex = index;
-            index = block.NextBlockIndex;
-            if (index == -1) {
-                return false;
-            }
-            block = ref _blocks[index];
-
-            if (block.Id == entityId) {
-                _blocks[prevIndex].NextBlockIndex = block.NextBlockIndex;
-                block.NextBlockIndex = -1;
-                ClearBlock(ref block, entityId);
-                return true;
-            }
-        }
+        ClearBlock(ref block, entityId);
+        return true;
     }
-
-    public override bool Remove(Guid entityId)
-        => RawRemove(entityId);
 
     public override bool Remove(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
     {
         int index = GetIndex(entityId);
-        ref var block = ref _blocks[index];
-
-        if (block.Id == Guid.Empty) {
-            if (block.NextBlockIndex == -1) {
-                component = default;
-                return false;
-            }
+        ref var block = ref _brick.RemoveBlock(index, entityId);
+        if (Unsafe.IsNullRef(ref block)) {
+            component = default;
+            return false;
         }
-        else if (block.Id == entityId) {
-            component = block.Data;
-            ClearBlock(ref block, entityId);
-            return true;
-        }
-
-        int prevIndex;
-        while (true) {
-            prevIndex = index;
-            index = block.NextBlockIndex;
-            if (index == -1) {
-                component = default;
-                return false;
-            }
-            block = ref _blocks[index];
-            if (block.Id == entityId) {
-                _blocks[prevIndex].NextBlockIndex = block.NextBlockIndex;
-                block.NextBlockIndex = -1;
-                component = block.Data;
-                ClearBlock(ref block, entityId);
-                return true;
-            }
-        }
+        component = block.Data;
+        ClearBlock(ref block, entityId);
+        return true;
     }
 
     public override ref TStoredComponent Set(Guid entityId, in TStoredComponent component)
     {
-        ref var block = ref AcquireBlock(entityId, out _existsTemp);
+        int index = GetIndex(entityId);
+        ref var block = ref _brick.AcquireBlock(index, entityId, out _existsTemp);
+        if (!_existsTemp) {
+            _entityIds.Add(entityId);
+            ResetSingleton();
+        }
         block.Data = component;
         return ref block.Data;
     }
@@ -250,37 +263,28 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     public override IEnumerable<object> GetAll(Guid entityId)
     {
         int index = GetIndex(entityId);
-        ref var block = ref _blocks[index];
-
-        if (block.Id == Guid.Empty) {
+        ref var block = ref _brick.FindBlock(index, entityId);
+        if (Unsafe.IsNullRef(ref block)) {
             return Enumerable.Empty<object>();
         }
-
-        while (true) {
-            if (block.Id == entityId) {
-                return Enumerable.Repeat<object>(block.Data, 1);
-            }
-            index = block.NextBlockIndex;
-            if (index == -1) {
-                return Enumerable.Empty<object>();
-            }
-            block = ref _blocks[index];
-        }
+        return Enumerable.Repeat<object>(block.Data, 1);
     }
 
     public override void Clear(Guid entityId)
-        => RawRemove(entityId);
+        => Remove(entityId);
 
     public override void Clear()
     {
-        for (int i = 0; i < _blocks.Length; ++i) {
-            ref var block = ref _blocks[i];
+        var blocks = _brick.Blocks;
+        for (int i = 0; i < blocks.Length; ++i) {
+            ref var block = ref blocks[i];
             block.NextBlockIndex = -1;
             if (block.Id != Guid.Empty) {
                 block.Id = Guid.Empty;
                 block.Data.Dispose();
             }
         }
+        _brick.NextBrick = null;
         _entityIds.Clear();
         _singleton = Guid.Empty;
     }
@@ -293,16 +297,16 @@ public class MonoPoolStorage<TStoredComponent> : MonoPoolStorage<IComponent, TSt
 
 public static class MonoPoolStorage
 {
-    public const int DefaultCapacity = 256;
+    public const int DefaultBrickCapacity = 239;
 
-    public static IDataLayer<TComponent> CreateUnsafe<TComponent>(Type selectedComponentType, int capacity = DefaultCapacity)
+    public static IDataLayer<TComponent> CreateUnsafe<TComponent>(Type selectedComponentType, int capacity = DefaultBrickCapacity)
     {
         var type = typeof(MonoPoolStorage<,>).MakeGenericType(
             new Type[] {typeof(TComponent), selectedComponentType});
         return (IDataLayer<TComponent>)Activator.CreateInstance(type, new object[] {capacity})!;
     }
 
-    public static Func<Type, IDataLayer<TComponent>> MakeUnsafeCreator<TComponent>(int capacity = DefaultCapacity)
+    public static Func<Type, IDataLayer<TComponent>> MakeUnsafeCreator<TComponent>(int capacity = DefaultBrickCapacity)
         => selectedComponentType =>
             CreateUnsafe<TComponent>(selectedComponentType, capacity);
 }
