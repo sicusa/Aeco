@@ -23,8 +23,8 @@ public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer
                 childMatrices.World = matrices.Combined * matrices.World;
                 UpdateRecursively(context, childId, ref childMatrices);
             }
-            else if (context.Contains<ChildrenTransformMatricesDirty>()) {
-                Traverse(context, id);
+            else if (context.Contains<ChildrenTransformMatricesDirty>(childId)) {
+                Traverse(context, childId);
             }
         }
     }
