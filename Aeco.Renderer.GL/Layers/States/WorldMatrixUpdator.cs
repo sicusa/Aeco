@@ -40,10 +40,10 @@ public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLay
         if (_updatedIds.Contains(id)) { return; }
         _updatedIds.Add(id);
         context.Acquire<WorldViewChanged>(id);
-        context.Acquire<TransformMatricesChanged>(id, out bool exists);
+        context.Acquire<TransformMatricesChanged>(id, out bool changed);
 
         ref var matrices = ref context.Acquire<TransformMatrices>(id);
-        if (exists) {
+        if (changed) {
             matrices.Combined = matrices.Scale * matrices.Rotation * matrices.Translation;
         }
         matrices.World = matrices.Combined * parentMatrices.World;
