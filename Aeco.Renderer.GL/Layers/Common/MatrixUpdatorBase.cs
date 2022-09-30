@@ -15,8 +15,10 @@ public abstract class MatrixUpdatorBase<TProperty> : VirtualLayer, IGLUpdateLaye
             UpdateMatrices(ref matrices, property);
 
             context.Acquire<TransformMatricesDirty>(id);
-            while (context.TryGet<Parent>(id, out var parent)) {
+            var currId = id;
+            while (context.TryGet<Parent>(currId, out var parent)) {
                 context.Acquire<ChildrenTransformMatricesDirty>(parent.Id);
+                currId = parent.Id;
             }
         }
     }

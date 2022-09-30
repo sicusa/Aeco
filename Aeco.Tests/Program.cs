@@ -25,7 +25,7 @@ texture.Stream = InternalAssets.Load("Textures.wall.jpg");
 
 var materialId = Guid.NewGuid();
 ref var material = ref game.Acquire<Material>(materialId);
-material.ShaderProgram = GLRendererLayer.DefaultShaderProgramId;
+material.ShaderProgram = GLRenderer.DefaultShaderProgramId;
 material.Texture = textureId;
 
 Guid CreateCube(in Vector3 pos, Guid? parent = null)
@@ -41,7 +41,7 @@ Guid CreateCube(in Vector3 pos, Guid? parent = null)
     return renderableId;
 }
 
-Guid prevId = CreateCube(Vector3.Zero);
+Guid prevId = CreateCube(Vector3.Zero, GLRenderer.RootId);
 game.Acquire<Scale>(prevId).Value = new Vector3(0.2f);
 
 for (int i = 0; i < 50; ++i) {

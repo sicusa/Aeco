@@ -35,7 +35,7 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLRenderLayer
                 }
                 else {
                     ref readonly var shaderProgramHandle = ref context.Inspect<ShaderProgramHandle>(
-                        GLRendererLayer.DefaultShaderProgramId);
+                        GLRenderer.DefaultShaderProgramId);
                     GL.UseProgram(shaderProgramHandle.Value);
                     uniforms = shaderProgramHandle.UniformLocations;
                 }

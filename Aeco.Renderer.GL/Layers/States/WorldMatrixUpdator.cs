@@ -6,7 +6,7 @@ public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer
 {
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
-        Traverse(context, GLRendererLayer.RootId);
+        Traverse(context, GLRenderer.RootId);
         context.RemoveAll<ChildrenTransformMatricesDirty>();
     }
 

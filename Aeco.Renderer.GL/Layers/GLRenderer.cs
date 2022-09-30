@@ -11,14 +11,14 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using Aeco.Local;
 using Aeco.Reactive;
 
-public class GLRendererLayer : CompositeLayer
+public class GLRenderer : CompositeLayer
 {
     private class InternalWindow : GameWindow
     {
-        private GLRendererLayer _context;
+        private GLRenderer _context;
         private System.Numerics.Vector4 _clearColor;
 
-        public InternalWindow(GLRendererLayer context, in RendererSpec spec)
+        public InternalWindow(GLRenderer context, in RendererSpec spec)
             : base(
                 new GameWindowSettings {
                     RenderFrequency = spec.RenderFrequency,
@@ -92,7 +92,7 @@ public class GLRendererLayer : CompositeLayer
     private IGLLateUpdateLayer[] _lateUpdateLayers;
     private IGLResizeLayer[] _resizeLayers;
 
-    public GLRendererLayer(IDataLayer<IReactiveEvent> eventDataLayer, params ILayer<IComponent>[] sublayers)
+    public GLRenderer(IDataLayer<IReactiveEvent> eventDataLayer, params ILayer<IComponent>[] sublayers)
         : base(
             new ILayer<IComponent>[] {
                 new ReactiveCompositeLayer(
