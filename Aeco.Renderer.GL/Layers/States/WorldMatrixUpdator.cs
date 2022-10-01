@@ -1,7 +1,5 @@
 namespace Aeco.Renderer.GL;
 
-using Aeco.Reactive;
-
 public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer
 {
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
@@ -18,9 +16,9 @@ public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer
         ref var matrices = ref context.Acquire<TransformMatrices>(id);
         foreach (var childId in children.Ids) {
             if (context.Contains<TransformMatricesDirty>(childId)) {
-                ref var childMatrices = ref context.Acquire<TransformMatrices>(id);
+                ref var childMatrices = ref context.Acquire<TransformMatrices>(childId);
                 childMatrices.Combined = childMatrices.Scale * childMatrices.Rotation * childMatrices.Translation;
-                childMatrices.World = matrices.Combined * matrices.World;
+                childMatrices.World = childMatrices.Combined * matrices.World;
                 UpdateRecursively(context, childId, ref childMatrices);
             }
             else if (context.Contains<ChildrenTransformMatricesDirty>(childId)) {
