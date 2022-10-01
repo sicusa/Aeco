@@ -200,7 +200,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     public override bool Contains(Guid entityId)
         => _entityIds.Contains(entityId);
 
-    public override bool Contains()
+    public override bool ContainsAny()
         => _singleton != Guid.Empty;
 
     private void ResetSingleton()

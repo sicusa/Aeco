@@ -241,10 +241,10 @@ public class CompositeLayer<TComponent, TSublayer>
         return dataLayer != null ? dataLayer.Contains<UComponent>(entityId) : false;
     }
 
-    public override bool Contains<UComponent>()
+    public override bool ContainsAny<UComponent>()
     {
         var dataLayer = FindTerminalDataLayer<UComponent>();
-        return dataLayer != null ? dataLayer.Contains<UComponent>() : false;
+        return dataLayer != null ? dataLayer.ContainsAny<UComponent>() : false;
     }
 
     public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)

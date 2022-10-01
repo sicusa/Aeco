@@ -53,7 +53,7 @@ game.Acquire<Scale>(rotatorId).Value = new Vector3(0.1f);
 float Lerp(float firstFloat, float secondFloat, float by)
     => firstFloat * (1 - by) + secondFloat * by;
 
-var window = game.Require<Aeco.Renderer.GL.Window>().Current!;
+var window = game.RequireAny<Aeco.Renderer.GL.Window>().Current!;
 
 float rate = 10;
 float sensitivity = 0.005f;

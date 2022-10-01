@@ -14,7 +14,7 @@ public class CameraMatricesUpdator : VirtualLayer, IGLUpdateLayer
             ref readonly var camera = ref context.Inspect<Camera>(id);
             ref var matrices = ref context.Acquire<CameraMatrices>(id);
 
-            var size = context.Require<Window>().Current!.ClientSize;
+            var size = context.RequireAny<Window>().Current!.ClientSize;
             float aspectRatio = (float)size.X / (float)size.Y;
 
             matrices.Projection = Matrix4x4.CreatePerspectiveFieldOfView(

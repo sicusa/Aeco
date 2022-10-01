@@ -65,7 +65,7 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
     public override bool Contains(Guid entityId)
         => _id == entityId;
 
-    public override bool Contains()
+    public override bool ContainsAny()
         => _id != Guid.Empty;
 
     public override bool Remove(Guid entityId)

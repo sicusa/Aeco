@@ -69,13 +69,13 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
         return substorage.Contains<UComponent>(entityId);
     }
 
-    public override bool Contains<UComponent>()
+    public override bool ContainsAny<UComponent>()
     {
         var substorage = FindSubstorage<UComponent>();
         if (substorage == null) {
             return false;
         }
-        return substorage.Contains<UComponent>();
+        return substorage.ContainsAny<UComponent>();
     }
 
     public override bool Remove<UComponent>(Guid entityId)

@@ -153,12 +153,12 @@ public class GLRenderer : CompositeLayer
 
     public virtual void Run()
     {
-        var window = Require<Window>().Current!;
+        var window = RequireAny<Window>().Current!;
         try {
             window.Run();
         }
         finally {
-            if (Contains<Window>()) {
+            if (ContainsAny<Window>()) {
                 Clear(Singleton<Window>());
             }
         }

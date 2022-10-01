@@ -42,7 +42,7 @@ public class Group<T1> : GroupBase
     where T1 : IComponent
 {
     public override bool ShouldRefrash(IDataLayer<IComponent> dataLayer)
-        => dataLayer.Contains<AnyCreatedOrRemoved<T1>>();
+        => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>();
     
     public override void Refrash(IDataLayer<IComponent> dataLayer)
         => Reset(dataLayer.Query<T1>());
@@ -55,8 +55,8 @@ public class Group<T1, T2> : GroupBase
     private Query<T1, T2> _q = new();
 
     public override bool ShouldRefrash(IDataLayer<IComponent> dataLayer)
-        => dataLayer.Contains<AnyCreatedOrRemoved<T1>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T2>>();
+        => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T2>>();
 
     public override void Refrash(IDataLayer<IComponent> dataLayer)
         => Reset(_q.Query(dataLayer));
@@ -70,9 +70,9 @@ public class Group<T1, T2, T3> : GroupBase
     private Query<T1, T2, T3> _q = new();
 
     public override bool ShouldRefrash(IDataLayer<IComponent> dataLayer)
-        => dataLayer.Contains<AnyCreatedOrRemoved<T1>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T2>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T3>>();
+        => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T2>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T3>>();
 
     public override void Refrash(IDataLayer<IComponent> dataLayer)
         => Reset(_q.Query(dataLayer));
@@ -87,10 +87,10 @@ public class Group<T1, T2, T3, T4> : GroupBase
     private Query<T1, T2, T3, T4> _q = new();
 
     public override bool ShouldRefrash(IDataLayer<IComponent> dataLayer)
-        => dataLayer.Contains<AnyCreatedOrRemoved<T1>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T2>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T3>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T4>>();
+        => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T2>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T3>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T4>>();
 
     public override void Refrash(IDataLayer<IComponent> dataLayer)
         => Reset(_q.Query(dataLayer));
@@ -106,11 +106,11 @@ public class Group<T1, T2, T3, T4, T5> : GroupBase
     private Query<T1, T2, T3, T4, T5> _q = new();
 
     public override bool ShouldRefrash(IDataLayer<IComponent> dataLayer)
-        => dataLayer.Contains<AnyCreatedOrRemoved<T1>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T2>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T3>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T4>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T5>>();
+        => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T2>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T3>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T4>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T5>>();
 
     public override void Refrash(IDataLayer<IComponent> dataLayer)
         => Reset(_q.Query(dataLayer));
@@ -127,12 +127,12 @@ public class Group<T1, T2, T3, T4, T5, T6> : GroupBase
     private Query<T1, T2, T3, T4, T5, T6> _q = new();
 
     public override bool ShouldRefrash(IDataLayer<IComponent> dataLayer)
-        => dataLayer.Contains<AnyCreatedOrRemoved<T1>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T2>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T3>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T4>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T5>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T6>>();
+        => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T2>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T3>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T4>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T5>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T6>>();
 
     public override void Refrash(IDataLayer<IComponent> dataLayer)
         => Reset(_q.Query(dataLayer));
@@ -150,13 +150,13 @@ public class Group<T1, T2, T3, T4, T5, T6, T7> : GroupBase
     private Query<T1, T2, T3, T4, T5, T6, T7> _q = new();
 
     public override bool ShouldRefrash(IDataLayer<IComponent> dataLayer)
-        => dataLayer.Contains<AnyCreatedOrRemoved<T1>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T2>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T3>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T4>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T5>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T6>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T7>>();
+        => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T2>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T3>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T4>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T5>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T6>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T7>>();
 
     public override void Refrash(IDataLayer<IComponent> dataLayer)
         => Reset(_q.Query(dataLayer));
@@ -175,14 +175,14 @@ public class Group<T1, T2, T3, T4, T5, T6, T7, T8> : GroupBase
     private Query<T1, T2, T3, T4, T5, T6, T7, T8> _q = new();
 
     public override bool ShouldRefrash(IDataLayer<IComponent> dataLayer)
-        => dataLayer.Contains<AnyCreatedOrRemoved<T1>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T2>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T3>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T4>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T5>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T6>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T7>>()
-            || dataLayer.Contains<AnyCreatedOrRemoved<T8>>();
+        => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T2>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T3>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T4>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T5>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T6>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T7>>()
+            || dataLayer.ContainsAny<AnyCreatedOrRemoved<T8>>();
 
     public override void Refrash(IDataLayer<IComponent> dataLayer)
         => Reset(_q.Query(dataLayer));
