@@ -26,7 +26,8 @@ public class ParentNodeUpdator : VirtualLayer, IGLUpdateLayer
         }
 
         foreach (var id in context.Query<Removed<Parent>>()) {
-            if (!context.Remove<AppliedParent>(id, out var parent)) {
+            if (context.Contains<Parent>(id) ||
+                    !context.Remove<AppliedParent>(id, out var parent)) {
                 continue;
             }
 
@@ -37,6 +38,8 @@ public class ParentNodeUpdator : VirtualLayer, IGLUpdateLayer
                 ref var children = ref context.Acquire<Children>(parent.Id);
                 children.Ids = children.Ids.Remove(id);
             }
+
+            TransformMatricesDirty.Tag(context, id);
         }
     }
 }
