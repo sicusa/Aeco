@@ -17,7 +17,7 @@ public class WorldViewStorage : MonoPoolStorage<WorldView>, IGLLoadLayer
     public override ref WorldView Acquire(Guid entityId, out bool exists)
     {
         ref var view = ref base.Acquire(entityId, out exists);
-        if (!exists || _context.Contains<WorldViewChanged>(entityId)) {
+        if (!exists || _context.Contains<WorldViewDirty>(entityId)) {
             CalcualteView(ref view, entityId);
         }
         return ref view;
@@ -29,7 +29,7 @@ public class WorldViewStorage : MonoPoolStorage<WorldView>, IGLLoadLayer
     public override ref WorldView Require(Guid entityId)
     {
         ref var view = ref base.Require(entityId);
-        if (_context.Contains<WorldViewChanged>(entityId)) {
+        if (_context.Contains<WorldViewDirty>(entityId)) {
             CalcualteView(ref view, entityId);
         }
         return ref view;
@@ -41,13 +41,13 @@ public class WorldViewStorage : MonoPoolStorage<WorldView>, IGLLoadLayer
     private void CalcualteView(ref WorldView view, Guid entityId)
     {
         ref var matrices = ref _context.Acquire<TransformMatrices>(entityId);
-        ref var vmat = ref view.View;
+        ref var vmat = ref view.ViewRaw;
         Matrix4x4.Invert(matrices.World, out vmat);
 
         view.Right = Vector3.Normalize(new Vector3(vmat.M11, vmat.M12, vmat.M13));
         view.Up = Vector3.Normalize(new Vector3(vmat.M21, vmat.M22, vmat.M23));
         view.Forward = -Vector3.Normalize(new Vector3(vmat.M31, vmat.M32, vmat.M33));
 
-        _context.Remove<WorldViewChanged>(entityId);
+        _context.Remove<WorldViewDirty>(entityId);
     }
 }

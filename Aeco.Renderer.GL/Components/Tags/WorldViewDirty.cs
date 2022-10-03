@@ -1,6 +1,6 @@
 namespace Aeco.Renderer.GL;
 
-public struct WorldViewChanged : IGLObject
+public struct WorldViewDirty : IGLObject
 {
     public void Dispose() { }
 }
