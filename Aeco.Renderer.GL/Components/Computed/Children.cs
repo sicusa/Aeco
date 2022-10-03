@@ -4,7 +4,8 @@ using System.Collections.Immutable;
 
 public struct Children : IGLObject
 {
-    public ImmutableHashSet<Guid> Ids = ImmutableHashSet<Guid>.Empty;
+    public ImmutableHashSet<Guid> Ids { get; internal set; }
+        = ImmutableHashSet<Guid>.Empty;
 
     public Children() {}
 

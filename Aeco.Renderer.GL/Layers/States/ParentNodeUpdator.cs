@@ -32,7 +32,7 @@ public class ParentNodeUpdator : VirtualLayer, IGLUpdateLayer
             }
 
             ref var matrices = ref context.Acquire<TransformMatrices>(id);
-            matrices.World = matrices.Combined;
+            matrices.WorldRaw = matrices.Combined;
 
             if (parent.Id != Guid.Empty) {
                 ref var children = ref context.Acquire<Children>(parent.Id);

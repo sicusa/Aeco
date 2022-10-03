@@ -2,9 +2,11 @@ namespace Aeco.Renderer.GL;
 
 using System.Numerics;
 
-public struct WorldView : IGLObject
+public struct WorldView : IGLReactiveObject
 {
-    public Matrix4x4 View;
+    public Matrix4x4 View => ViewRaw;
+    internal Matrix4x4 ViewRaw;
+
     public Vector3 Forward;
     public Vector3 Up;
     public Vector3 Right;
