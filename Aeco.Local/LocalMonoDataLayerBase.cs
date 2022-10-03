@@ -18,20 +18,35 @@ public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
     public abstract bool TryGet(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component);
     public virtual ref readonly TStoredComponent Inspect(Guid entityId)
         => ref Require(entityId);
-    public ref readonly TStoredComponent InspectAny() => ref Inspect(Singleton());
+    public ref readonly TStoredComponent InspectAny()
+        => ref Inspect(Singleton());
+    public virtual ref TStoredComponent UnsafeInspect(Guid entityId)
+        => ref Require(entityId);
+    public ref TStoredComponent UnsafeInspectAny()
+        => ref UnsafeInspect(Singleton());
     public abstract bool Contains(Guid entityId);
     public abstract bool ContainsAny();
 
     public abstract Guid Singleton();
 
     public abstract ref TStoredComponent Require(Guid entityId);
-    public ref TStoredComponent RequireAny() => ref Require(Singleton());
+    public ref TStoredComponent RequireAny()
+        => ref Require(Singleton());
+    public virtual ref TStoredComponent UnsafeRequire(Guid entityId)
+        => ref Require(entityId);
+    public ref TStoredComponent UnsafeRequireAny()
+        => ref UnsafeRequire(Singleton());
 
     public abstract ref TStoredComponent Acquire(Guid entityId);
     public abstract ref TStoredComponent Acquire(Guid entityId, out bool exists);
+    public virtual ref TStoredComponent UnsafeAcquire(Guid entityId)
+        => ref Acquire(entityId);
+    public virtual ref TStoredComponent UnsafeAcquire(Guid entityId, out bool exists)
+        => ref Acquire(entityId, out exists);
 
     public abstract bool Remove(Guid entityId);
-    public bool RemoveAny() => Remove(Singleton());
+    public bool RemoveAny()
+        => Remove(Singleton());
     public abstract bool Remove(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component);
     public bool RemoveAny([MaybeNullWhen(false)] out TStoredComponent component)
         => Remove(Singleton(), out component);
@@ -47,8 +62,10 @@ public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
 
     public sealed override bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
         => Convert<UComponent>().TryGet(entityId, out component);
-    public sealed override ref readonly UComponent InspectAny<UComponent>()
-        => ref Convert<UComponent>().InspectAny();
+    public sealed override ref readonly UComponent Inspect<UComponent>(Guid entityId)
+        => ref Convert<UComponent>().Inspect(entityId);
+    public sealed override ref UComponent UnsafeInspect<UComponent>(Guid entityId)
+        => ref Convert<UComponent>().UnsafeInspect(entityId);
     public sealed override bool Contains<UComponent>(Guid entityId)
         => Convert<UComponent>().Contains(entityId);
     public sealed override bool ContainsAny<UComponent>()

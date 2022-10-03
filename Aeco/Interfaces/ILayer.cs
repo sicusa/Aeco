@@ -56,6 +56,11 @@ public interface IDataLayer<in TComponent>
     IEntity<TComponent> GetEntity<UComponent>()
         where UComponent : TComponent;
 
+    ref UComponent UnsafeInspect<UComponent>(Guid entityId)
+        where UComponent : TComponent;
+    ref UComponent UnsafeInspectAny<UComponent>()
+        where UComponent : TComponent;
+
     ref UComponent Require<UComponent>(Guid entityId)
         where UComponent : TComponent;
     ref UComponent RequireAny<UComponent>()
@@ -64,6 +69,11 @@ public interface IDataLayer<in TComponent>
     ref UComponent Acquire<UComponent>(Guid entityId)
         where UComponent : TComponent, new();
     ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+        where UComponent : TComponent, new();
+
+    ref UComponent UnsafeAcquire<UComponent>(Guid entityId)
+        where UComponent : TComponent, new();
+    ref UComponent UnsafeAcquire<UComponent>(Guid entityId, out bool exists)
         where UComponent : TComponent, new();
 
     bool Remove<UComponent>(Guid entityId)
@@ -107,8 +117,13 @@ public interface IMonoDataLayer<in TComponent, TStoredComponent>
 {
     IEntity<TStoredComponent> GetEntity();
 
+    ref TStoredComponent UnsafeInspect(Guid entityId);
+    ref TStoredComponent UnsafeInspectAny();
+
     ref TStoredComponent Require(Guid entityId);
     ref TStoredComponent RequireAny();
+    ref TStoredComponent UnsafeRequire(Guid entityId);
+    ref TStoredComponent UnsafeRequireAny();
 
     ref TStoredComponent Acquire(Guid entityId);
     ref TStoredComponent Acquire(Guid entityId, out bool exists);

@@ -20,8 +20,19 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
         EventDataLayer = eventDataLayer;
     }
 
+    public override ref UComponent UnsafeInspect<UComponent>(Guid entityId)
+        => ref base.Require<UComponent>(entityId);
+
     public override ref readonly UComponent Inspect<UComponent>(Guid entityId)
         => ref base.Require<UComponent>(entityId);
+
+    public override ref UComponent Require<UComponent>(Guid entityId)
+    {
+        ref UComponent comp = ref base.Require<UComponent>(entityId);
+        EventDataLayer.Acquire<Modified<UComponent>>(entityId);
+        EventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+        return ref comp;
+    }
 
     public override ref UComponent Acquire<UComponent>(Guid entityId)
     {
@@ -49,14 +60,12 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
         return ref comp;
     }
 
-    public override ref UComponent Require<UComponent>(Guid entityId)
-    {
-        ref UComponent comp = ref base.Require<UComponent>(entityId);
-        EventDataLayer.Acquire<Modified<UComponent>>(entityId);
-        EventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
-        return ref comp;
-    }
+    public override ref UComponent UnsafeAcquire<UComponent>(Guid entityId)
+        => ref base.Acquire<UComponent>(entityId);
 
+    public override ref UComponent UnsafeAcquire<UComponent>(Guid entityId, out bool exists)
+        => ref base.Acquire<UComponent>(entityId, out exists);
+    
     public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
     {
         ref UComponent comp = ref base.Set(entityId, component);
