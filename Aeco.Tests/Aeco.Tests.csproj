@@ -11,7 +11,6 @@
     <Company>Gilatod.art</Company>
     <RepositoryUrl>https://github.com/sicusa/Aeco</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Optimize>true</Optimize>
   </PropertyGroup>
 
   <ItemGroup>
