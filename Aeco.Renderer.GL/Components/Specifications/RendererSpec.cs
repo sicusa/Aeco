@@ -2,7 +2,7 @@ namespace Aeco.Renderer.GL;
 
 using System.Numerics;
 
-public struct RendererSpec : IComponent, IDisposable
+public struct RendererSpec : IGLObject
 {
     // Window
     public int Width = 800;
