@@ -6,18 +6,69 @@ public class WorldViewStorage : DelayedReactiveStorageBase<WorldView, WorldViewD
 {
     protected override void OnRefrash(Guid id, ref WorldView view)
     {
-        ref var matrices = ref Context.Acquire<TransformMatrices>(id);
-        ref var vmat = ref view.ViewRaw;
-        vmat = matrices.ObjectRaw;
+        ref readonly var worldMat = ref Context.Acquire<TransformMatrices>(id).WorldRaw;
+        Matrix4x4.Invert(worldMat, out view.ViewRaw);
 
-        view.Right = Vector3.Normalize(new Vector3(vmat.M11, vmat.M12, vmat.M13));
-        view.Up = Vector3.Normalize(new Vector3(vmat.M21, vmat.M22, vmat.M23));
-        view.Forward = -Vector3.Normalize(new Vector3(vmat.M31, vmat.M32, vmat.M33));
+        ref readonly var worldRot = ref Context.Inspect<WorldRotation>(id).Value;
+        view.Right = Vector3.Transform(Vector3.UnitX, worldRot);
+        view.Up = Vector3.Transform(Vector3.UnitY, worldRot);
+        view.Forward = -Vector3.Transform(Vector3.UnitZ, worldRot);
 
         ref var appliedVectors = ref Context.Acquire<AppliedWorldVectors>(id);
         appliedVectors.Right = view.Right;
         appliedVectors.Up = view.Up;
         appliedVectors.Forward = view.Forward;
+    }
+
+    private static Quaternion QuaternionLookRotation(in Vector3 forward, in Vector3 up, in Vector3 right)
+    {
+        var m00 = right.X;
+        var m01 = right.Y;
+        var m02 = right.Z;
+        var m10 = up.X;
+        var m11 = up.Y;
+        var m12 = up.Z;
+        var m20 = forward.X;
+        var m21 = forward.Y;
+        var m22 = forward.Z;
+
+
+        float num8 = (m00 + m11) + m22;
+        var quaternion = new Quaternion();
+        if (num8 > 0f) {
+            var num = MathF.Sqrt(num8 + 1f);
+            quaternion.W = num * 0.5f;
+            num = 0.5f / num;
+            quaternion.X = (m12 - m21) * num;
+            quaternion.Y = (m20 - m02) * num;
+            quaternion.Z = (m01 - m10) * num;
+            return quaternion;
+        }
+        if ((m00 >= m11) && (m00 >= m22)) {
+            var num7 = MathF.Sqrt(((1f + m00) - m11) - m22);
+            var num4 = 0.5f / num7;
+            quaternion.X = 0.5f * num7;
+            quaternion.Y = (m01 + m10) * num4;
+            quaternion.Z = (m02 + m20) * num4;
+            quaternion.W = (m12 - m21) * num4;
+            return quaternion;
+        }
+        if (m11 > m22) {
+            var num6 = MathF.Sqrt(((1f + m11) - m00) - m22);
+            var num3 = 0.5f / num6;
+            quaternion.X = (m10+ m01) * num3;
+            quaternion.Y = 0.5f * num6;
+            quaternion.Z = (m21 + m12) * num3;
+            quaternion.W = (m20 - m02) * num3;
+            return quaternion; 
+        }
+        var num5 = MathF.Sqrt(((1f + m22) - m00) - m11);
+        var num2 = 0.5f / num5;
+        quaternion.X = (m20 + m02) * num2;
+        quaternion.Y = (m21 + m12) * num2;
+        quaternion.Z = 0.5f * num5;
+        quaternion.W = (m01 - m10) * num2;
+        return quaternion;
     }
 
     protected override void OnModified(Guid id, ref WorldView view)
@@ -27,7 +78,7 @@ public class WorldViewStorage : DelayedReactiveStorageBase<WorldView, WorldViewD
         bool modified = false;
         if (appliedVectors.Up != view.Up) {
             view.Up = Vector3.Normalize(view.Up);
-            view.Right = Vector3.Normalize(Vector3.Cross(view.Up, -view.Forward));
+            view.Right = Vector3.Normalize(Vector3.Cross(view.Up, view.Forward));
             view.Forward = Vector3.Normalize(Vector3.Cross(view.Right, view.Up));
             modified = true;
         }
@@ -43,14 +94,14 @@ public class WorldViewStorage : DelayedReactiveStorageBase<WorldView, WorldViewD
             view.Forward = Vector3.Normalize(Vector3.Cross(view.Right, view.Up));
             modified = true;
         }
+
         if (modified) {
             appliedVectors.Right = view.Right;
             appliedVectors.Up = view.Up;
             appliedVectors.Forward = view.Forward;
         }
-
         if (Context.TryGet<Parent>(id, out var parent)) {
-            ref var worldRot = ref Context.UnsafeAcquire<WorldRotation>(parent.Id).Value;
+            ref readonly var worldRot = ref Context.Inspect<WorldRotation>(parent.Id).Value;
             view.Right = Vector3.Transform(view.Right, worldRot);
             view.Up = Vector3.Transform(view.Up, worldRot);
             view.Forward = Vector3.Transform(view.Forward, worldRot);
@@ -59,7 +110,7 @@ public class WorldViewStorage : DelayedReactiveStorageBase<WorldView, WorldViewD
         var mat = new Matrix4x4(
             view.Right.X, view.Right.Y, view.Right.Z, 0,
             view.Up.X, view.Up.Y, view.Up.Z, 0,
-            -view.Forward.X, -view.Forward.Y, -view.Forward.Z, 0,
+            view.Forward.X, view.Forward.Y, view.Forward.Z, 0,
             0, 0, 0, 1);
 
         Context.Acquire<TransformMatrices>(id).Rotation = mat;

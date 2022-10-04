@@ -6,10 +6,10 @@ public class WorldRotationStorage : DelayedReactiveStorageBase<WorldRotation, Wo
 {
     protected override void OnRefrash(Guid id, ref WorldRotation worldRot)
     {
-        ref var rot = ref Context.UnsafeAcquire<Rotation>(id);
+        ref readonly var rot = ref Context.UnsafeAcquire<Rotation>(id);
 
         if (Context.TryGet<Parent>(id, out var parent)) {
-            ref readonly var parentWorldRot = ref Context.UnsafeAcquire<WorldRotation>(parent.Id).Value;
+            ref readonly var parentWorldRot = ref Context.Inspect<WorldRotation>(parent.Id).Value;
             worldRot.Value = parentWorldRot * rot.Value;
         }
         else {
@@ -22,7 +22,7 @@ public class WorldRotationStorage : DelayedReactiveStorageBase<WorldRotation, Wo
         ref var rot = ref Context.UnsafeAcquire<Rotation>(id);
 
         if (Context.TryGet<Parent>(id, out var parent)) {
-            ref readonly var parentWorldRot = ref Context.UnsafeAcquire<WorldRotation>(parent.Id).Value;
+            ref readonly var parentWorldRot = ref Context.Inspect<WorldRotation>(parent.Id).Value;
             rot.Value = Quaternion.Inverse(parentWorldRot) * worldRot.Value;
         }
         else {
