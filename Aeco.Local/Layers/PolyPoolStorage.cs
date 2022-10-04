@@ -3,7 +3,11 @@ namespace Aeco.Local;
 public class PolyPoolStorage<TComponent, TSelectedComponent> : CompositeStorage<TComponent, TSelectedComponent>
     where TSelectedComponent : TComponent, IDisposable
 {
-    public PolyPoolStorage(int brickCapacity = MonoPoolStorage.DefaultBrickCapacity)
+    public PolyPoolStorage()
+        : this(MonoPoolStorage.DefaultBrickCapacity)
+    {
+    }
+    public PolyPoolStorage(int brickCapacity)
         : base(MonoPoolStorage.MakeUnsafeCreator<TComponent>(brickCapacity))
     {
     }
@@ -12,8 +16,12 @@ public class PolyPoolStorage<TComponent, TSelectedComponent> : CompositeStorage<
 public class PolyPoolStorage<TSelectedComponent> : PolyPoolStorage<IComponent, TSelectedComponent>
     where TSelectedComponent : IComponent, IDisposable
 {
-    public PolyPoolStorage(int capacity = MonoPoolStorage.DefaultBrickCapacity)
-        : base(capacity)
+    public PolyPoolStorage()
+        : this(MonoPoolStorage.DefaultBrickCapacity)
+    {
+    }
+    public PolyPoolStorage(int brickCapacity)
+        : base(brickCapacity)
     {
     }
 }
