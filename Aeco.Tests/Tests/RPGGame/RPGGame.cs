@@ -8,7 +8,7 @@ using Aeco.Persistence.Local;
 using Aeco.Renderer.GL;
 using Aeco.Tests.RPGGame.Character;
 
-public class RPGGame : GLRenderer
+public class RPGGame : CompositeLayer
 {
     public float Time { get; private set; }
     public float DeltaTime { get; private set; }
@@ -18,11 +18,9 @@ public class RPGGame : GLRenderer
 
     public RPGGame(Config config)
         : base(
-            eventDataLayer: config.EventDataLayer,
-/*
             new Character.Layers(config.EventDataLayer),
             new Map.Layers(config.EventDataLayer),
-            new Gameplay.Layers(),*/
+            new Gameplay.Layers(),
 
             new ShortLivedCompositeLayer(
                 config.EventDataLayer
@@ -44,10 +42,8 @@ public class RPGGame : GLRenderer
         _lateUpdateLayers = GetSublayersRecursively<IGameLateUpdateLayer>().ToArray();
     }
 
-    protected override void Load()
+    public void Load()
     {
-        base.Load();
-
         Console.WriteLine("RPGGame loading...");
 
         foreach (var layer in GetSublayersRecursively<IGameInitializeLayer>()) {
@@ -62,10 +58,8 @@ public class RPGGame : GLRenderer
         this.CreateEntity().AsPlayer(mapId);
     }
 
-    protected override void Update(float deltaTime)
+    public void Update(float deltaTime)
     {
-        base.Update(deltaTime);
-
         DeltaTime = deltaTime;
         Time += DeltaTime;
 
