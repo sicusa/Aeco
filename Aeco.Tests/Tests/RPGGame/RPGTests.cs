@@ -12,6 +12,7 @@ public static class RPGTests
     public static void Run()
     {
         var game = new RPGGame.RPGGame(new Config {});
+        game.Load();
 
         // frame 0
 

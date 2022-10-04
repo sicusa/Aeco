@@ -1,3 +1,3 @@
 using Aeco.Tests;
 
-GLTests.Run();
+RPGTests.Run();
