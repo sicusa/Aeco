@@ -190,9 +190,11 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     public override ref TStoredComponent Acquire(Guid entityId, out bool exists)
     {
         ref var block = ref _brick.AcquireBlock(GetIndex(entityId), entityId, out exists);
-        if (!_existsTemp) {
+        if (!exists) {
             _entityIds.Add(entityId);
-            ResetSingleton();
+            if (_singleton == Guid.Empty) {
+                ResetSingleton();
+            }
         }
         return ref block.Data;
     }
