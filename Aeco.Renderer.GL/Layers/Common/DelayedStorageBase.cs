@@ -25,20 +25,11 @@ public abstract class DelayedStorageBase<TComponent, TDirtyTag> : MonoPoolStorag
         return ref comp;
     }
 
-    public override ref TComponent Require(Guid entityId)
+    public override sealed ref TComponent Require(Guid entityId)
         => ref Acquire(entityId);
 
-    public override ref readonly TComponent Inspect(Guid entityId)
+    public override sealed ref readonly TComponent Inspect(Guid entityId)
         => ref Acquire(entityId);
-
-    public override ref TComponent UnsafeAcquire(Guid entityId)
-        => ref base.Acquire(entityId);
-
-    public override ref TComponent UnsafeAcquire(Guid entityId, out bool exists)
-        => ref base.Acquire(entityId, out exists);
-
-    public override ref TComponent UnsafeInspect(Guid entityId)
-        => ref base.Require(entityId);
 
     protected abstract void OnRefrash(Guid id, ref TComponent comp);
 }
