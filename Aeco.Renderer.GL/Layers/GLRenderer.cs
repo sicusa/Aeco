@@ -52,7 +52,6 @@ public class GLRenderer : CompositeLayer
             GL.ClearColor(_clearColor.X, _clearColor.Y, _clearColor.Z, _clearColor.W);
             GL.Enable(EnableCap.DepthTest);
             _context.Load();
-            _context.Update(0);
         }
 
         protected override void OnUnload()
@@ -94,7 +93,7 @@ public class GLRenderer : CompositeLayer
 
     public GLRenderer(IDataLayer<IReactiveEvent> eventDataLayer, params ILayer<IComponent>[] sublayers)
         : base(
-            new ILayer<IComponent>[] {
+            sublayers.Concat(new ILayer<IComponent>[] {
                 new ReactiveCompositeLayer(
                     eventDataLayer: eventDataLayer,
                     new WorldViewStorage(),
@@ -126,8 +125,7 @@ public class GLRenderer : CompositeLayer
                 new CameraMatricesUpdator(),
 
                 new MeshRenderer()
-            }
-            .Concat(sublayers)
+            })
             .ToArray()
         )
     {
