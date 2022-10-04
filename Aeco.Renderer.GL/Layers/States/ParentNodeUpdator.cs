@@ -16,12 +16,14 @@ public class ParentNodeUpdator : VirtualLayer, IGLUpdateLayer
             }
 
             ref readonly var parent = ref context.Inspect<Parent>(id);
-            if (parent.Id == Guid.Empty) { continue; }
+            if (parent.Id == Guid.Empty) {
+                Console.WriteLine("Parent ID should not be empty.");
+                continue;
+            }
             appliedParent.Id = parent.Id;
 
             ref var children = ref context.Acquire<Children>(parent.Id);
             children.Ids = children.Ids.Add(id);
-
             TransformMatricesDirty.Tag(context, id);
         }
 
@@ -34,11 +36,12 @@ public class ParentNodeUpdator : VirtualLayer, IGLUpdateLayer
             ref var matrices = ref context.Acquire<TransformMatrices>(id);
             matrices.WorldRaw = matrices.Combined;
 
-            if (parent.Id != Guid.Empty) {
-                ref var children = ref context.Acquire<Children>(parent.Id);
-                children.Ids = children.Ids.Remove(id);
+            if (parent.Id == Guid.Empty) {
+                Console.WriteLine("Internal error: applied parent ID is empty.");
+                continue;
             }
-
+            ref var children = ref context.Acquire<Children>(parent.Id);
+            children.Ids = children.Ids.Remove(id);
             TransformMatricesDirty.Tag(context, id);
         }
     }

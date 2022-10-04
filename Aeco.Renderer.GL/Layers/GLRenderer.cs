@@ -95,9 +95,11 @@ public class GLRenderer : CompositeLayer
     public GLRenderer(IDataLayer<IReactiveEvent> eventDataLayer, params ILayer<IComponent>[] sublayers)
         : base(
             new ILayer<IComponent>[] {
-                new WorldViewStorage(),
                 new ReactiveCompositeLayer(
                     eventDataLayer: eventDataLayer,
+                    new WorldViewStorage(),
+                    new WorldPositionStorage(),
+                    new WorldRotationStorage(),
                     new PolyPoolStorage<IGLReactiveObject>()
                 ),
                 new SingletonStorage<Window>(),
@@ -115,8 +117,6 @@ public class GLRenderer : CompositeLayer
                 new MeshInitializer(),
                 new MeshUninitializer(),
 
-                new WorldViewReactor(),
-                
                 new TranslationMatrixUpdator(),
                 new RotationMatrixUpdator(),
                 new ScaleMatrixUpdator(),

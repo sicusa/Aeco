@@ -1,5 +1,7 @@
 namespace Aeco.Renderer.GL;
 
+using System.Numerics;
+
 public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer
 {
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
@@ -19,6 +21,7 @@ public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer
                 ref var childMatrices = ref context.Acquire<TransformMatrices>(childId);
                 childMatrices.Combined = childMatrices.Scale * childMatrices.Rotation * childMatrices.Translation;
                 childMatrices.WorldRaw = childMatrices.Combined * matrices.World;
+                Matrix4x4.Invert(childMatrices.WorldRaw, out childMatrices.ObjectRaw);
                 UpdateRecursively(context, childId, ref childMatrices);
             }
             else if (context.Contains<ChildrenTransformMatricesDirty>(childId)) {
@@ -29,8 +32,11 @@ public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer
 
     private void UpdateRecursively(IDataLayer<IComponent> context, Guid id, ref TransformMatrices matrices)
     {
-        context.Acquire<WorldViewDirty>(id);
         context.Remove<TransformMatricesDirty>(id);
+
+        context.Acquire<WorldViewDirty>(id);
+        context.Acquire<WorldPositionDirty>(id);
+        context.Acquire<WorldRotationDirty>(id);
 
         if (context.TryGet<Children>(id, out var children)) {
             foreach (var childId in children.Ids) {
@@ -39,6 +45,7 @@ public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer
                     childMatrices.Combined = childMatrices.Scale * childMatrices.Rotation * childMatrices.Translation;
                 }
                 childMatrices.WorldRaw = childMatrices.Combined * matrices.World;
+                Matrix4x4.Invert(childMatrices.WorldRaw, out childMatrices.ObjectRaw);
                 UpdateRecursively(context, childId, ref childMatrices);
             }
         }

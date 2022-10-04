@@ -15,7 +15,7 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLRenderLayer
     {
         var cameraId = context.Singleton<Camera>();
         ref var cameraMatrices = ref context.Acquire<CameraMatrices>(cameraId);
-        ref var worldView = ref context.Acquire<WorldView>(cameraId);
+        ref var worldView = ref context.UnsafeAcquire<WorldView>(cameraId);
         UniformLocations uniforms;
 
         foreach (var id in _g.Query(context)) {

@@ -5,7 +5,10 @@ using System.Numerics;
 public struct TransformMatrices : IGLObject, IDisposable
 {
     public Matrix4x4 World => WorldRaw;
+    public Matrix4x4 Object => ObjectRaw;
+
     internal Matrix4x4 WorldRaw = Matrix4x4.Identity;
+    internal Matrix4x4 ObjectRaw = Matrix4x4.Identity;
 
     public Matrix4x4 Combined { get; internal set; }
         = Matrix4x4.Identity;
