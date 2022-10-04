@@ -122,11 +122,11 @@ public interface IMonoDataLayer<in TComponent, TStoredComponent>
 
     ref TStoredComponent Require(Guid entityId);
     ref TStoredComponent RequireAny();
-    ref TStoredComponent UnsafeRequire(Guid entityId);
-    ref TStoredComponent UnsafeRequireAny();
 
     ref TStoredComponent Acquire(Guid entityId);
     ref TStoredComponent Acquire(Guid entityId, out bool exists);
+    ref TStoredComponent UnsafeAcquire(Guid entityId);
+    ref TStoredComponent UnsafeAcquire(Guid entityId, out bool exists);
 
     bool Remove(Guid entityId);
     bool RemoveAny();

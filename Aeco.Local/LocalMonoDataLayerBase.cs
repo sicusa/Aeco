@@ -32,10 +32,6 @@ public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
     public abstract ref TStoredComponent Require(Guid entityId);
     public ref TStoredComponent RequireAny()
         => ref Require(Singleton());
-    public virtual ref TStoredComponent UnsafeRequire(Guid entityId)
-        => ref Require(entityId);
-    public ref TStoredComponent UnsafeRequireAny()
-        => ref UnsafeRequire(Singleton());
 
     public abstract ref TStoredComponent Acquire(Guid entityId);
     public abstract ref TStoredComponent Acquire(Guid entityId, out bool exists);
@@ -78,6 +74,10 @@ public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
         => ref Convert<UComponent>().Acquire(entityId);
     public sealed override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
         => ref Convert<UComponent>().Acquire(entityId, out exists);
+    public sealed override ref UComponent UnsafeAcquire<UComponent>(Guid entityId)
+        => ref Convert<UComponent>().UnsafeAcquire(entityId);
+    public sealed override ref UComponent UnsafeAcquire<UComponent>(Guid entityId, out bool exists)
+        => ref Convert<UComponent>().UnsafeAcquire(entityId, out exists);
     public sealed override bool Remove<UComponent>(Guid entityId)
         => Convert<UComponent>().Remove(entityId);
     public sealed override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
