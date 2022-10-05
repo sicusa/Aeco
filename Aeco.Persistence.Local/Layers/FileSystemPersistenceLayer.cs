@@ -167,12 +167,10 @@ public class FileSystemPersistenceLayer<TComponent, TSelectedComponent>
             readSubscription,
             parent.EntityDisposed.Subscribe(id => {
                 if (!SavedEntities.Contains(id)) {
-                    if (persistentDataLayer.Contains<Persistent>(id)) {
-                        RawAddSavedEntity(id);
-                    }
-                    else {
+                    if (!persistentDataLayer.Contains<Persistent>(id)) {
                         return;
                     }
+                    RawAddSavedEntity(id);
                 }
                 else if (!persistentDataLayer.Contains<Persistent>(id)) {
                     RemoveEntity(id);
