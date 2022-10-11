@@ -193,7 +193,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         if (!exists) {
             _entityIds.Add(entityId);
             if (_singleton == Guid.Empty) {
-                ResetSingleton();
+                _singleton = entityId;
             }
         }
         return ref block.Data;
