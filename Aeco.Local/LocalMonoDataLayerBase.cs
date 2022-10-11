@@ -35,6 +35,10 @@ public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
 
     public abstract ref TStoredComponent Acquire(Guid entityId);
     public abstract ref TStoredComponent Acquire(Guid entityId, out bool exists);
+    public ref TStoredComponent AcquireAny()
+        => ref Acquire(ContainsAny() ? Singleton() : Guid.NewGuid());
+    public ref TStoredComponent AcquireAny(out bool exists)
+        => ref Acquire(ContainsAny() ? Singleton() : Guid.NewGuid(), out exists);
     public virtual ref TStoredComponent UnsafeAcquire(Guid entityId)
         => ref Acquire(entityId);
     public virtual ref TStoredComponent UnsafeAcquire(Guid entityId, out bool exists)

@@ -70,6 +70,10 @@ public interface IDataLayer<in TComponent>
         where UComponent : TComponent, new();
     ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
         where UComponent : TComponent, new();
+    ref UComponent AcquireAny<UComponent>()
+        where UComponent : TComponent, new();
+    ref UComponent AcquireAny<UComponent>(out bool exists)
+        where UComponent : TComponent, new();
 
     ref UComponent UnsafeAcquire<UComponent>(Guid entityId)
         where UComponent : TComponent, new();
@@ -125,6 +129,8 @@ public interface IMonoDataLayer<in TComponent, TStoredComponent>
 
     ref TStoredComponent Acquire(Guid entityId);
     ref TStoredComponent Acquire(Guid entityId, out bool exists);
+    ref TStoredComponent AcquireAny();
+    ref TStoredComponent AcquireAny(out bool exists);
     ref TStoredComponent UnsafeAcquire(Guid entityId);
     ref TStoredComponent UnsafeAcquire(Guid entityId, out bool exists);
 

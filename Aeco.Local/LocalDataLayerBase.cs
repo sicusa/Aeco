@@ -52,6 +52,12 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
         where UComponent : TComponent, new();
     public abstract ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
         where UComponent : TComponent, new();
+    public ref UComponent AcquireAny<UComponent>()
+        where UComponent : TComponent, new()
+        => ref Acquire<UComponent>(ContainsAny<UComponent>() ? Singleton<UComponent>() : Guid.NewGuid());
+    public ref UComponent AcquireAny<UComponent>(out bool exists)
+        where UComponent : TComponent, new()
+        => ref Acquire<UComponent>(ContainsAny<UComponent>() ? Singleton<UComponent>() : Guid.NewGuid(), out exists);
     public virtual ref UComponent UnsafeAcquire<UComponent>(Guid entityId)
         where UComponent : TComponent, new()
         => ref Acquire<UComponent>(entityId);
