@@ -49,7 +49,7 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
     {
         var substorage = FindSubstorage<UComponent>();
         if (substorage == null) {
-            throw new KeyNotFoundException("Component not found");
+            throw new KeyNotFoundException("Component not found: " + typeof(UComponent));
         }
         return ref substorage.Require<UComponent>(entityId);
     }
@@ -107,7 +107,7 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
     {
         var substorage = FindSubstorage<UComponent>();
         if (substorage == null) {
-            throw new KeyNotFoundException("Singleton not found");
+            throw new KeyNotFoundException("Singleton not found: " + typeof(UComponent));
         }
         return substorage.Singleton<UComponent>();
     }
