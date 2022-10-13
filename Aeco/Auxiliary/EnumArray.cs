@@ -14,8 +14,8 @@ public class EnumArray<TKey, TElement>
 
     public EnumArray()
     {
-        _lower = Convert.ToInt32(Enum.GetValues(typeof(TElement)).Cast<TElement>().Min());
-        int upper = Convert.ToInt32(Enum.GetValues(typeof(TElement)).Cast<TElement>().Max());
+        _lower = Convert.ToInt32(Enum.GetValues(typeof(TKey)).Cast<TKey>().Min());
+        int upper = Convert.ToInt32(Enum.GetValues(typeof(TKey)).Cast<TKey>().Max());
         _array = new TElement[1 + upper - _lower];
     }
 
