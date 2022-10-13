@@ -16,11 +16,12 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLUpdateLayer, IGLRende
 
     public void OnRender(IDataLayer<IComponent> context, float deltaTime)
     {
+        if (context.TryGet<TextureData>(GLRenderer.DefaultTextureId, out var data)) {
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture2D, data.Handle);
+        }
         var cameraUniformHandle = context.InspectAny<CameraUniformBufferHandle>().Value;
         int mainLightHandle = context.AcquireAny<MainLightUniformBufferHandle>().Value;
-        var defaultTexData = context.Inspect<TextureData>(GLRenderer.DefaultTextureId);
-        GL.ActiveTexture(TextureUnit.Texture0);
-        GL.BindTexture(TextureTarget.Texture2D, defaultTexData.Handle);
 
         foreach (var id in _g) {
             try {
