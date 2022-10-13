@@ -167,16 +167,17 @@ public class GLRenderer : CompositeLayer
 
     protected virtual void Load()
     {
-        var loadLayers = GetSublayersRecursively<IGLLoadLayer>();
-        foreach (var loadLayer in loadLayers) {
+        foreach (var loadLayer in GetSublayersRecursively<IGLLoadLayer>()) {
             loadLayer.OnLoad(this);
+        }
+        foreach (var loadLayer in GetSublayersRecursively<IGLLateLoadLayer>()) {
+            loadLayer.OnLateLoad(this);
         }
     }
 
     protected virtual void Unload()
     {
-        var unloadLayers = GetSublayersRecursively<IGLUnloadLayer>();
-        foreach (var unloadLayer in unloadLayers) {
+        foreach (var unloadLayer in GetSublayersRecursively<IGLUnloadLayer>()) {
             unloadLayer.OnUnload(this);
         }
     }
