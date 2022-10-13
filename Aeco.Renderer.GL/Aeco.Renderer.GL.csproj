@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AssimpNet" Version="5.0.0-beta1" />
     <PackageReference Include="OpenTK" Version="4.7.5" />
     <PackageReference Include="StbImageSharp" Version="2.27.12" />
   </ItemGroup>
@@ -27,6 +28,10 @@
     <EmbeddedResource Include="Embeded\Shaders\frag.glsl" />
     <EmbeddedResource Include="Embeded\Shaders\vert.glsl" />
     <EmbeddedResource Include="Embeded\Textures\wall.jpg" />
+    <EmbeddedResource Include="Embeded\Models\plane.glb" />
+    <EmbeddedResource Include="Embeded\Models\sphere.glb" />
+    <EmbeddedResource Include="Embeded\Models\cube.glb" />
+    <EmbeddedResource Include="Embeded\Models\cylinder.glb" />
   </ItemGroup>
 
 </Project>

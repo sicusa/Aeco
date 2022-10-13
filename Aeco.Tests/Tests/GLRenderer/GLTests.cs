@@ -25,29 +25,34 @@ public static class GLTests
             Title = "RPG Game"
         });
 
+        var mainLight = game.CreateEntity();
+        mainLight.Acquire<Parent>().Id = GLRenderer.RootId;
+        mainLight.Acquire<Rotation>().Value = Quaternion.CreateFromYawPitchRoll(-90, -45, 0);
+        mainLight.Acquire<MainLight>().Color = new Vector4(1, 1, 1, 0.5f);
+
         var cameraId = Guid.Parse("c2003019-0b2a-4f4c-ba31-9930c958ff83");
         game.Acquire<Camera>(cameraId);
         game.Acquire<Position>(cameraId).Value = new Vector3(0, 0, 4f);
         game.Acquire<Parent>(cameraId).Id = GLRenderer.RootId;
 
-        var textureId = Guid.NewGuid();
-        ref var texture = ref game.Acquire<Texture>(textureId);
-        texture.Stream = InternalAssets.Load("Textures.wall.jpg");
-
-        var materialId = Guid.NewGuid();
-        ref var material = ref game.Acquire<Material>(materialId);
-        material.ShaderProgram = GLRenderer.DefaultShaderProgramId;
-        material.Texture = textureId;
+        var model = InternalAssets.Load<ModelResource>("Models.sphere.glb");
+        var cubeMesh = model.RootNode!.Meshes![0];
+        cubeMesh.Material = new MaterialResource {
+            AmbientColor = new Vector4(0.2f),
+            DiffuseColor = new Vector4(1, 1, 1, 1),
+            Shininess = 0.5f
+        };
+        cubeMesh.Material.Textures[TextureType.Diffuse] =
+            new TextureResource(InternalAssets.Load<ImageResource>("Textures.wall.jpg"));
 
         Guid CreateCube(in Vector3 pos, Guid parentId)
         {
-            var renderableId = Guid.NewGuid();
-            ref var renderable = ref game!.Acquire<MeshRenderable>(renderableId);
-            renderable.Mesh = Polygons.Cube;
-            renderable.Materials = new Guid[] { materialId };
-            game.Acquire<Parent>(renderableId).Id = parentId;
-            game.Acquire<Position>(renderableId).Value = pos;
-            return renderableId;
+            var id = Guid.NewGuid();
+            game.Acquire<Renderable>(id);
+            game.Acquire<Mesh>(id).Resource = cubeMesh;
+            game.Acquire<Parent>(id).Id = parentId;
+            game.Acquire<Position>(id).Value = pos;
+            return id;
         }
 
         Guid prevId = CreateCube(Vector3.Zero, GLRenderer.RootId);
@@ -82,7 +87,7 @@ public static class GLTests
             x = Lerp(x, (window.MousePosition.X - window.Size.X / 2) * sensitivity, scaledRate);
             y = Lerp(y, (window.MousePosition.Y - window.Size.Y / 2) * sensitivity, scaledRate);
 
-            foreach (var id in game.Query<MeshRenderable>()) {
+            foreach (var id in game.Query<Renderable>()) {
                 if (id == rotatorId) { continue; }
                 game.Acquire<Rotation>(id).Value = Quaternion.CreateFromYawPitchRoll(time, time, time);
             }

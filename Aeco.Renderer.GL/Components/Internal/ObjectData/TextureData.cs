@@ -1,8 +1,8 @@
 namespace Aeco.Renderer.GL;
 
-public struct TextureHandle : IGLObject
+public struct TextureData : IGLObject
 {
-    public int Value;
+    public int Handle;
 
     public void Dispose() { this = new(); }
 }

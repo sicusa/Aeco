@@ -1,9 +1,11 @@
 namespace Aeco.Renderer.GL;
 
-public struct ShaderProgram : IGLReactiveObject
+using System.Runtime.Serialization;
+
+[DataContract]
+public struct ShaderProgram : IGLResourceObject<ShaderProgramResource>
 {
-    public string VertexShader;
-    public string FragmentShader;
+    public ShaderProgramResource Resource { get; set; }
 
     public void Dispose() { this = new(); }
 }

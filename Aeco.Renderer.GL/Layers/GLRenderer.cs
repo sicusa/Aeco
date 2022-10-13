@@ -51,6 +51,7 @@ public class GLRenderer : CompositeLayer
             base.OnLoad();
             GL.ClearColor(_clearColor.X, _clearColor.Y, _clearColor.Z, _clearColor.W);
             GL.Enable(EnableCap.DepthTest);
+            GL.Enable(EnableCap.FramebufferSrgb); 
             _context.Load();
         }
 
@@ -104,17 +105,13 @@ public class GLRenderer : CompositeLayer
                 new SingletonStorage<Window>(),
                 new PolyPoolStorage<IGLObject>(),
 
+                new UnusedResourceDestroyer(),
                 new DefaultTextureLoader(),
-                new TextureInitializer(),
-                new TextureUninitializer(),
 
-                new DefaultShaderProgramLoader(),
-                new ShaderProgramInitializer(),
-                new ShaderProgramUninitializer(),
-
-                new DefaultMeshLoader(),
-                new MeshInitializer(),
-                new MeshUninitializer(),
+                new MeshManager(),
+                new MaterialManager(),
+                new TextureManager(),
+                new ShaderProgramManager(),
 
                 new TranslationMatrixUpdator(),
                 new RotationMatrixUpdator(),
@@ -123,6 +120,10 @@ public class GLRenderer : CompositeLayer
 
                 new WorldMatrixUpdator(),
                 new CameraMatricesUpdator(),
+
+                new MainLightUniformBufferUpdator(),
+                new CameraUniformBufferUpdator(),
+                new ObjectUniformBufferUpdator(),
 
                 new MeshRenderer()
             })

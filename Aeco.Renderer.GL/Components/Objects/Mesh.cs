@@ -3,10 +3,11 @@ namespace Aeco.Renderer.GL;
 using System.Runtime.Serialization;
 
 [DataContract]
-public struct Mesh : IGLReactiveObject
+public struct Mesh : IGLResourceObject<MeshResource>
 {
-    [DataMember] public float[] Vertices;
-    [DataMember] public uint[] Indeces;
+    public MeshResource Resource { get; set; } = MeshResource.Empty;
+    
+    public Mesh() {}
 
     public void Dispose() { this = new(); }
 }

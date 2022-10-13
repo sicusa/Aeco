@@ -1,10 +1,16 @@
 namespace Aeco.Renderer.GL;
 
-public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer
+public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLayer
 {
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
         Traverse(context, GLRenderer.RootId);
+        context.RemoveAll<ChildrenTransformMatricesDirty>();
+    }
+
+    public void OnLateUpdate(IDataLayer<IComponent> context, float deltaTime)
+    {
+        context.RemoveAll<TransformMatricesDirty>();
         context.RemoveAll<ChildrenTransformMatricesDirty>();
     }
 
@@ -15,7 +21,7 @@ public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer
         }
         ref var matrices = ref context.Acquire<TransformMatrices>(id);
         foreach (var childId in children.Ids) {
-            if (context.Remove<TransformMatricesDirty>(childId)) {
+            if (context.Contains<TransformMatricesDirty>(childId)) {
                 ref var childMatrices = ref context.Acquire<TransformMatrices>(childId);
                 childMatrices.Combined = childMatrices.Scale * childMatrices.Rotation * childMatrices.Translation;
                 childMatrices.WorldRaw = childMatrices.Combined * matrices.WorldRaw;
@@ -36,7 +42,7 @@ public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer
         if (context.TryGet<Children>(id, out var children)) {
             foreach (var childId in children.Ids) {
                 ref var childMatrices = ref context.Acquire<TransformMatrices>(childId);
-                if (context.Remove<TransformMatricesDirty>(childId)) {
+                if (context.Contains<TransformMatricesDirty>(childId)) {
                     childMatrices.Combined = childMatrices.Scale * childMatrices.Rotation * childMatrices.Translation;
                 }
                 childMatrices.WorldRaw = childMatrices.Combined * matrices.WorldRaw;

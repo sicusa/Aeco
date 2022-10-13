@@ -1,12 +1,9 @@
 namespace Aeco.Tests.RPGGame.Map;
 
-using System.Runtime.Serialization;
-
-[DataContract]
 public struct AppliedPosition : IPooledGameComponent
 {
-    [DataMember] public int X;
-    [DataMember] public int Y;
+    public int X;
+    public int Y;
 
     public void Set(in Position pos)
     {
