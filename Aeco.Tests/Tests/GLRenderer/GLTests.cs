@@ -28,43 +28,55 @@ public static class GLTests
         var mainLight = game.CreateEntity();
         mainLight.Acquire<Parent>().Id = GLRenderer.RootId;
         mainLight.Acquire<Rotation>().Value = Quaternion.CreateFromYawPitchRoll(-90, -45, 0);
-        mainLight.Acquire<MainLight>().Color = new Vector4(1, 1, 1, 0.5f);
+        mainLight.Acquire<MainLight>().Color = new Vector4(1, 1, 1, 1f);
 
         var cameraId = Guid.Parse("c2003019-0b2a-4f4c-ba31-9930c958ff83");
         game.Acquire<Camera>(cameraId);
         game.Acquire<Position>(cameraId).Value = new Vector3(0, 0, 4f);
         game.Acquire<Parent>(cameraId).Id = GLRenderer.RootId;
 
-        var model = InternalAssets.Load<ModelResource>("Models.sphere.glb");
-        var cubeMesh = model.RootNode!.Meshes![0];
-        cubeMesh.Material = new MaterialResource {
+        var torusModel = InternalAssets.Load<ModelResource>("Models.torus.glb");
+        var torusMesh = torusModel.RootNode!.Meshes![0];
+        torusMesh.Material = new MaterialResource {
             AmbientColor = new Vector4(0.2f),
             DiffuseColor = new Vector4(1, 1, 1, 1),
-            Shininess = 0.5f
+            SpecularColor = new Vector4(0.3f),
+            Shininess = 32
         };
-        cubeMesh.Material.Textures[TextureType.Diffuse] =
+        torusMesh.Material.Textures[TextureType.Diffuse] =
             new TextureResource(InternalAssets.Load<ImageResource>("Textures.wall.jpg"));
 
-        Guid CreateCube(in Vector3 pos, Guid parentId)
+        var sphereModel = InternalAssets.Load<ModelResource>("Models.sphere.glb");
+        var sphereMesh = sphereModel.RootNode!.Meshes![0];
+        sphereMesh.Material = new MaterialResource {
+            AmbientColor = new Vector4(0.2f),
+            DiffuseColor = new Vector4(1, 1, 1, 1),
+            SpecularColor = new Vector4(0.3f),
+            Shininess = 32
+        };
+        sphereMesh.Material.Textures[TextureType.Diffuse] =
+            new TextureResource(InternalAssets.Load<ImageResource>("Textures.wall.jpg"));
+
+        Guid CreateObject(in Vector3 pos, Guid parentId, MeshResource mesh)
         {
             var id = Guid.NewGuid();
             game.Acquire<Renderable>(id);
-            game.Acquire<Mesh>(id).Resource = cubeMesh;
+            game.Acquire<Mesh>(id).Resource = mesh;
             game.Acquire<Parent>(id).Id = parentId;
             game.Acquire<Position>(id).Value = pos;
             return id;
         }
 
-        Guid prevId = CreateCube(Vector3.Zero, GLRenderer.RootId);
+        Guid prevId = CreateObject(Vector3.Zero, GLRenderer.RootId, sphereMesh);
         Guid firstId = prevId;
         game.Acquire<Scale>(prevId).Value = new Vector3(0.3f);
 
         for (int i = 0; i < 50; ++i) {
-            prevId = CreateCube(new Vector3(i * 0.1f - 0.1f, 0, 0), prevId);
-            game.Acquire<Scale>(prevId).Value = new Vector3(0.95f);
+            prevId = CreateObject(new Vector3(i * 0.1f - 0.1f, 0, 0), prevId, torusMesh);
+            game.Acquire<Scale>(prevId).Value = new Vector3(0.99f);
         }
 
-        Guid rotatorId = CreateCube(Vector3.Zero, GLRenderer.RootId);
+        Guid rotatorId = CreateObject(Vector3.Zero, GLRenderer.RootId, sphereMesh);
         game.Acquire<Scale>(rotatorId).Value = new Vector3(0.3f);
 
         float Lerp(float firstFloat, float secondFloat, float by)
