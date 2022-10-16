@@ -8,14 +8,20 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
             Uninitialize(context, id, in renderable, in data);
         }
         data.MeshId = ResourceLibrary<MeshResource>.Reference<Mesh>(context, renderable.Mesh, id);
-        context.Acquire<MeshRendering>(data.MeshId);
+
+        ref var list = ref context.Acquire<RenderingList>(data.MeshId);
+        list.Ids = list.Ids.Add(id);
     }
 
     protected override void Uninitialize(IDataLayer<IComponent> context, Guid id, in MeshRenderable obj, in MeshRenderableData data)
     {
-        ResourceLibrary<MeshResource>.Unreference(context, data.MeshId, id, out int newRefCount);
-        if (newRefCount == 0) {
-            context.Remove<MeshRendering>(data.MeshId);
+        ResourceLibrary<MeshResource>.Unreference(context, data.MeshId, id);
+
+        ref var list = ref context.Acquire<RenderingList>(data.MeshId);
+        list.Ids = list.Ids.Remove(id);
+
+        if (list.Ids.Length == 0) {
+            context.Remove<RenderingList>(data.MeshId);
         }
     }
 }

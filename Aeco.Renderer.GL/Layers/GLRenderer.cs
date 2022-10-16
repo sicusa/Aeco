@@ -39,7 +39,7 @@ public class GLRenderer : CompositeLayer
                         ? (spec.IsResizable ? WindowBorder.Resizable : WindowBorder.Fixed)
                         : WindowBorder.Hidden,
                     WindowState = spec.IsFullscreen
-                        ? WindowState.Maximized : WindowState.Normal
+                        ? WindowState.Fullscreen : WindowState.Normal
                 })
         {
             _context = context;
@@ -73,7 +73,7 @@ public class GLRenderer : CompositeLayer
         {
             base.OnResize(e);
             GL.Viewport(0, 0, e.Width, e.Height);
-            _context.Resize(e.Width, e.Height);
+            _context?.Resize(e.Width, e.Height);
         }
     }
 

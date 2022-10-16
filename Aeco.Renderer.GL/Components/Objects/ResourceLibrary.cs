@@ -36,7 +36,7 @@ public struct ResourceLibrary<TResource> : IGLObject
     {
         ref var referencers = ref context.Acquire<ResourceReferencers>(resourceId);
         var newIds = referencers.Ids.Remove(referencerId);
-        newRefCount = newIds.Length;
+        newRefCount = newIds.Count;
         if (newIds != referencers.Ids) {
             referencers.Ids = newIds;
             return true;

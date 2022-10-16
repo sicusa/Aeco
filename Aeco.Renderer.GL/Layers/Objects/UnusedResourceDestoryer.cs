@@ -9,7 +9,7 @@ public class UnusedResourceDestroyer : VirtualLayer, IGLLateUpdateLayer
     public void OnLateUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
         foreach (var id in _g.Query(context)) {
-            if (context.Inspect<ResourceReferencers>(id).Ids.Length == 0) {
+            if (context.Inspect<ResourceReferencers>(id).Ids.Count == 0) {
                 context.Acquire<Destroy>(id);
             }
         }

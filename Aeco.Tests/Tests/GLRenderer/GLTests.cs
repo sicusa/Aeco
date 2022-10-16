@@ -22,6 +22,7 @@ public static class GLTests
         game.Initialize(new RendererSpec {
             Width = 800,
             Height = 600,
+            IsFullscreen = true,
             Title = "RPG Game"
         });
 

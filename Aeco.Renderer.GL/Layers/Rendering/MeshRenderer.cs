@@ -19,21 +19,23 @@ public class MeshRenderer : VirtualLayer, IGLRenderLayer
             GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 4, mainLightHandle);
         }
 
-        foreach (var id in context.Query<MeshRendering>()) {
+        foreach (var id in context.Query<Mesh>()) {
+            if (!context.TryGet<RenderingList>(id, out var list)) {
+                continue;
+            }
             ref readonly var meshData = ref context.Inspect<MeshData>(id);
             ref readonly var materialData = ref context.Inspect<MaterialData>(meshData.MaterialId);
 
             GL.BindVertexArray(meshData.VertexArrayHandle);
             ApplyMaterial(context, in materialData);
 
-            var referencers = context.Require<ResourceReferencers>(id).Ids;
-            foreach (var referencerId in referencers) {
-                if (!context.Contains<MeshRenderable>(referencerId)) {
+            foreach (var renderableId in list.Ids) {
+                if (!context.Contains<MeshRenderable>(renderableId)) {
                     continue;
                 }
                 GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 2,
-                    context.Require<ObjectUniformBufferHandle>(referencerId).Value);
-                if (context.TryGet<MaterialData>(referencerId, out var overwritingMaterialData)) {
+                    context.Require<ObjectUniformBufferHandle>(renderableId).Value);
+                if (context.TryGet<MaterialData>(renderableId, out var overwritingMaterialData)) {
                     ApplyMaterial(context, in overwritingMaterialData);
                 }
                 GL.DrawElements(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, 0);

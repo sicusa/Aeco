@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 [DataContract]
 public struct ResourceReferencers : IGLObject
 {
-    [DataMember] public ImmutableArray<Guid> Ids = ImmutableArray<Guid>.Empty;
+    [DataMember] public ImmutableHashSet<Guid> Ids = ImmutableHashSet<Guid>.Empty;
 
     public ResourceReferencers() {}
 
