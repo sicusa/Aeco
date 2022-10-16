@@ -4,7 +4,7 @@ using System.Numerics;
 
 public class WorldViewStorage : DelayedReactiveStorageBase<WorldView, WorldViewDirty>
 {
-    protected override void OnRefrash(Guid id, ref WorldView view)
+    protected override void OnRefresh(Guid id, ref WorldView view)
     {
         ref readonly var worldMat = ref Context.Acquire<TransformMatrices>(id).WorldRaw;
         Matrix4x4.Invert(worldMat, out view.ViewRaw);

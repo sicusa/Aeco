@@ -4,7 +4,7 @@ using System.Numerics;
 
 public class WorldPositionStorage : DelayedReactiveStorageBase<WorldPosition, WorldPositionDirty>
 {
-    protected override void OnRefrash(Guid id, ref WorldPosition worldPos)
+    protected override void OnRefresh(Guid id, ref WorldPosition worldPos)
     {
         ref var pos = ref Context.UnsafeAcquire<Position>(id);
 

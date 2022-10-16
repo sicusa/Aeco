@@ -4,7 +4,7 @@ using System.Numerics;
 
 public class WorldRotationStorage : DelayedReactiveStorageBase<WorldRotation, WorldRotationDirty>
 {
-    protected override void OnRefrash(Guid id, ref WorldRotation worldRot)
+    protected override void OnRefresh(Guid id, ref WorldRotation worldRot)
     {
         ref readonly var rot = ref Context.UnsafeAcquire<Rotation>(id);
 

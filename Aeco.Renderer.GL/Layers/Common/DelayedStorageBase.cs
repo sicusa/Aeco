@@ -19,7 +19,7 @@ public abstract class DelayedStorageBase<TComponent, TDirtyTag> : MonoPoolStorag
     {
         ref TComponent comp = ref base.Acquire(entityId, out exists);
         if (!exists || Context.Contains<TDirtyTag>(entityId)) {
-            OnRefrash(entityId, ref comp);
+            OnRefresh(entityId, ref comp);
             Context.Remove<TDirtyTag>(entityId);
         }
         return ref comp;
@@ -31,5 +31,5 @@ public abstract class DelayedStorageBase<TComponent, TDirtyTag> : MonoPoolStorag
     public override sealed ref readonly TComponent Inspect(Guid entityId)
         => ref Acquire(entityId);
 
-    protected abstract void OnRefrash(Guid id, ref TComponent comp);
+    protected abstract void OnRefresh(Guid id, ref TComponent comp);
 }
