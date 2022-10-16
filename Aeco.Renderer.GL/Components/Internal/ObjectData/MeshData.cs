@@ -13,6 +13,7 @@ public enum MeshBufferType
 
 public struct MeshData : IGLObject
 {
+    public int IndexCount = 0;
     public int VertexArrayHandle = 0;
     public readonly EnumArray<MeshBufferType, int> BufferHandles = new();
     public Guid MaterialId = Guid.Empty;

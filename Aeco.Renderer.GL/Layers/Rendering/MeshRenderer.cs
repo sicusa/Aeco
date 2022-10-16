@@ -4,15 +4,12 @@ using OpenTK.Graphics.OpenGL4;
 
 using Aeco.Reactive;
 
-public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLUpdateLayer, IGLRenderLayer
+public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLRenderLayer
 {
     private Group<Renderable, MeshData> _g = new();
 
     public void OnLoad(IDataLayer<IComponent> context)
         => _g.Refrash(context);
-
-    public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
-        => _g.Query(context);
 
     public void OnRender(IDataLayer<IComponent> context, float deltaTime)
     {
@@ -23,11 +20,9 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLUpdateLayer, IGLRende
         var cameraUniformHandle = context.InspectAny<CameraUniformBufferHandle>().Value;
         int mainLightHandle = context.AcquireAny<MainLightUniformBufferHandle>().Value;
 
-        foreach (var id in _g) {
+        foreach (var id in _g.Query(context)) {
             try {
-                ref readonly var mesh = ref context.Inspect<Mesh>(id);
                 ref readonly var meshData = ref context.Inspect<MeshData>(id);
-                ref readonly var material = ref context.Inspect<Material>(meshData.MaterialId);
                 ref readonly var materialData = ref context.Inspect<MaterialData>(meshData.MaterialId);
                 ref readonly var shaderProgramData = ref context.Inspect<ShaderProgramData>(materialData.ShaderProgramId);
 
@@ -60,13 +55,7 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLUpdateLayer, IGLRende
                 // draw
 
                 GL.BindVertexArray(meshData.VertexArrayHandle);
-                var meshResource = mesh.Resource;
-                if (meshResource.Indeces != null) {
-                    GL.DrawElements(PrimitiveType.Triangles, meshResource.Indeces!.Length, DrawElementsType.UnsignedInt, 0);
-                }
-                else {
-                    GL.DrawArrays(PrimitiveType.Triangles, 0, meshResource.Vertices!.Length);
-                }
+                GL.DrawElements(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, 0);
             }
             catch (Exception e) {
                 Console.WriteLine($"Failed to render {id}: " + e);
