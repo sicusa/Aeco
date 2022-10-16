@@ -32,6 +32,18 @@ public struct ResourceLibrary<TResource> : IGLObject
         return id;
     }
 
+    public static bool Unreference(IDataLayer<IGLObject> context, Guid resourceId, Guid referencerId, out int newRefCount)
+    {
+        ref var referencers = ref context.Acquire<ResourceReferencers>(resourceId);
+        var newIds = referencers.Ids.Remove(referencerId);
+        newRefCount = newIds.Length;
+        if (newIds != referencers.Ids) {
+            referencers.Ids = newIds;
+            return true;
+        }
+        return false;
+    }
+
     public static bool Unreference(IDataLayer<IGLObject> context, Guid resourceId, Guid referencerId)
     {
         ref var referencers = ref context.Acquire<ResourceReferencers>(resourceId);

@@ -32,9 +32,9 @@ layout(std140) uniform Material {
     vec2 Offset;
 };
 layout(std140) uniform MainLight {
-    vec3 Direction;
-    vec4 Color;
-} MainLight;
+    vec3 MainLightDirection;
+    vec4 MainLightColor;
+};
 #endif",
     };
 

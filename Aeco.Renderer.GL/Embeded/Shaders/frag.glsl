@@ -18,8 +18,8 @@ void main()
 {
     vec2 tiledCoord = i.TexCoord * Tiling;
 
-    vec3 lightDir = MainLight.Direction;
-    vec3 lightColor = MainLight.Color.xyz * MainLight.Color.w;
+    vec3 lightDir = MainLightDirection;
+    vec3 lightColor = MainLightColor.xyz * MainLightColor.w;
     vec3 ambientColor = Ambient.xyz * Ambient.w;
 
     // diffuse 

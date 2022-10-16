@@ -60,8 +60,7 @@ public static class GLTests
         Guid CreateObject(in Vector3 pos, Guid parentId, MeshResource mesh)
         {
             var id = Guid.NewGuid();
-            game.Acquire<Renderable>(id);
-            game.Acquire<Mesh>(id).Resource = mesh;
+            game.Acquire<MeshRenderable>(id).Mesh = mesh;
             game.Acquire<Parent>(id).Id = parentId;
             game.Acquire<Position>(id).Value = pos;
             return id;
@@ -99,7 +98,7 @@ public static class GLTests
             x = Lerp(x, (window.MousePosition.X - window.Size.X / 2) * sensitivity, scaledRate);
             y = Lerp(y, (window.MousePosition.Y - window.Size.Y / 2) * sensitivity, scaledRate);
 
-            foreach (var id in game.Query<Renderable>()) {
+            foreach (var id in game.Query<MeshRenderable>()) {
                 if (id == rotatorId) { continue; }
                 game.Acquire<Rotation>(id).Value = Quaternion.CreateFromYawPitchRoll(time, time, time);
             }

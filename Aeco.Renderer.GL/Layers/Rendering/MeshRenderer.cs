@@ -2,64 +2,65 @@ namespace Aeco.Renderer.GL;
 
 using OpenTK.Graphics.OpenGL4;
 
-using Aeco.Reactive;
-
-public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLRenderLayer
+public class MeshRenderer : VirtualLayer, IGLRenderLayer
 {
-    private Group<Renderable, MeshData> _g = new();
-
-    public void OnLoad(IDataLayer<IComponent> context)
-        => _g.Refrash(context);
-
     public void OnRender(IDataLayer<IComponent> context, float deltaTime)
     {
         if (context.TryGet<TextureData>(GLRenderer.DefaultTextureId, out var data)) {
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, data.Handle);
         }
+
         var cameraUniformHandle = context.InspectAny<CameraUniformBufferHandle>().Value;
         int mainLightHandle = context.AcquireAny<MainLightUniformBufferHandle>().Value;
 
-        foreach (var id in _g.Query(context)) {
-            try {
-                ref readonly var meshData = ref context.Inspect<MeshData>(id);
-                ref readonly var materialData = ref context.Inspect<MaterialData>(meshData.MaterialId);
-                ref readonly var shaderProgramData = ref context.Inspect<ShaderProgramData>(materialData.ShaderProgramId);
+        GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 1, cameraUniformHandle);
+        if (mainLightHandle != -1) {
+            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 4, mainLightHandle);
+        }
 
-                GL.UseProgram(shaderProgramData.Handle);
+        foreach (var id in context.Query<MeshRendering>()) {
+            ref readonly var meshData = ref context.Inspect<MeshData>(id);
+            ref readonly var materialData = ref context.Inspect<MaterialData>(meshData.MaterialId);
 
-                GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 1, cameraUniformHandle);
+            GL.BindVertexArray(meshData.VertexArrayHandle);
+            ApplyMaterial(context, in materialData);
+
+            var referencers = context.Require<ResourceReferencers>(id).Ids;
+            foreach (var referencerId in referencers) {
+                if (!context.Contains<MeshRenderable>(referencerId)) {
+                    continue;
+                }
                 GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 2,
-                    context.Require<ObjectUniformBufferHandle>(id).Value);
-                GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 3, materialData.Handle);
-                
-                if (mainLightHandle != -1) {
-                    GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 4, mainLightHandle);
+                    context.Require<ObjectUniformBufferHandle>(referencerId).Value);
+                if (context.TryGet<MaterialData>(referencerId, out var overwritingMaterialData)) {
+                    ApplyMaterial(context, in overwritingMaterialData);
                 }
-
-                // bind textures
-
-                var textureLocations = shaderProgramData.UniformLocations.Textures;
-                var textures = materialData.Textures;
-                for (int i = 0; i != textures.Count; ++i) {
-                    int location = textureLocations[i];
-                    if (location == -1) { continue; };
-                    var texId = textures[i];
-                    if (texId == null) { continue; }
-                    var textureData = context.Inspect<TextureData>(texId.Value);
-                    GL.ActiveTexture(TextureUnit.Texture1 + i);
-                    GL.BindTexture(TextureTarget.Texture2D, textureData.Handle);
-                    GL.Uniform1(location, i + 1);
-                }
-
-                // draw
-
-                GL.BindVertexArray(meshData.VertexArrayHandle);
                 GL.DrawElements(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, 0);
             }
-            catch (Exception e) {
-                Console.WriteLine($"Failed to render {id}: " + e);
-            }
+        }
+        
+    }
+
+    private void ApplyMaterial(IDataLayer<IComponent> context, in MaterialData materialData)
+    {
+        ref readonly var shaderProgramData = ref context.Inspect<ShaderProgramData>(materialData.ShaderProgramId);
+
+        GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 3, materialData.Handle);
+        GL.UseProgram(shaderProgramData.Handle);
+
+        var textures = materialData.Textures;
+        var textureLocations = shaderProgramData.UniformLocations.Textures;
+
+        for (int i = 0; i != textures.Count; ++i) {
+            int location = textureLocations[i];
+            if (location == -1) { continue; };
+            var texId = textures[i];
+            if (texId == null) { continue; }
+            var textureData = context.Inspect<TextureData>(texId.Value);
+            GL.ActiveTexture(TextureUnit.Texture1 + i);
+            GL.BindTexture(TextureTarget.Texture2D, textureData.Handle);
+            GL.Uniform1(location, i + 1);
         }
     }
 }

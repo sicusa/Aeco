@@ -8,14 +8,14 @@ using Aeco.Reactive;
 
 public class ObjectUniformBufferUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
 {
-    private Group<Renderable, WorldViewDirty> _g = new();
+    private Group<MeshRenderable, WorldViewDirty> _g = new();
 
     public void OnLoad(IDataLayer<IComponent> context)
         => _g.Refrash(context);
 
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
-        foreach (var id in context.Query<Removed<Renderable>>()) {
+        foreach (var id in context.Query<Removed<MeshRenderable>>()) {
             if (context.Remove<ObjectUniformBufferHandle>(id, out var handle)) {
                 GL.DeleteBuffer(handle.Value);
             }

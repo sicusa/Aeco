@@ -2,7 +2,6 @@ namespace Aeco.Renderer.GL;
 
 using System.Numerics;
 using System.Runtime.Serialization;
-using System.Diagnostics.CodeAnalysis;
 
 [DataContract]
 public struct Material : IGLResourceObject<MaterialResource>
