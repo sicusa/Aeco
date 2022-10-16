@@ -35,7 +35,6 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
         public ref Block FindBlock(int index, Guid id)
         {
-            int initialIndex = index;
             ref var block = ref Blocks[index];
 
             if (block.Id == Guid.Empty) {
@@ -47,6 +46,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
                 }
             }
 
+            int initialIndex = index;
             while (true) {
                 if (block.Id == id) {
                     return ref block;
@@ -72,6 +72,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
                 return ref block;
             }
 
+            int initialIndex = index;
             while (true) {
                 if (block.Id == id) {
                     exists = true;
@@ -87,7 +88,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
                     if (bucketIndex == -1) {
                         NextBrick ??= new Brick(Blocks.Length);
                         block.NextBlockIndex = -2;
-                        return ref NextBrick.AcquireBlock(index, id, out exists);
+                        return ref NextBrick.AcquireBlock(initialIndex, id, out exists);
                     }
 
                     ref var bucket = ref Blocks[bucketIndex];
@@ -98,7 +99,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
                     return ref bucket;
                 }
                 else if (index == -2) {
-                    return ref NextBrick!.AcquireBlock(index, id, out exists);
+                    return ref NextBrick!.AcquireBlock(initialIndex, id, out exists);
                 }
                 block = ref Blocks[index];
             }
@@ -121,6 +122,8 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
             }
 
             int prevIndex;
+            int initialIndex = index;
+
             while (true) {
                 prevIndex = index;
                 index = block.NextBlockIndex;
@@ -128,7 +131,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
                     return ref Unsafe.NullRef<Block>();
                 }
                 else if (index == -2) {
-                    return ref NextBrick!.RemoveBlock(index, id);
+                    return ref NextBrick!.RemoveBlock(initialIndex, id);
                 }
                 block = ref Blocks[index];
                 if (block.Id == id) {
