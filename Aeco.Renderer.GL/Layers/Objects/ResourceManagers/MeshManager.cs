@@ -14,6 +14,7 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
         var resource = mesh.Resource;
         var material = resource.Material ?? MaterialResource.Default;
         data.MaterialId = ResourceLibrary<MaterialResource>.Reference<Material>(context, material, id);
+        data.IndexCount = resource.Indeces!.Length;
 
         var buffers = data.BufferHandles;
         data.VertexArrayHandle = GL.GenVertexArray();
