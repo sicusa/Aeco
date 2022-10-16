@@ -14,8 +14,9 @@ out VertOutput {
 
 void main()
 {
-    gl_Position = vec4(vertex, 1) * ObjectToWorld * Matrix_VP;
-    o.Position = gl_Position.xyz;
+    vec4 pos = vec4(vertex, 1) * ObjectToWorld;
+    gl_Position = pos * Matrix_VP;
+    o.Position = pos.xyz;
     o.TexCoord = texCoord;
-    o.Normal = (vec4(normal, 1) * transpose(WorldToObject)).xyz;
+    o.Normal = normalize(normal * mat3(transpose(WorldToObject)));
 }
