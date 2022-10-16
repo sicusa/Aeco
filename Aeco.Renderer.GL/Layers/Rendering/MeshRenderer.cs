@@ -6,9 +6,9 @@ public class MeshRenderer : VirtualLayer, IGLRenderLayer
 {
     public void OnRender(IDataLayer<IComponent> context, float deltaTime)
     {
-        if (context.TryGet<TextureData>(GLRenderer.DefaultTextureId, out var data)) {
+        if (context.TryGet<TextureData>(GLRenderer.DefaultTextureId, out var textureData)) {
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, data.Handle);
+            GL.BindTexture(TextureTarget.Texture2D, textureData.Handle);
         }
 
         var cameraUniformHandle = context.InspectAny<CameraUniformBufferHandle>().Value;
@@ -20,7 +20,7 @@ public class MeshRenderer : VirtualLayer, IGLRenderLayer
         }
 
         foreach (var id in context.Query<Mesh>()) {
-            if (!context.TryGet<RenderingList>(id, out var list)) {
+            if (!context.TryGet<MeshRenderingState>(id, out var state)) {
                 continue;
             }
             ref readonly var meshData = ref context.Inspect<MeshData>(id);
@@ -29,10 +29,15 @@ public class MeshRenderer : VirtualLayer, IGLRenderLayer
             GL.BindVertexArray(meshData.VertexArrayHandle);
             ApplyMaterial(context, in materialData);
 
-            foreach (var renderableId in list.Ids) {
-                if (!context.Contains<MeshRenderable>(renderableId)) {
-                    continue;
-                }
+            int instanceCount = state.Instances.Count;
+            if (instanceCount == 1) {
+                GL.DrawElements(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, 0);
+            }
+            else {
+                GL.DrawElementsInstanced(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero, instanceCount);
+            }
+
+            foreach (var renderableId in state.VariantIds) {
                 GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 2,
                     context.Require<ObjectUniformBufferHandle>(renderableId).Value);
                 if (context.TryGet<MaterialData>(renderableId, out var overwritingMaterialData)) {

@@ -102,12 +102,12 @@ public class GLRenderer : CompositeLayer
                 new UnusedResourceDestroyer(),
                 new DefaultTextureLoader(),
 
-                new MeshRenderableManager(),
-
                 new MeshManager(),
                 new MaterialManager(),
                 new TextureManager(),
                 new ShaderProgramManager(),
+
+                new MeshRenderableManager(),
 
                 new TranslationMatrixUpdator(),
                 new RotationMatrixUpdator(),

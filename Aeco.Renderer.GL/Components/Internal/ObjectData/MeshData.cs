@@ -7,8 +7,7 @@ public enum MeshBufferType
     TexCoord,
     Normal,
     Tangent,
-    MVPMatrix,
-    WorldMatrix
+    Instance
 }
 
 public struct MeshData : IGLObject
@@ -17,6 +16,7 @@ public struct MeshData : IGLObject
     public int VertexArrayHandle = 0;
     public readonly EnumArray<MeshBufferType, int> BufferHandles = new();
     public Guid MaterialId = Guid.Empty;
+    public int InstanceCapacity = 1;
 
     public MeshData() {}
 

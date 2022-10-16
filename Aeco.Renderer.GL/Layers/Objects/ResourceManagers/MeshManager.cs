@@ -2,6 +2,8 @@ namespace Aeco.Renderer.GL;
 
 using OpenTK.Graphics.OpenGL4;
 
+using System.Runtime.InteropServices;
+
 public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
 {
     protected override void Initialize(
@@ -49,6 +51,21 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, buffers[MeshBufferType.Index]);
             GL.BufferData(BufferTarget.ElementArrayBuffer, resource.Indeces.Length * sizeof(int), resource.Indeces, BufferUsageHint.StaticDraw);
         }
+
+        GL.BindBuffer(BufferTarget.ArrayBuffer, buffers[MeshBufferType.Instance]);
+        GL.BufferData(BufferTarget.ArrayBuffer, data.InstanceCapacity * 3 * 16 * sizeof(float), IntPtr.Zero, BufferUsageHint.DynamicDraw);
+
+        GL.EnableVertexAttribArray(4);
+        GL.VertexAttribPointer(4, 16, VertexAttribPointerType.Float, false, 16 * sizeof(float), 0);
+        GL.VertexAttribDivisor(4, 1);
+
+        GL.EnableVertexAttribArray(5);
+        GL.VertexAttribPointer(5, 16, VertexAttribPointerType.Float, false, 16 * sizeof(float), 16 * sizeof(float));
+        GL.VertexAttribDivisor(5, 1);
+
+        GL.EnableVertexAttribArray(6);
+        GL.VertexAttribPointer(6, 16, VertexAttribPointerType.Float, false, 16 * sizeof(float), 2 * 16 * sizeof(float));
+        GL.VertexAttribDivisor(6, 1);
 
         GL.BindVertexArray(0);
     }

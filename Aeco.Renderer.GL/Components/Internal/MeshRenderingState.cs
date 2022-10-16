@@ -1,0 +1,22 @@
+namespace Aeco.Renderer.GL;
+
+using System.Numerics;
+using System.Runtime.InteropServices;
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct MeshInstance
+{
+    public Matrix4x4 MVP;
+    public Matrix4x4 ObjectToWorld;
+    public Matrix4x4 WorldToObject;
+}
+
+public struct MeshRenderingState : IGLObject
+{
+    public readonly List<MeshInstance> Instances = new();
+    public readonly List<Guid> VariantIds = new();
+
+    public MeshRenderingState() {}
+
+    public void Dispose() { this = new(); }
+}

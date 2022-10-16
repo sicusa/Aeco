@@ -7,21 +7,35 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
         if (!updating) {
             Uninitialize(context, id, in renderable, in data);
         }
-        data.MeshId = ResourceLibrary<MeshResource>.Reference<Mesh>(context, renderable.Mesh, id);
 
-        ref var list = ref context.Acquire<RenderingList>(data.MeshId);
-        list.Ids = list.Ids.Add(id);
+        data.MeshId = ResourceLibrary<MeshResource>.Reference<Mesh>(context, renderable.Mesh, id);
+        context.Acquire<MeshInstancesDirty>(data.MeshId);
+
+        ref var state = ref context.Acquire<MeshRenderingState>(data.MeshId);
+        if (renderable.IsVariant) {
+            state.VariantIds.Add(id);
+            data.InstanceId = -1;
+        }
+        else {
+            data.InstanceId = state.Instances.Count;
+        }
     }
 
-    protected override void Uninitialize(IDataLayer<IComponent> context, Guid id, in MeshRenderable obj, in MeshRenderableData data)
+    protected override void Uninitialize(IDataLayer<IComponent> context, Guid id, in MeshRenderable renderable, in MeshRenderableData data)
     {
         ResourceLibrary<MeshResource>.Unreference(context, data.MeshId, id);
 
-        ref var list = ref context.Acquire<RenderingList>(data.MeshId);
-        list.Ids = list.Ids.Remove(id);
-
-        if (list.Ids.Length == 0) {
-            context.Remove<RenderingList>(data.MeshId);
+        ref var state = ref context.Acquire<MeshRenderingState>(data.MeshId);
+        if (data.InstanceId == -1) {
+            state.VariantIds.Remove(id);
         }
+        else {
+
+        }
+    }
+
+    private void UpdateMeshInstances()
+    {
+
     }
 }
