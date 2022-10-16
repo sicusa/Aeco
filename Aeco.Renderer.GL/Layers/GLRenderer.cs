@@ -69,12 +69,6 @@ public class GLRenderer : CompositeLayer
             SwapBuffers();
         }
 
-        protected override void OnUpdateFrame(FrameEventArgs e)
-        {
-            base.OnUpdateFrame(e);
-            _context.Update((float)e.Time);
-        }
-
         protected override void OnResize(ResizeEventArgs e)
         {
             base.OnResize(e);
@@ -182,20 +176,16 @@ public class GLRenderer : CompositeLayer
         }
     }
 
-    protected virtual void Update(float deltaTime)
+    protected virtual void Render(float deltaTime)
     {
         for (int i = 0; i < _updateLayers.Length; ++i) {
             _updateLayers[i].OnUpdate(this, deltaTime);
         }
-        for (int i = 0; i < _lateUpdateLayers.Length; ++i) {
-            _lateUpdateLayers[i].OnLateUpdate(this, deltaTime);
-        }
-    }
-
-    protected virtual void Render(float deltaTime)
-    {
         for (int i = 0; i < _renderLayers.Length; ++i) {
             _renderLayers[i].OnRender(this, deltaTime);
+        }
+        for (int i = 0; i < _lateUpdateLayers.Length; ++i) {
+            _lateUpdateLayers[i].OnLateUpdate(this, deltaTime);
         }
     }
 
