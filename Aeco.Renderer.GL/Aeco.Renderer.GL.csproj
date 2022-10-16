@@ -32,6 +32,8 @@
     <EmbeddedResource Include="Embeded\Models\sphere.glb" />
     <EmbeddedResource Include="Embeded\Models\cube.glb" />
     <EmbeddedResource Include="Embeded\Models\cylinder.glb" />
+    <EmbeddedResource Include="Embeded\Models\torus.glb" />
+    <EmbeddedResource Include="Embeded\Models\cone.glb" />
   </ItemGroup>
 
 </Project>
