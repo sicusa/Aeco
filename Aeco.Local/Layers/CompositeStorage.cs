@@ -2,12 +2,14 @@ namespace Aeco.Local;
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Collections.Immutable;
 
 public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBase<TComponent, TSelectedComponent>
     where TSelectedComponent : TComponent
 {
     private Func<Type, IDataLayer<TComponent>> _substorageCreator;
-    private Dictionary<Type, IDataLayer<TComponent>> _substorages = new();
+    private ImmutableDictionary<Type, IDataLayer<TComponent>> _substorages =
+        ImmutableDictionary<Type, IDataLayer<TComponent>>.Empty;
 
     public CompositeStorage(Func<Type, IDataLayer<TComponent>> substorageCreator)
     {
@@ -20,7 +22,7 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
         var type = typeof(UComponent);
         if (!_substorages.TryGetValue(type, out var substorage)) {
             substorage = _substorageCreator(type);
-            _substorages.Add(type, substorage);
+            ImmutableInterlocked.TryAdd(ref _substorages, type, substorage);
         }
         return substorage;
     }

@@ -2,6 +2,7 @@ namespace Aeco.Local;
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
@@ -57,9 +58,11 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         ref var block = ref _brick.AcquireBlock(GetIndex(entityId), entityId, out exists);
         if (!exists) {
             block.Value = new();
-            _entityIds.Add(entityId);
-            if (_singleton == Guid.Empty) {
-                _singleton = entityId;
+            lock (_entityIds) {
+                _entityIds.Add(entityId);
+                if (_singleton == Guid.Empty) {
+                    _singleton = entityId;
+                }
             }
         }
         return ref block.Value;
@@ -71,17 +74,23 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     public override bool ContainsAny()
         => _singleton != Guid.Empty;
 
-    private void ResetSingleton()
+    private bool ResetSingleton()
     {
-        _singleton = _entityIds.Count != 0 ? _entityIds.First() : Guid.Empty;
+        if (_entityIds.Count != 0) {
+            _singleton = _entityIds.First();
+            return true;
+        }
+        return false;
     }
 
     private void ClearBlock(ref FastHashBrick<Guid, TStoredComponent>.Block block, in Guid entityId)
     {
         block.Value = default!;
-        _entityIds.Remove(entityId);
-        if (_singleton == entityId) {
-            ResetSingleton();
+        lock (_entityIds) {
+            _entityIds.Remove(entityId);
+            if (_singleton == entityId) {
+                _singleton = Guid.Empty;
+            }
         }
     }
 
@@ -122,8 +131,12 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     }
 
     public override Guid Singleton()
-        => _singleton != Guid.Empty ? _singleton
-            : throw new KeyNotFoundException("Singleton not found");
+    {
+        if (_singleton == Guid.Empty && !ResetSingleton()) {
+            throw new KeyNotFoundException("Singleton not found");
+        }
+        return _singleton;
+    }
 
     public override IEnumerable<Guid> Query()
         => _entityIds;

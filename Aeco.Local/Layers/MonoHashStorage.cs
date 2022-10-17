@@ -35,9 +35,11 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         ref TStoredComponent? comp = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, entityId, out exists);
         if (!exists) {
             comp = new TStoredComponent();
-            _entityIds.Add(entityId);
-            if (_singleton == Guid.Empty) {
-                _singleton = entityId;
+            lock (_entityIds) {
+                _entityIds.Add(entityId);
+                if (_singleton == Guid.Empty) {
+                    _singleton = entityId;
+                }
             }
         }
         return ref comp!;
@@ -49,21 +51,27 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     public override bool ContainsAny()
         => _singleton != Guid.Empty;
 
-    private void ResetSingleton()
+    private bool ResetSingleton()
     {
-        _singleton = _entityIds.Count != 0 ? _entityIds.First() : Guid.Empty;
+        if (_entityIds.Count != 0) {
+            _singleton = _entityIds.First();
+            return true;
+        }
+        return false;
     }
 
     private bool RawRemove(Guid entityId)
     {
-        if (!_entityIds.Remove(entityId)) {
-            return false;
+        lock (_entityIds) {
+            if (!_entityIds.Remove(entityId)) {
+                return false;
+            }
+            _dict.Remove(entityId);
+            if (_singleton == entityId) {
+                ResetSingleton();
+            }
+            return true;
         }
-        _dict.Remove(entityId);
-        if (_singleton == entityId) {
-            ResetSingleton();
-        }
-        return true;
     }
 
     public override bool Remove(Guid entityId)
@@ -71,18 +79,19 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     public override bool Remove(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
     {
-        if (!_entityIds.Remove(entityId)) {
-            component = default;
-            return false;
+        lock (_entityIds) {
+            if (!_entityIds.Remove(entityId)) {
+                component = default;
+                return false;
+            }
+            if (!_dict.Remove(entityId, out component)) {
+                throw new KeyNotFoundException("Internal error");
+            }
+            if (_singleton == entityId) {
+                _singleton = Guid.Empty;
+            }
+            return true;
         }
-        if (!_dict.Remove(entityId, out component)) {
-            throw new KeyNotFoundException("Internal error");
-        }
-
-        if (_singleton == entityId) {
-            ResetSingleton();
-        }
-        return true;
     }
 
     public override ref TStoredComponent Set(Guid entityId, in TStoredComponent component)
@@ -96,8 +105,12 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     }
 
     public override Guid Singleton()
-        => _singleton != Guid.Empty ? _singleton
-            : throw new KeyNotFoundException("Singleton not found");
+    {
+        if (_singleton == Guid.Empty && !ResetSingleton()) {
+            throw new KeyNotFoundException("Singleton not found");
+        }
+        return _singleton;
+    }
 
     public override IEnumerable<Guid> Query()
         => _entityIds;
@@ -116,9 +129,11 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     public override void Clear()
     {
-        _dict.Clear();
-        _entityIds.Clear();
-        _singleton = Guid.Empty;
+        lock (_entityIds) {
+            _dict.Clear();
+            _entityIds.Clear();
+            _singleton = Guid.Empty;
+        }
     }
 }
 
