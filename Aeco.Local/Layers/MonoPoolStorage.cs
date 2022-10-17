@@ -280,16 +280,19 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     public override void Clear()
     {
-        var blocks = _brick.Blocks;
-        for (int i = 0; i < blocks.Length; ++i) {
-            ref var block = ref blocks[i];
-            block.NextBlockIndex = -1;
-            if (block.Id != Guid.Empty) {
-                block.Id = Guid.Empty;
-                block.Data.Dispose();
+        var brick = _brick;
+        while (brick != null) {
+            var blocks = brick.Blocks;
+            for (int i = 0; i < blocks.Length; ++i) {
+                ref var block = ref blocks[i];
+                block.NextBlockIndex = -1;
+                if (block.Id != Guid.Empty) {
+                    block.Id = Guid.Empty;
+                    block.Data.Dispose();
+                }
             }
+            brick = brick.NextBrick;
         }
-        _brick.NextBrick = null;
         _entityIds.Clear();
         _singleton = Guid.Empty;
     }
@@ -302,7 +305,7 @@ public class MonoPoolStorage<TStoredComponent> : MonoPoolStorage<IComponent, TSt
 
 public static class MonoPoolStorage
 {
-    public const int DefaultBrickCapacity = 239;
+    public const int DefaultBrickCapacity = 521;
 
     public static IDataLayer<TComponent> CreateUnsafe<TComponent>(Type selectedComponentType, int capacity = DefaultBrickCapacity)
     {
