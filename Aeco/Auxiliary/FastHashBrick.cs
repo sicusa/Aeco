@@ -13,8 +13,8 @@ public class FastHashBrick<TKey, TValue>
         public int NextBlockIndex;
     }
 
-    public Block[] Blocks;
-    public FastHashBrick<TKey, TValue>? NextBrick;
+    public volatile Block[] Blocks;
+    public volatile FastHashBrick<TKey, TValue>? NextBrick;
 
     public FastHashBrick(int capacity)
     {
