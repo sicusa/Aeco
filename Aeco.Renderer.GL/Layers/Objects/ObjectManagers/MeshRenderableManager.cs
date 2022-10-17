@@ -15,7 +15,6 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
 
         var meshId = ResourceLibrary<MeshResource>.Reference<Mesh>(context, renderable.Mesh, id);
         data.MeshId = meshId;
-        context.Acquire<MeshInstancesDirty>(meshId);
 
         ref var state = ref context.Acquire<MeshRenderingState>(meshId);
         if (renderable.IsVariant) {
