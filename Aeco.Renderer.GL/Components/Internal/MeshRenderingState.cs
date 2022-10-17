@@ -6,7 +6,8 @@ using System.Runtime.InteropServices;
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct MeshInstance
 {
-    public Matrix4x4 MVP;
+    public const int MemorySize = 2 * 16 * sizeof(float);
+
     public Matrix4x4 ObjectToWorld;
     public Matrix4x4 WorldToObject;
 }
@@ -14,6 +15,7 @@ public struct MeshInstance
 public struct MeshRenderingState : IGLObject
 {
     public readonly List<MeshInstance> Instances = new();
+    public readonly List<Guid> InstanceIds = new();
     public readonly List<Guid> VariantIds = new();
 
     public MeshRenderingState() {}

@@ -29,6 +29,7 @@ public class CameraUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
             handle = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.UniformBuffer, handle);
             GL.BufferData(BufferTarget.UniformBuffer, 64 * 3 + 16, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 1, handle);
         }
         else {
             GL.BindBuffer(BufferTarget.UniformBuffer, handle);

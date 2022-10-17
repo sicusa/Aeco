@@ -11,7 +11,8 @@ public struct TransformMatricesDirty : IGLObject
         var currId = id;
         while (context.TryGet<Parent>(currId, out var parent)) {
             currId = parent.Id;
-            context.Acquire<ChildrenTransformMatricesDirty>(currId);
+            context.Acquire<ChildrenTransformMatricesDirty>(currId, out bool exists);
+            if (exists) { break; }
         }
     }
 }

@@ -22,7 +22,7 @@ public static class GLTests
         game.Initialize(new RendererSpec {
             Width = 800,
             Height = 600,
-            IsFullscreen = true,
+            //IsFullscreen = true,
             Title = "RPG Game"
         });
 
@@ -61,7 +61,9 @@ public static class GLTests
         Guid CreateObject(in Vector3 pos, Guid parentId, MeshResource mesh)
         {
             var id = Guid.NewGuid();
-            game.Acquire<MeshRenderable>(id).Mesh = mesh;
+            ref var renderable = ref game.Acquire<MeshRenderable>(id);
+            renderable.Mesh = mesh;
+            //renderable.IsVariant = true;
             game.Acquire<Parent>(id).Id = parentId;
             game.Acquire<Position>(id).Value = pos;
             return id;
@@ -72,7 +74,7 @@ public static class GLTests
         game.Acquire<Scale>(prevId).Value = new Vector3(0.3f);
 
         for (int i = 0; i < 50; ++i) {
-            prevId = CreateObject(new Vector3(i * 0.1f - 0.1f, 0, 0), prevId, torusMesh);
+            prevId = CreateObject(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), prevId, torusMesh);
             game.Acquire<Scale>(prevId).Value = new Vector3(0.99f);
         }
 
@@ -107,7 +109,7 @@ public static class GLTests
             ref readonly var rotatorView = ref game.Inspect<WorldView>(rotatorId);
             ref var rotatorPos = ref game.Acquire<Position>(rotatorId).Value;
             rotatorPos += rotatorView.Forward * deltaTime * 2;
-            game.Acquire<Rotation>(rotatorId).Value *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, deltaTime);
+            game.Acquire<Rotation>(rotatorId).Value = Quaternion.CreateFromAxisAngle(Vector3.UnitY, time);
 
             game.Acquire<WorldView>(firstId).Forward = rotatorPos;
             game.Acquire<Rotation>(cameraId).Value = Quaternion.CreateFromYawPitchRoll(-x, -y, 0);

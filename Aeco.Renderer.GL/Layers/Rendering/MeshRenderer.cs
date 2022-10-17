@@ -10,15 +10,6 @@ public class MeshRenderer : VirtualLayer, IGLRenderLayer
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, textureData.Handle);
         }
-
-        var cameraUniformHandle = context.InspectAny<CameraUniformBufferHandle>().Value;
-        int mainLightHandle = context.AcquireAny<MainLightUniformBufferHandle>().Value;
-
-        GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 1, cameraUniformHandle);
-        if (mainLightHandle != -1) {
-            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 4, mainLightHandle);
-        }
-
         foreach (var id in context.Query<Mesh>()) {
             if (!context.TryGet<MeshRenderingState>(id, out var state)) {
                 continue;
@@ -30,17 +21,14 @@ public class MeshRenderer : VirtualLayer, IGLRenderLayer
             ApplyMaterial(context, in materialData);
 
             int instanceCount = state.Instances.Count;
-            if (instanceCount == 1) {
-                GL.DrawElements(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, 0);
-            }
-            else {
+            if (instanceCount != 0) {
                 GL.DrawElementsInstanced(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero, instanceCount);
             }
 
-            foreach (var renderableId in state.VariantIds) {
+            foreach (var variantId in state.VariantIds) {
                 GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 2,
-                    context.Require<ObjectUniformBufferHandle>(renderableId).Value);
-                if (context.TryGet<MaterialData>(renderableId, out var overwritingMaterialData)) {
+                    context.Require<VariantUniformBufferHandle>(variantId).Value);
+                if (context.TryGet<MaterialData>(variantId, out var overwritingMaterialData)) {
                     ApplyMaterial(context, in overwritingMaterialData);
                 }
                 GL.DrawElements(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, 0);

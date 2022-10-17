@@ -2,7 +2,7 @@ namespace Aeco.Renderer.GL;
 
 public struct UniformLocations
 {
-    public EnumArray<TextureType,  int> Textures;
+    public EnumArray<TextureType, int> Textures;
 
     public int CameraBlock;
     public int ObjectBlock;

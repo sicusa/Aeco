@@ -12,6 +12,17 @@ public class ShaderProgramManager : ResourceManagerBase<ShaderProgram, ShaderPro
         ["nagule/common.glsl"] = 
 @"#ifndef NAGULE_COMMON
 #define NAGULE_COMMON
+
+#define ENABLE_INSTANCING \
+    if (IsVariant) { \
+        ObjectToWorld = VariantObjectToWorld; \
+        WorldToObject = VariantWorldToObject; \
+    } \
+    else { \
+        ObjectToWorld = InstanceObjectToWorld; \
+        WorldToObject = InstanceWorldToObject; \
+    }
+
 layout(std140) uniform Camera {
     mat4 Matrix_V;
     mat4 Matrix_P;
@@ -19,8 +30,9 @@ layout(std140) uniform Camera {
     vec3 CameraPosition;
 };
 layout(std140) uniform Object {
-    mat4 ObjectToWorld;
-    mat4 WorldToObject;
+    mat4 VariantObjectToWorld;
+    mat4 VariantWorldToObject;
+    bool IsVariant;
 };
 layout(std140) uniform Material {
     vec4 Diffuse;
@@ -35,6 +47,11 @@ layout(std140) uniform MainLight {
     vec3 MainLightDirection;
     vec4 MainLightColor;
 };
+
+layout(location = 4) in mat4 InstanceObjectToWorld;
+layout(location = 8) in mat4 InstanceWorldToObject;
+
+mat4 ObjectToWorld, WorldToObject;
 #endif",
     };
 

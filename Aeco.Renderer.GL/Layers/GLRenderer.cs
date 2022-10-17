@@ -6,7 +6,6 @@ using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 
 using Aeco.Local;
 using Aeco.Reactive;
@@ -52,6 +51,7 @@ public class GLRenderer : CompositeLayer
             GL.ClearColor(_clearColor.X, _clearColor.Y, _clearColor.Z, _clearColor.W);
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.FramebufferSrgb); 
+            GL.Enable(EnableCap.CullFace);
             _context.Load();
         }
 
@@ -67,6 +67,12 @@ public class GLRenderer : CompositeLayer
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             _context.Render((float)e.Time);
             SwapBuffers();
+        }
+
+        protected override void OnUpdateFrame(FrameEventArgs e)
+        {
+            base.OnUpdateFrame(e);
+            _context.Update((float)e.Time);
         }
 
         protected override void OnResize(ResizeEventArgs e)
@@ -102,12 +108,12 @@ public class GLRenderer : CompositeLayer
                 new UnusedResourceDestroyer(),
                 new DefaultTextureLoader(),
 
+                new MeshRenderableManager(),
+
                 new MeshManager(),
                 new MaterialManager(),
                 new TextureManager(),
                 new ShaderProgramManager(),
-
-                new MeshRenderableManager(),
 
                 new TranslationMatrixUpdator(),
                 new RotationMatrixUpdator(),
@@ -119,21 +125,21 @@ public class GLRenderer : CompositeLayer
 
                 new MainLightUniformBufferUpdator(),
                 new CameraUniformBufferUpdator(),
-                new ObjectUniformBufferUpdator(),
+                new MeshRenderableUpdator(),
 
                 new MeshRenderer()
             })
             .ToArray()
         )
     {
-        RefrashCallbackLayers();
+        RefreshCallbackLayers();
     }
 
     [MemberNotNull(nameof(_renderLayers))]
     [MemberNotNull(nameof(_updateLayers))]
     [MemberNotNull(nameof(_lateUpdateLayers))]
     [MemberNotNull(nameof(_resizeLayers))]
-    public void RefrashCallbackLayers()
+    public void RefreshCallbackLayers()
     {
         _renderLayers = GetSublayersRecursively<IGLRenderLayer>().ToArray();
         _updateLayers = GetSublayersRecursively<IGLUpdateLayer>().ToArray();
@@ -141,14 +147,14 @@ public class GLRenderer : CompositeLayer
         _resizeLayers = GetSublayersRecursively<IGLResizeLayer>().ToArray();
     }
 
-    public virtual void Initialize(in RendererSpec spec)
+    public void Initialize(in RendererSpec spec)
     {
         var windowId = Guid.NewGuid();
         Acquire<Window>(windowId).Current = new InternalWindow(this, spec);
         Set<RendererSpec>(windowId, spec);
     }
 
-    public virtual void Run()
+    public void Run()
     {
         var window = RequireAny<Window>().Current!;
         try {
@@ -161,7 +167,7 @@ public class GLRenderer : CompositeLayer
         }
     }
 
-    protected virtual void Load()
+    protected void Load()
     {
         foreach (var loadLayer in GetSublayersRecursively<IGLLoadLayer>()) {
             loadLayer.OnLoad(this);
@@ -171,27 +177,31 @@ public class GLRenderer : CompositeLayer
         }
     }
 
-    protected virtual void Unload()
+    protected void Unload()
     {
         foreach (var unloadLayer in GetSublayersRecursively<IGLUnloadLayer>()) {
             unloadLayer.OnUnload(this);
         }
     }
 
-    protected virtual void Render(float deltaTime)
+    protected void Update(float deltaTime)
     {
         for (int i = 0; i < _updateLayers.Length; ++i) {
             _updateLayers[i].OnUpdate(this, deltaTime);
-        }
-        for (int i = 0; i < _renderLayers.Length; ++i) {
-            _renderLayers[i].OnRender(this, deltaTime);
         }
         for (int i = 0; i < _lateUpdateLayers.Length; ++i) {
             _lateUpdateLayers[i].OnLateUpdate(this, deltaTime);
         }
     }
 
-    protected virtual void Resize(int width, int height)
+    protected void Render(float deltaTime)
+    {
+        for (int i = 0; i < _renderLayers.Length; ++i) {
+            _renderLayers[i].OnRender(this, deltaTime);
+        }
+    }
+
+    protected void Resize(int width, int height)
     {
         for (int i = 0; i < _resizeLayers.Length; ++i) {
             _resizeLayers[i].OnResize(this, width, height);

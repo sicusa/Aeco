@@ -1,6 +1,6 @@
 namespace Aeco.Renderer.GL;
 
-public struct ObjectUniformBufferHandle : IGLObject
+public struct VariantUniformBufferHandle : IGLObject
 {
     public int Value;
 

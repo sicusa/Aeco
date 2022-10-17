@@ -20,9 +20,10 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
 
         var buffers = data.BufferHandles;
         data.VertexArrayHandle = GL.GenVertexArray();
-        GL.BindVertexArray(data.VertexArrayHandle);
 
+        GL.BindVertexArray(data.VertexArrayHandle);
         GL.GenBuffers(buffers.Count, buffers.Raw);
+
         if (resource.Vertices != null) {
             GL.BindBuffer(BufferTarget.ArrayBuffer, buffers[MeshBufferType.Vertex]);
             GL.BufferData(BufferTarget.ArrayBuffer, resource.Vertices.Length * 3 * sizeof(float), resource.Vertices, BufferUsageHint.StaticDraw);
@@ -47,26 +48,25 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
             GL.EnableVertexAttribArray(3);
             GL.VertexAttribPointer(3, 3, VertexAttribPointerType.Float, false, 0, 0);
         }
+
         if (resource.Indeces != null) {
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, buffers[MeshBufferType.Index]);
             GL.BufferData(BufferTarget.ElementArrayBuffer, resource.Indeces.Length * sizeof(int), resource.Indeces, BufferUsageHint.StaticDraw);
         }
 
         GL.BindBuffer(BufferTarget.ArrayBuffer, buffers[MeshBufferType.Instance]);
-        GL.BufferData(BufferTarget.ArrayBuffer, data.InstanceCapacity * 3 * 16 * sizeof(float), IntPtr.Zero, BufferUsageHint.DynamicDraw);
 
-        GL.EnableVertexAttribArray(4);
-        GL.VertexAttribPointer(4, 16, VertexAttribPointerType.Float, false, 16 * sizeof(float), 0);
-        GL.VertexAttribDivisor(4, 1);
+        if (context.TryGet<MeshRenderingState>(id, out var state) && state.Instances.Count != 0) {
+            data.InstanceCapacity = Math.Max(data.InstanceCapacity, state.Instances.Count);
+            GL.BufferData(BufferTarget.ArrayBuffer, data.InstanceCapacity * MeshInstance.MemorySize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            var span = CollectionsMarshal.AsSpan(state.Instances);
+            GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, state.Instances.Count * MeshInstance.MemorySize, ref span[0]);
+        }
+        else {
+            GL.BufferData(BufferTarget.ArrayBuffer, data.InstanceCapacity * MeshInstance.MemorySize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+        }
 
-        GL.EnableVertexAttribArray(5);
-        GL.VertexAttribPointer(5, 16, VertexAttribPointerType.Float, false, 16 * sizeof(float), 16 * sizeof(float));
-        GL.VertexAttribDivisor(5, 1);
-
-        GL.EnableVertexAttribArray(6);
-        GL.VertexAttribPointer(6, 16, VertexAttribPointerType.Float, false, 16 * sizeof(float), 2 * 16 * sizeof(float));
-        GL.VertexAttribDivisor(6, 1);
-
+        RenderHelper.SetInstancingMatrices();
         GL.BindVertexArray(0);
     }
 

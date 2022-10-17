@@ -3,7 +3,7 @@ namespace Aeco.Renderer.GL;
 using Aeco.Reactive;
 
 public abstract class ResourceManagerBase<TObject, TObjectData, TResource>
-    : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLayer, IGLUnloadLayer
+    : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLayer
     where TObject : IGLResourceObject<TResource>
     where TObjectData : IComponent, new()
     where TResource : IGLResource
@@ -41,9 +41,6 @@ public abstract class ResourceManagerBase<TObject, TObjectData, TResource>
 
     public void OnLateUpdate(IDataLayer<IComponent> context, float deltaTime)
         => DoUninitialize(context, _destroy_q.Query(context));
-
-    public void OnUnload(IDataLayer<IComponent> context)
-        => DoUninitialize(context, context.Query<TObjectData>().ToArray());
 
     private void DoUninitialize(IDataLayer<IComponent> context, IEnumerable<Guid> ids)
     {

@@ -2,7 +2,7 @@ namespace Aeco.Renderer.GL;
 
 using System.Numerics;
 
-public struct TransformMatrices : IGLObject, IDisposable
+public struct TransformMatrices : IGLObject
 {
     public Matrix4x4 World => WorldRaw;
     internal Matrix4x4 WorldRaw = Matrix4x4.Identity;

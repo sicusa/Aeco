@@ -4,8 +4,20 @@ public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLay
 {
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
-        Traverse(context, GLRenderer.RootId);
-        context.RemoveAll<ChildrenTransformMatricesDirty>();
+        if (!context.TryGet<Children>(GLRenderer.RootId, out var children)) {
+            return;
+        }
+        foreach (var childId in children.Ids) {
+            if (context.Contains<TransformMatricesDirty>(childId)) {
+                ref var childMatrices = ref context.Acquire<TransformMatrices>(childId);
+                childMatrices.Combined = childMatrices.Scale * childMatrices.Rotation * childMatrices.Translation;
+                childMatrices.WorldRaw = childMatrices.Combined;
+                UpdateRecursively(context, childId, ref childMatrices);
+            }
+            else if (context.Contains<ChildrenTransformMatricesDirty>(childId)) {
+                Traverse(context, childId);
+            }
+        }
     }
 
     public void OnLateUpdate(IDataLayer<IComponent> context, float deltaTime)
@@ -42,7 +54,8 @@ public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLay
         if (context.TryGet<Children>(id, out var children)) {
             foreach (var childId in children.Ids) {
                 ref var childMatrices = ref context.Acquire<TransformMatrices>(childId);
-                if (context.Contains<TransformMatricesDirty>(childId)) {
+                context.Acquire<TransformMatricesDirty>(childId, out bool exists);
+                if (exists) {
                     childMatrices.Combined = childMatrices.Scale * childMatrices.Rotation * childMatrices.Translation;
                 }
                 childMatrices.WorldRaw = childMatrices.Combined * matrices.WorldRaw;

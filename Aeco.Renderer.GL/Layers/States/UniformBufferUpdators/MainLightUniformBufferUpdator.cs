@@ -6,8 +6,6 @@ using Aeco.Reactive;
 
 public class MainLightUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
 {
-    private Query<Modified<MainLight>, MainLight> _q = new();
-
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
         foreach (var id in context.Query<Removed<MainLight>>()) {
@@ -29,6 +27,7 @@ public class MainLightUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
             handle = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.UniformBuffer, handle);
             GL.BufferData(BufferTarget.UniformBuffer, 16 * 2, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 4, handle);
         }
         else {
             GL.BindBuffer(BufferTarget.UniformBuffer, handle);
