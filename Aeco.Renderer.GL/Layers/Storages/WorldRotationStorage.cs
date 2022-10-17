@@ -2,7 +2,7 @@ namespace Aeco.Renderer.GL;
 
 using System.Numerics;
 
-public class WorldRotationStorage : DelayedReactiveStorageBase<WorldRotation, WorldRotationDirty>
+public class WorldRotationStorage : DelayedReactiveStorageBase<WorldRotation>
 {
     protected override void OnRefresh(Guid id, ref WorldRotation worldRot)
     {

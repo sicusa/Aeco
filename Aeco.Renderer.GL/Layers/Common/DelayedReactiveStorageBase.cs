@@ -5,10 +5,9 @@ using System.Diagnostics.CodeAnalysis;
 
 using Aeco.Reactive;
 
-public abstract class DelayedReactiveStorageBase<TComponent, TDirtyTag>
-    : DelayedStorageBase<TComponent, TDirtyTag>, IGLUpdateLayer
+public abstract class DelayedReactiveStorageBase<TComponent>
+    : DelayedStorageBase<TComponent>, IGLUpdateLayer
     where TComponent : IComponent, IDisposable, new()
-    where TDirtyTag : IComponent
 {
     private Query<Modified<TComponent>, TComponent> _q = new();
 

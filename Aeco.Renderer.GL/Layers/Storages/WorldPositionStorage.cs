@@ -2,7 +2,7 @@ namespace Aeco.Renderer.GL;
 
 using System.Numerics;
 
-public class WorldPositionStorage : DelayedReactiveStorageBase<WorldPosition, WorldPositionDirty>
+public class WorldPositionStorage : DelayedReactiveStorageBase<WorldPosition>
 {
     protected override void OnRefresh(Guid id, ref WorldPosition worldPos)
     {

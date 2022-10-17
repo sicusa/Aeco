@@ -2,7 +2,7 @@ namespace Aeco.Renderer.GL;
 
 using System.Numerics;
 
-public class WorldViewStorage : DelayedReactiveStorageBase<WorldView, WorldViewDirty>
+public class WorldViewStorage : DelayedReactiveStorageBase<WorldView>
 {
     protected override void OnRefresh(Guid id, ref WorldView view)
     {

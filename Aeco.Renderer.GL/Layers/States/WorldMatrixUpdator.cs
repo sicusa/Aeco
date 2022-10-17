@@ -47,9 +47,9 @@ public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLay
 
     private void UpdateRecursively(IDataLayer<IComponent> context, Guid id, ref TransformMatrices matrices)
     {
-        context.Acquire<WorldViewDirty>(id);
-        context.Acquire<WorldPositionDirty>(id);
-        context.Acquire<WorldRotationDirty>(id);
+        context.Remove<WorldView>(id);
+        context.Remove<WorldPosition>(id);
+        context.Remove<WorldRotation>(id);
 
         if (context.TryGet<Children>(id, out var children)) {
             foreach (var childId in children.Ids) {

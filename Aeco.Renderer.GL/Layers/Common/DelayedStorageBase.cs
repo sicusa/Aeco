@@ -5,9 +5,8 @@ using System.Diagnostics.CodeAnalysis;
 
 using Aeco.Local;
 
-public abstract class DelayedStorageBase<TComponent, TDirtyTag> : MonoPoolStorage<TComponent>, IGLLoadLayer
+public abstract class DelayedStorageBase<TComponent> : MonoPoolStorage<TComponent>, IGLLoadLayer
     where TComponent : IComponent, IDisposable, new()
-    where TDirtyTag : IComponent
 {
     [AllowNull]
     protected IDataLayer<IComponent> Context { get; private set; }
@@ -18,9 +17,8 @@ public abstract class DelayedStorageBase<TComponent, TDirtyTag> : MonoPoolStorag
     public override ref TComponent Acquire(Guid entityId, out bool exists)
     {
         ref TComponent comp = ref base.Acquire(entityId, out exists);
-        if (!exists || Context.Contains<TDirtyTag>(entityId)) {
+        if (!exists) {
             OnRefresh(entityId, ref comp);
-            Context.Remove<TDirtyTag>(entityId);
         }
         return ref comp;
     }

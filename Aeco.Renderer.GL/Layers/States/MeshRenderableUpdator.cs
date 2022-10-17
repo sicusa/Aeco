@@ -29,7 +29,6 @@ public class MeshRenderableUpdator : VirtualLayer, IGLUpdateLayer
                 GL.DeleteBuffer(handle.Value);
             }
         }
-        bool bound = false;
         foreach (var id in _q.Query(context)) {
             ref readonly var data = ref context.Inspect<MeshRenderableData>(id);
             int index = data.InstanceIndex;
@@ -52,9 +51,6 @@ public class MeshRenderableUpdator : VirtualLayer, IGLUpdateLayer
             int instanceBufferHandle = meshData.BufferHandles[MeshBufferType.Instance];
             GL.BindBuffer(BufferTarget.ArrayBuffer, instanceBufferHandle);
             GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero + index * MeshInstance.MemorySize, MeshInstance.MemorySize, ref span[index]);
-            bound = true;
-        }
-        if (bound) {
             GL.BindVertexArray(0);
         }
     }
