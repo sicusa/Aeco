@@ -42,6 +42,12 @@ public static class GLTests
             PrintLayerProfiles("Render", game.RenderLayerProfiles);
         };
 
+        debugLayer.OnLateLoad += () => Launch(game, debugLayer);
+        game.Run();
+    }
+
+    private static void Launch(GLRenderer game, DebugLayer debugLayer)
+    {
         var mainLight = game.CreateEntity();
         mainLight.Acquire<Parent>().Id = GLRenderer.RootId;
         mainLight.Acquire<Rotation>().Value = Quaternion.CreateFromYawPitchRoll(-90, -45, 0);
@@ -89,7 +95,7 @@ public static class GLTests
         Guid firstId = prevId;
         game.Acquire<Scale>(prevId).Value = new Vector3(0.3f);
 
-        for (int i = 0; i < 2000; ++i) {
+        for (int i = 0; i < 5000; ++i) {
             prevId = CreateObject(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), firstId, torusMesh);
             game.Acquire<Scale>(prevId).Value = new Vector3(0.99f);
         }
@@ -123,33 +129,33 @@ public static class GLTests
                 game.Acquire<Rotation>(id).Value = Quaternion.CreateFromYawPitchRoll(time, time, time);
             }*/
 
-            ref readonly var rotatorView = ref game.Inspect<WorldView>(rotatorId);
+            ref readonly var rotatorAxes = ref game.Inspect<WorldAxes>(rotatorId);
             ref var rotatorPos = ref game.Acquire<Position>(rotatorId).Value;
-            rotatorPos += rotatorView.Forward * deltaTime * 2;
+            rotatorPos += rotatorAxes.Forward * deltaTime * 2;
             game.Acquire<Rotation>(rotatorId).Value = Quaternion.CreateFromAxisAngle(Vector3.UnitY, time);
+            game.Acquire<WorldAxes>(firstId).Forward = rotatorPos;
 
-            game.Acquire<WorldView>(firstId).Forward = rotatorPos;
             game.Acquire<Rotation>(cameraId).Value = Quaternion.CreateFromYawPitchRoll(-x, -y, 0);
 
             var deltaPos = Vector3.Zero;
             bool modified = false;
             if (window.KeyboardState.IsKeyDown(Keys.W)) {
-                deltaPos += game.Inspect<WorldView>(cameraId).Forward;
+                deltaPos += game.Inspect<WorldAxes>(cameraId).Forward;
                 moving = true;
                 modified = true;
             }
             if (window.KeyboardState.IsKeyDown(Keys.S)) {
-                deltaPos -= game.Inspect<WorldView>(cameraId).Forward;
+                deltaPos -= game.Inspect<WorldAxes>(cameraId).Forward;
                 moving = true;
                 modified = true;
             }
             if (window.KeyboardState.IsKeyDown(Keys.A)) {
-                deltaPos -= game.Inspect<WorldView>(cameraId).Right;
+                deltaPos -= game.Inspect<WorldAxes>(cameraId).Right;
                 moving = true;
                 modified = true;
             }
             if (window.KeyboardState.IsKeyDown(Keys.D)) {
-                deltaPos += game.Inspect<WorldView>(cameraId).Right;
+                deltaPos += game.Inspect<WorldAxes>(cameraId).Right;
                 moving = true;
                 modified = true;
             }
@@ -165,7 +171,5 @@ public static class GLTests
                 }
             }
         };
-
-        game.Run();
     }
 }

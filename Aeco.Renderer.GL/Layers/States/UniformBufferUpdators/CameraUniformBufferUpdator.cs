@@ -35,7 +35,7 @@ public class CameraUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
             GL.BindBuffer(BufferTarget.UniformBuffer, handle);
         }
 
-        var view = Matrix4x4.Transpose(context.UnsafeAcquire<WorldView>(id).ViewRaw);
+        var view = Matrix4x4.Transpose(context.UnsafeInspect<TransformMatrices>(id).View);
         var proj = Matrix4x4.Transpose(context.UnsafeAcquire<CameraMatrices>(id).ProjectionRaw);
         var vp = proj * view;
         ref var pos = ref context.UnsafeAcquire<WorldPosition>(id).Value;

@@ -15,7 +15,7 @@ public class ParentNodeUpdator : VirtualLayer, IGLUpdateLayer
             }
 
             ref var matrices = ref context.Acquire<TransformMatrices>(id);
-            matrices.WorldRaw = matrices.Combined;
+            matrices.World = matrices.Combined;
 
             if (parent.Id == Guid.Empty) {
                 Console.WriteLine("Internal error: applied parent ID is empty.");

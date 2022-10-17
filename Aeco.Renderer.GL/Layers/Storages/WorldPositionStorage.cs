@@ -10,7 +10,7 @@ public class WorldPositionStorage : DelayedReactiveStorageBase<WorldPosition>
 
         if (Context.TryGet<Parent>(id, out var parent)) {
             ref var matrices = ref Context.Acquire<TransformMatrices>(parent.Id);
-            worldPos.Value = Vector3.Transform(pos.Value, matrices.WorldRaw);
+            worldPos.Value = Vector3.Transform(pos.Value, matrices.World);
         }
         else {
             worldPos.Value = pos.Value;
@@ -22,8 +22,8 @@ public class WorldPositionStorage : DelayedReactiveStorageBase<WorldPosition>
         ref var pos = ref Context.Acquire<Position>(id);
 
         if (Context.TryGet<Parent>(id, out var parent)) {
-            ref var view = ref Context.Acquire<WorldView>(parent.Id);
-            pos.Value = Vector3.Transform(worldPos.Value, view.ViewRaw);
+            ref var matrices = ref Context.Acquire<TransformMatrices>(parent.Id);
+            pos.Value = Vector3.Transform(worldPos.Value, matrices.View);
         }
         else {
             pos.Value = worldPos.Value;

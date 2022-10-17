@@ -2,17 +2,14 @@ namespace Aeco.Renderer.GL;
 
 using System.Numerics;
 
-public class WorldViewStorage : DelayedReactiveStorageBase<WorldView>
+public class WorldAxesStorage : DelayedReactiveStorageBase<WorldAxes>
 {
-    protected override void OnRefresh(Guid id, ref WorldView view)
+    protected override void OnRefresh(Guid id, ref WorldAxes view)
     {
-        ref readonly var worldMat = ref Context.Acquire<TransformMatrices>(id).WorldRaw;
-        Matrix4x4.Invert(worldMat, out view.ViewRaw);
-
         ref readonly var worldRot = ref Context.Inspect<WorldRotation>(id).Value;
         view.Right = Vector3.Transform(Vector3.UnitX, worldRot);
         view.Up = Vector3.Transform(Vector3.UnitY, worldRot);
-        view.Forward = -Vector3.Transform(Vector3.UnitZ, worldRot);
+        view.Forward = Vector3.Transform(new Vector3(0, 0, -1), worldRot);
 
         ref var appliedVectors = ref Context.Acquire<AppliedWorldVectors>(id);
         appliedVectors.Right = view.Right;
@@ -20,7 +17,7 @@ public class WorldViewStorage : DelayedReactiveStorageBase<WorldView>
         appliedVectors.Forward = view.Forward;
     }
 
-    protected override void OnModified(Guid id, ref WorldView view)
+    protected override void OnModified(Guid id, ref WorldAxes view)
     {
         ref var appliedVectors = ref Context.Acquire<AppliedWorldVectors>(id);
 

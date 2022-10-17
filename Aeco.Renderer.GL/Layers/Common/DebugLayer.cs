@@ -1,8 +1,9 @@
 namespace Aeco.Renderer.GL;
 
-public class DebugLayer : VirtualLayer, IGLLoadLayer, IGLUnloadLayer, IGLUpdateLayer, IGLLateUpdateLayer, IGLRenderLayer
+public class DebugLayer : VirtualLayer, IGLLoadLayer, IGLLateLoadLayer, IGLUnloadLayer, IGLUpdateLayer, IGLLateUpdateLayer, IGLRenderLayer
 {
     public event Action? OnLoad;
+    public event Action? OnLateLoad;
     public event Action? OnUnload;
     public event Action<float>? OnUpdate;
     public event Action<float>? OnLateUpdate;
@@ -10,6 +11,9 @@ public class DebugLayer : VirtualLayer, IGLLoadLayer, IGLUnloadLayer, IGLUpdateL
 
     void IGLLoadLayer.OnLoad(IDataLayer<IComponent> context)
         => OnLoad?.Invoke();
+
+    void IGLLateLoadLayer.OnLateLoad(IDataLayer<IComponent> context)
+        => OnLateLoad?.Invoke();
 
     void IGLUnloadLayer.OnUnload(IDataLayer<IComponent> context)
         => OnUnload?.Invoke();

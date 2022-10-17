@@ -34,7 +34,7 @@ public class MainLightUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
         }
 
         ref var mainLight = ref context.UnsafeAcquire<MainLight>(id);
-        ref var forward = ref context.UnsafeAcquire<WorldView>(id).Forward;
+        ref var forward = ref context.UnsafeAcquire<WorldAxes>(id).Forward;
 
         GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero, 16, ref forward.X);
         GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero + 16, 16, ref mainLight.Color.X);
