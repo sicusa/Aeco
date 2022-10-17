@@ -19,12 +19,28 @@ public static class GLTests
             new AutoClearCompositeLayer(eventDataLayer),
             debugLayer);
 
+        game.IsProfileEnabled = true;
         game.Initialize(new RendererSpec {
             Width = 800,
             Height = 600,
             //IsFullscreen = true,
             Title = "RPG Game"
         });
+
+        void PrintLayerProfiles<TLayer>(string name, IEnumerable<(TLayer, GLRenderer.LayerProfile)> profiles)
+        {
+            Console.WriteLine($"[{name} Layer Profiles]");
+            foreach (var (layer, profile) in profiles.OrderByDescending(v => v.Item2.AverangeTime)) {
+                Console.WriteLine($"  {layer}: avg={profile.AverangeTime}, max={profile.MaximumTime}, min={profile.MinimumTime}");
+            }
+        }
+
+        debugLayer.OnUnload += () => {
+            Console.WriteLine();
+            PrintLayerProfiles("Update", game.UpdateLayerProfiles);
+            PrintLayerProfiles("LateUpdate", game.LateUpdateLayerProfiles);
+            PrintLayerProfiles("Render", game.RenderLayerProfiles);
+        };
 
         var mainLight = game.CreateEntity();
         mainLight.Acquire<Parent>().Id = GLRenderer.RootId;
@@ -73,8 +89,8 @@ public static class GLTests
         Guid firstId = prevId;
         game.Acquire<Scale>(prevId).Value = new Vector3(0.3f);
 
-        for (int i = 0; i < 50; ++i) {
-            prevId = CreateObject(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), prevId, torusMesh);
+        for (int i = 0; i < 2000; ++i) {
+            prevId = CreateObject(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), firstId, torusMesh);
             game.Acquire<Scale>(prevId).Value = new Vector3(0.99f);
         }
 
@@ -100,11 +116,12 @@ public static class GLTests
             time += deltaTime;
             x = Lerp(x, (window.MousePosition.X - window.Size.X / 2) * sensitivity, scaledRate);
             y = Lerp(y, (window.MousePosition.Y - window.Size.Y / 2) * sensitivity, scaledRate);
-
+            
+/*
             foreach (var id in game.Query<MeshRenderable>()) {
                 if (id == rotatorId) { continue; }
                 game.Acquire<Rotation>(id).Value = Quaternion.CreateFromYawPitchRoll(time, time, time);
-            }
+            }*/
 
             ref readonly var rotatorView = ref game.Inspect<WorldView>(rotatorId);
             ref var rotatorPos = ref game.Acquire<Position>(rotatorId).Value;

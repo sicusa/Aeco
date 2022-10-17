@@ -1,5 +1,6 @@
 namespace Aeco.Renderer.GL;
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 using OpenTK.Graphics.OpenGL4;
@@ -83,14 +84,60 @@ public class GLRenderer : CompositeLayer
         }
     }
 
+    public struct LayerProfile
+    {
+        public double AverangeTime;
+        public double MaximumTime;
+        public double MinimumTime;
+    }
+
     public static Guid DefaultShaderProgramId { get; } = Guid.Parse("fa55827a-852c-4de2-b47e-3df941ec7619");
     public static Guid DefaultTextureId { get; } = Guid.Parse("9a621b14-5b03-4b12-a3ac-6f317a5ed431");
     public static Guid RootId { get; } = Guid.Parse("58808b2a-9c92-487e-aef8-2b60ea766cad");
+
+    [MemberNotNullWhen(true, nameof(_renderLayerProfiles))]
+    [MemberNotNullWhen(true, nameof(_updateLayerProfiles))]
+    [MemberNotNullWhen(true, nameof(_lateUpdateLayerProfiles))]
+    [MemberNotNullWhen(true, nameof(_profileWatch))]
+    public bool IsProfileEnabled {
+        get => _profileEnabled;
+        set {
+            if (_profileEnabled == value) {
+                return;
+            }
+            _profileEnabled = value;
+            if (value) {
+                _renderLayerProfiles = new LayerProfile[_renderLayers.Length];
+                _updateLayerProfiles = new LayerProfile[_updateLayers.Length];
+                _lateUpdateLayerProfiles = new LayerProfile[_lateUpdateLayers.Length];
+                _profileWatch = new();
+            }
+            else {
+                _renderLayerProfiles = null;
+                _updateLayerProfiles = null;
+                _lateUpdateLayerProfiles = null;
+                _profileWatch = null;
+            }
+        }
+    }
+
+    public IEnumerable<(IGLUpdateLayer, LayerProfile)> UpdateLayerProfiles
+        => IsProfileEnabled ? _updateLayers.Zip(_updateLayerProfiles) : Enumerable.Empty<(IGLUpdateLayer, LayerProfile)>();
+    public IEnumerable<(IGLLateUpdateLayer, LayerProfile)> LateUpdateLayerProfiles
+        => IsProfileEnabled ? _lateUpdateLayers.Zip(_lateUpdateLayerProfiles) : Enumerable.Empty<(IGLLateUpdateLayer, LayerProfile)>();
+    public IEnumerable<(IGLRenderLayer, LayerProfile)> RenderLayerProfiles
+        => IsProfileEnabled ? _renderLayers.Zip(_renderLayerProfiles) : Enumerable.Empty<(IGLRenderLayer, LayerProfile)>();
 
     private IGLRenderLayer[] _renderLayers;
     private IGLUpdateLayer[] _updateLayers;
     private IGLLateUpdateLayer[] _lateUpdateLayers;
     private IGLResizeLayer[] _resizeLayers;
+
+    private bool _profileEnabled;
+    private LayerProfile[]? _renderLayerProfiles;
+    private LayerProfile[]? _updateLayerProfiles;
+    private LayerProfile[]? _lateUpdateLayerProfiles;
+    private Stopwatch? _profileWatch;
 
     public GLRenderer(IDataLayer<IReactiveEvent> eventDataLayer, params ILayer<IComponent>[] sublayers)
         : base(
@@ -184,20 +231,56 @@ public class GLRenderer : CompositeLayer
         }
     }
 
+    private void SetProfile(ref LayerProfile profile, double time)
+    {
+        profile.MaximumTime = Math.Max(profile.MaximumTime, time);
+        profile.MinimumTime = profile.MinimumTime == 0 ? time : Math.Min(profile.MinimumTime, time);
+        profile.AverangeTime = (profile.AverangeTime + time) / 2.0;
+    }
+
     protected void Update(float deltaTime)
     {
-        for (int i = 0; i < _updateLayers.Length; ++i) {
-            _updateLayers[i].OnUpdate(this, deltaTime);
+        if (IsProfileEnabled) {
+            for (int i = 0; i < _updateLayers.Length; ++i) {
+                _profileWatch.Restart();
+                _updateLayers[i].OnUpdate(this, deltaTime);
+                _profileWatch.Stop();
+                var time = _profileWatch.Elapsed.TotalSeconds;
+                SetProfile(ref _updateLayerProfiles[i], time);
+            }
+            for (int i = 0; i < _lateUpdateLayers.Length; ++i) {
+                _profileWatch.Restart();
+                _lateUpdateLayers[i].OnLateUpdate(this, deltaTime);
+                _profileWatch.Stop();
+                var time = _profileWatch.Elapsed.TotalSeconds;
+                SetProfile(ref _lateUpdateLayerProfiles[i], time);
+            }
         }
-        for (int i = 0; i < _lateUpdateLayers.Length; ++i) {
-            _lateUpdateLayers[i].OnLateUpdate(this, deltaTime);
+        else {
+            for (int i = 0; i < _updateLayers.Length; ++i) {
+                _updateLayers[i].OnUpdate(this, deltaTime);
+            }
+            for (int i = 0; i < _lateUpdateLayers.Length; ++i) {
+                _lateUpdateLayers[i].OnLateUpdate(this, deltaTime);
+            }
         }
     }
 
     protected void Render(float deltaTime)
     {
-        for (int i = 0; i < _renderLayers.Length; ++i) {
-            _renderLayers[i].OnRender(this, deltaTime);
+        if (IsProfileEnabled) {
+            for (int i = 0; i < _renderLayers.Length; ++i) {
+                _profileWatch.Restart();
+                _renderLayers[i].OnRender(this, deltaTime);
+                _profileWatch.Stop();
+                var time = _profileWatch.Elapsed.TotalSeconds;
+                SetProfile(ref _renderLayerProfiles[i], time);
+            }
+        }
+        else {
+            for (int i = 0; i < _renderLayers.Length; ++i) {
+                _renderLayers[i].OnRender(this, deltaTime);
+            }
         }
     }
 
