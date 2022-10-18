@@ -70,7 +70,6 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
             var span = CollectionsMarshal.AsSpan(pair.Value);
             GL.BindBuffer(BufferTarget.ArrayBuffer, pair.Key);
             GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, pair.Value.Count * MeshInstance.MemorySize, ref span[0]);
-            GL.BindVertexArray(0);
         }
         _dirtyBuffers.Clear();
     }
