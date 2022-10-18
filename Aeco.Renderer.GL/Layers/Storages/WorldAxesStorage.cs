@@ -7,9 +7,9 @@ public class WorldAxesStorage : DelayedReactiveStorageBase<WorldAxes>
     protected override void OnRefresh(Guid id, ref WorldAxes view)
     {
         ref readonly var worldRot = ref Context.Inspect<WorldRotation>(id).Value;
-        view.Right = Vector3.Transform(Vector3.UnitX, worldRot);
-        view.Up = Vector3.Transform(Vector3.UnitY, worldRot);
-        view.Forward = Vector3.Transform(new Vector3(0, 0, -1), worldRot);
+        view.Right = Vector3.Normalize(Vector3.Transform(Vector3.UnitX, worldRot));
+        view.Up = Vector3.Normalize(Vector3.Transform(Vector3.UnitY, worldRot));
+        view.Forward = Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, -1), worldRot));
 
         ref var appliedVectors = ref Context.Acquire<AppliedWorldVectors>(id);
         appliedVectors.Right = view.Right;
@@ -41,11 +41,12 @@ public class WorldAxesStorage : DelayedReactiveStorageBase<WorldAxes>
             modified = true;
         }
 
-        if (modified) {
-            appliedVectors.Right = view.Right;
-            appliedVectors.Up = view.Up;
-            appliedVectors.Forward = view.Forward;
-        }
+        if (!modified) { return; }
+
+        appliedVectors.Right = view.Right;
+        appliedVectors.Up = view.Up;
+        appliedVectors.Forward = view.Forward;
+
         if (Context.TryGet<Parent>(id, out var parent)) {
             ref readonly var worldRot = ref Context.Inspect<WorldRotation>(parent.Id).Value;
             view.Right = Vector3.Transform(view.Right, worldRot);
