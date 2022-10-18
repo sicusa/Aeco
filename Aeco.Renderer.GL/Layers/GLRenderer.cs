@@ -138,9 +138,9 @@ public class GLRenderer : CompositeLayer
             sublayers.Concat(new ILayer<IComponent>[] {
                 new ReactiveCompositeLayer(
                     eventDataLayer: eventDataLayer,
-                    new WorldAxesStorage(),
                     new WorldPositionStorage(),
                     new WorldRotationStorage(),
+                    new WorldAxesStorage(),
                     new PolyPoolStorage<IGLReactiveObject>()
                 ),
                 new SingletonStorage<Window>(),
