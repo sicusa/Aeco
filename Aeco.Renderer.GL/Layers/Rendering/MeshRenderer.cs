@@ -23,7 +23,10 @@ public class MeshRenderer : VirtualLayer, IGLRenderLayer
             ApplyMaterial(context, in materialData);
 
             int instanceCount = state.Instances.Count;
-            if (instanceCount != 0) {
+            if (instanceCount == 1) {
+                GL.DrawElements(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            }
+            else if (instanceCount != 0) {
                 GL.DrawElementsInstanced(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero, instanceCount);
             }
 
