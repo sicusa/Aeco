@@ -95,7 +95,7 @@ public static class GLTests
         Guid firstId = prevId;
         game.Acquire<Scale>(prevId).Value = new Vector3(0.3f);
 
-        for (int i = 0; i < 5000; ++i) {
+        for (int i = 0; i < 2000; ++i) {
             prevId = CreateObject(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), firstId, torusMesh);
             game.Acquire<Scale>(prevId).Value = new Vector3(0.99f);
         }
@@ -123,17 +123,17 @@ public static class GLTests
             x = Lerp(x, (window.MousePosition.X - window.Size.X / 2) * sensitivity, scaledRate);
             y = Lerp(y, (window.MousePosition.Y - window.Size.Y / 2) * sensitivity, scaledRate);
             
-/*
             foreach (var id in game.Query<MeshRenderable>()) {
                 if (id == rotatorId) { continue; }
-                game.Acquire<Rotation>(id).Value = Quaternion.CreateFromYawPitchRoll(time, time, time);
-            }*/
+                if (id == firstId) { continue; }
+                game.Acquire<Rotation>(id).Value = Quaternion.CreateFromYawPitchRoll(time, 0, 0);
+            }
 
-            /*ref readonly var rotatorAxes = ref game.Inspect<WorldAxes>(rotatorId);
+            ref readonly var rotatorAxes = ref game.Inspect<WorldAxes>(rotatorId);
             ref var rotatorPos = ref game.Acquire<Position>(rotatorId).Value;
             rotatorPos += rotatorAxes.Forward * deltaTime * 2;
             game.Acquire<Rotation>(rotatorId).Value = Quaternion.CreateFromAxisAngle(Vector3.UnitY, time);
-            game.Acquire<WorldAxes>(firstId).Forward = rotatorPos;*/
+            game.Acquire<WorldAxes>(firstId).Forward = rotatorPos;
 
             game.Acquire<Rotation>(cameraId).Value = Quaternion.CreateFromYawPitchRoll(-x, -y, 0);
 
