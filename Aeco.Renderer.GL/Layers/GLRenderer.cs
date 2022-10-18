@@ -185,6 +185,12 @@ public class GLRenderer : CompositeLayer
         _updateLayers = GetSublayersRecursively<IGLUpdateLayer>().ToArray();
         _lateUpdateLayers = GetSublayersRecursively<IGLLateUpdateLayer>().ToArray();
         _resizeLayers = GetSublayersRecursively<IGLResizeLayer>().ToArray();
+
+        if (IsProfileEnabled) {
+            _renderLayerProfiles = new LayerProfile[_renderLayers.Length];
+            _updateLayerProfiles = new LayerProfile[_updateLayers.Length];
+            _lateUpdateLayerProfiles = new LayerProfile[_lateUpdateLayers.Length];
+        }
     }
 
     public void Initialize(in RendererSpec spec)
