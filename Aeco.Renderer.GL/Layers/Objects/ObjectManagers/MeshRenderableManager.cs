@@ -36,7 +36,6 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
 
             if (context.Contains<MeshData>(meshId)) {
                 ref var meshData = ref context.Require<MeshData>(meshId);
-                GL.BindVertexArray(meshData.VertexArrayHandle);
 
                 int instanceBufferHandle = meshData.BufferHandles[MeshBufferType.Instance];
                 GL.BindBuffer(BufferTarget.ArrayBuffer, instanceBufferHandle);
@@ -55,13 +54,13 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
                     GL.CopyBufferSubData(BufferTarget.ArrayBuffer, BufferTarget.CopyWriteBuffer, IntPtr.Zero, IntPtr.Zero, instances.Count * MeshInstance.MemorySize);
 
                     GL.BindBuffer(BufferTarget.CopyWriteBuffer, 0);
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, newBuffer);
                     GL.DeleteBuffer(instanceBufferHandle);
 
+                    GL.BindVertexArray(meshData.VertexArrayHandle);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, newBuffer);
                     RenderHelper.SetInstancingAttributes();
+                    GL.BindVertexArray(0);
                 }
-
-                GL.BindVertexArray(0);
             }
         }
     }
@@ -88,14 +87,10 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
                 context.Require<MeshRenderableData>(instanceId).InstanceIndex--;
             }
             if (context.TryGet<MeshData>(data.MeshId, out var meshData)) {
-                GL.BindVertexArray(meshData.VertexArrayHandle);
                 GL.BindBuffer(BufferTarget.ArrayBuffer, meshData.BufferHandles[MeshBufferType.Instance]);
-                
                 var span = CollectionsMarshal.AsSpan(state.Instances);
                 GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero + index * MeshInstance.MemorySize,
                     (instanceIds.Count - index) * MeshInstance.MemorySize, ref span[index]);
-
-                GL.BindVertexArray(0);
             }
         }
     }
