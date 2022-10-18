@@ -129,11 +129,11 @@ public static class GLTests
                 game.Acquire<Rotation>(id).Value = Quaternion.CreateFromYawPitchRoll(time, time, time);
             }*/
 
-            ref readonly var rotatorAxes = ref game.Inspect<WorldAxes>(rotatorId);
+            /*ref readonly var rotatorAxes = ref game.Inspect<WorldAxes>(rotatorId);
             ref var rotatorPos = ref game.Acquire<Position>(rotatorId).Value;
             rotatorPos += rotatorAxes.Forward * deltaTime * 2;
             game.Acquire<Rotation>(rotatorId).Value = Quaternion.CreateFromAxisAngle(Vector3.UnitY, time);
-            game.Acquire<WorldAxes>(firstId).Forward = rotatorPos;
+            game.Acquire<WorldAxes>(firstId).Forward = rotatorPos;*/
 
             game.Acquire<Rotation>(cameraId).Value = Quaternion.CreateFromYawPitchRoll(-x, -y, 0);
 

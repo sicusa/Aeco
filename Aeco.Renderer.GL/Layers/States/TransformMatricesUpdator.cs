@@ -1,9 +1,12 @@
 namespace Aeco.Renderer.GL;
 
+using System.Numerics;
 using System.Collections.Immutable;
 
-public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLayer
+public class TransformMatricesUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLayer
 {
+    private const int ParallelCount = 8;
+
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
         => Traverse(context, GLRenderer.RootId);
 
@@ -18,30 +21,35 @@ public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLay
         if (!context.TryGet<Children>(id, out var children)) {
             return;
         }
+
         ref var matrices = ref context.Acquire<TransformMatrices>(id);
+        var worldMatrix = matrices.World;
         var childrenIds = children.Ids;
+
         if (childrenIds.Count > 64) {
-            var matricesCopy = matrices;
-            var bundleSize = childrenIds.Count / 4;
-            Parallel.Invoke(
-                () => DoTraverse(childrenIds, 0, bundleSize, context, matricesCopy),
-                () => DoTraverse(childrenIds, bundleSize, 2 * bundleSize, context, matricesCopy),
-                () => DoTraverse(childrenIds, 2 * bundleSize, 3 * bundleSize, context, matricesCopy),
-                () => DoTraverse(childrenIds, 3 * bundleSize, childrenIds.Count, context, matricesCopy));
+            var bundleSize = childrenIds.Count / ParallelCount;
+            var actions = new Action[ParallelCount];
+
+            for (int i = 0; i != ParallelCount; ++i) {
+                int start = i * bundleSize;
+                int end = i == ParallelCount - 1 ? childrenIds.Count : start + bundleSize;
+                actions[i] = () => DoTraverse(childrenIds, start, end, context, in worldMatrix);
+            }
+            Parallel.Invoke(actions);
         }
         else {
-            DoTraverse(childrenIds, 0, childrenIds.Count, context, in matrices);
+            DoTraverse(childrenIds, 0, childrenIds.Count, context, in worldMatrix);
         }
     }
 
-    private void DoTraverse(ImmutableList<Guid> childrenIds, int start, int end, IDataLayer<IComponent> context, in TransformMatrices matrices)
+    private void DoTraverse(ImmutableList<Guid> childrenIds, int start, int end, IDataLayer<IComponent> context, in Matrix4x4 worldMatrix)
     {
         for (int i = start; i != end; ++i) {
             var childId = childrenIds[i];
             if (context.Contains<TransformMatricesDirty>(childId)) {
                 ref var childMatrices = ref context.Acquire<TransformMatrices>(childId);
                 childMatrices.Combined = childMatrices.Scale * childMatrices.Rotation * childMatrices.Translation;
-                childMatrices.World = childMatrices.Combined * matrices.World;
+                childMatrices.World = childMatrices.Combined * worldMatrix;
                 UpdateRecursively(context, childId, ref childMatrices);
             }
             else if (context.Contains<ChildrenTransformMatricesDirty>(childId)) {
@@ -58,31 +66,35 @@ public class WorldMatrixUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLay
 
         if (context.TryGet<Children>(id, out var children)) {
             var childrenIds = children.Ids;
+            var worldMatrix = matrices.World;
+
             if (childrenIds.Count > 64) {
-                var matricesCopy = matrices;
-                var bundleSize = childrenIds.Count / 4;
-                Parallel.Invoke(
-                    () => DoUpdate(childrenIds, 0, bundleSize, context, matricesCopy),
-                    () => DoUpdate(childrenIds, bundleSize, 2 * bundleSize, context, matricesCopy),
-                    () => DoUpdate(childrenIds, 2 * bundleSize, 3 * bundleSize, context, matricesCopy),
-                    () => DoUpdate(childrenIds, 3 * bundleSize, childrenIds.Count, context, matricesCopy));
+                var bundleSize = childrenIds.Count / ParallelCount;
+                var actions = new Action[ParallelCount];
+
+                for (int i = 0; i != ParallelCount; ++i) {
+                    int start = i * bundleSize;
+                    int end = i == ParallelCount - 1 ? childrenIds.Count : start + bundleSize;
+                    actions[i] = () => DoUpdate(childrenIds, start, end, context, in worldMatrix);
+                }
+                Parallel.Invoke(actions);
             }
             else {
-                DoUpdate(childrenIds, 0, childrenIds.Count, context, matrices);
+                DoUpdate(childrenIds, 0, childrenIds.Count, context, in worldMatrix);
             }
         }
     }
 
-    private void DoUpdate(ImmutableList<Guid> childrenIds, int start, int end, IDataLayer<IComponent> context, in TransformMatrices matrices)
+    private void DoUpdate(ImmutableList<Guid> childrenIds, int start, int end, IDataLayer<IComponent> context, in Matrix4x4 worldMatrix)
     {
         for (int i = start; i != end; ++i) {
             var childId = childrenIds[i];
             ref var childMatrices = ref context.Require<TransformMatrices>(childId);
             context.Acquire<TransformMatricesDirty>(childId, out bool exists);
-            if (!exists) {
+            if (exists) {
                 childMatrices.Combined = childMatrices.Scale * childMatrices.Rotation * childMatrices.Translation;
             }
-            childMatrices.World = childMatrices.Combined * matrices.World;
+            childMatrices.World = childMatrices.Combined * worldMatrix;
             UpdateRecursively(context, childId, ref childMatrices);
         }
     }

@@ -23,7 +23,6 @@ public class ParentNodeUpdator : VirtualLayer, IGLUpdateLayer
             }
             ref var children = ref context.Acquire<Children>(parent.Id);
             children.Ids = children.Ids.Remove(id);
-            TransformMatricesDirty.Tag(context, id);
         }
 
         foreach (var id in _q.Query(context)) {

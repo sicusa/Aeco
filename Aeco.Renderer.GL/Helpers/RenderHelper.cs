@@ -4,7 +4,7 @@ using OpenTK.Graphics.OpenGL4;
 
 public static class RenderHelper
 {
-    public static void SetInstancingMatrices()
+    public static void SetInstancingAttributes()
     {
         GL.EnableVertexAttribArray(4);
         GL.VertexAttribPointer(4, 4, VertexAttribPointerType.Float, false, MeshInstance.MemorySize, 0);

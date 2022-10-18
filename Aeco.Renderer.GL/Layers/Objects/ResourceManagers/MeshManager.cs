@@ -66,7 +66,7 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
             GL.BufferData(BufferTarget.ArrayBuffer, data.InstanceCapacity * MeshInstance.MemorySize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
         }
 
-        RenderHelper.SetInstancingMatrices();
+        RenderHelper.SetInstancingAttributes();
         GL.BindVertexArray(0);
     }
 

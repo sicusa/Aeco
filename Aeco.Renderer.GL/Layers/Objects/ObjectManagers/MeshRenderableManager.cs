@@ -58,7 +58,7 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
                     GL.BindBuffer(BufferTarget.ArrayBuffer, newBuffer);
                     GL.DeleteBuffer(instanceBufferHandle);
 
-                    RenderHelper.SetInstancingMatrices();
+                    RenderHelper.SetInstancingAttributes();
                 }
 
                 GL.BindVertexArray(0);

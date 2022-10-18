@@ -66,14 +66,8 @@ public class GLRenderer : CompositeLayer
         {
             base.OnRenderFrame(e);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            _context.Render((float)e.Time);
-            SwapBuffers();
-        }
-
-        protected override void OnUpdateFrame(FrameEventArgs e)
-        {
-            base.OnUpdateFrame(e);
             _context.Update((float)e.Time);
+            SwapBuffers();
         }
 
         protected override void OnResize(ResizeEventArgs e)
@@ -156,7 +150,6 @@ public class GLRenderer : CompositeLayer
                 new DefaultTextureLoader(),
 
                 new MeshRenderableManager(),
-
                 new MeshManager(),
                 new MaterialManager(),
                 new TextureManager(),
@@ -167,12 +160,12 @@ public class GLRenderer : CompositeLayer
                 new ScaleMatrixUpdator(),
                 new ParentNodeUpdator(),
 
-                new WorldMatrixUpdator(),
+                new TransformMatricesUpdator(),
                 new CameraMatricesUpdator(),
+                new MeshRenderableUpdator(),
 
                 new MainLightUniformBufferUpdator(),
                 new CameraUniformBufferUpdator(),
-                new MeshRenderableUpdator(),
 
                 new MeshRenderer()
             })
@@ -248,6 +241,13 @@ public class GLRenderer : CompositeLayer
                 var time = _profileWatch.Elapsed.TotalSeconds;
                 SetProfile(ref _updateLayerProfiles[i], time);
             }
+            for (int i = 0; i < _renderLayers.Length; ++i) {
+                _profileWatch.Restart();
+                _renderLayers[i].OnRender(this, deltaTime);
+                _profileWatch.Stop();
+                var time = _profileWatch.Elapsed.TotalSeconds;
+                SetProfile(ref _renderLayerProfiles[i], time);
+            }
             for (int i = 0; i < _lateUpdateLayers.Length; ++i) {
                 _profileWatch.Restart();
                 _lateUpdateLayers[i].OnLateUpdate(this, deltaTime);
@@ -260,26 +260,11 @@ public class GLRenderer : CompositeLayer
             for (int i = 0; i < _updateLayers.Length; ++i) {
                 _updateLayers[i].OnUpdate(this, deltaTime);
             }
+            for (int i = 0; i < _renderLayers.Length; ++i) {
+                _renderLayers[i].OnRender(this, deltaTime);
+            }
             for (int i = 0; i < _lateUpdateLayers.Length; ++i) {
                 _lateUpdateLayers[i].OnLateUpdate(this, deltaTime);
-            }
-        }
-    }
-
-    protected void Render(float deltaTime)
-    {
-        if (IsProfileEnabled) {
-            for (int i = 0; i < _renderLayers.Length; ++i) {
-                _profileWatch.Restart();
-                _renderLayers[i].OnRender(this, deltaTime);
-                _profileWatch.Stop();
-                var time = _profileWatch.Elapsed.TotalSeconds;
-                SetProfile(ref _renderLayerProfiles[i], time);
-            }
-        }
-        else {
-            for (int i = 0; i < _renderLayers.Length; ++i) {
-                _renderLayers[i].OnRender(this, deltaTime);
             }
         }
     }

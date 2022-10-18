@@ -8,12 +8,30 @@ using OpenTK.Graphics.OpenGL4;
 
 using Aeco.Reactive;
 
-public class MeshRenderableUpdator : VirtualLayer, IGLUpdateLayer
+public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
 {
     private Query<MeshRenderable, TransformMatricesDirty> _q = new();
     private ConcurrentDictionary<int, List<MeshInstance>> _dirtyBuffers = new();
 
     private List<Guid> _dirtyList = new();
+    private Action[] _actions = new Action[ParallelCount];
+    private int _bundleSize;
+
+    private const int ParallelCount = 8;
+
+    public void OnLoad(IDataLayer<IComponent> context)
+    {
+        for (int i = 0; i != _actions.Length; ++i) {
+            int offset = i * _bundleSize;
+            if (i == _actions.Length - 1) {
+                _actions[i] = () => DoUpdate(offset, _dirtyList.Count, context);
+            }
+            else {
+                _actions[i] = () => DoUpdate(offset, offset + _bundleSize, context);
+            }
+        }
+        OnUpdate(context, 0);
+    }
 
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
@@ -37,19 +55,16 @@ public class MeshRenderableUpdator : VirtualLayer, IGLUpdateLayer
 
         _dirtyList.AddRange(_q.Query(context));
         int count = _dirtyList.Count;
+        if (count == 0) { return; }
+
         if (count > 64) {
-            int bundleSize = count / 4;
-            Parallel.Invoke(
-                () => DoUpdate(0, bundleSize, context),
-                () => DoUpdate(bundleSize, 2 * bundleSize, context),
-                () => DoUpdate(2 * bundleSize, 3 * bundleSize, context),
-                () => DoUpdate(3 * bundleSize, count, context));
-            _dirtyList.Clear();
+            _bundleSize = count / _actions.Length;
+            Parallel.Invoke(_actions);
         }
-        else if (count != 0) {
+        else {
             DoUpdate(0, count, context);
-            _dirtyList.Clear();
         }
+        _dirtyList.Clear();
 
         foreach (var pair in _dirtyBuffers) {
             var span = CollectionsMarshal.AsSpan(pair.Value);

@@ -14,7 +14,7 @@ public class MainLightUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
             }
         }
         foreach (var id in context.Query<MainLight>()) {
-            if (context.Contains<Modified<MainLight>>(id) || context.Contains<TransformMatricesDirty>(id)) {
+            if (context.Contains<TransformMatricesDirty>(id) || context.Contains<Modified<MainLight>>(id)) {
                 DoUpdate(context, id);
             }
         }

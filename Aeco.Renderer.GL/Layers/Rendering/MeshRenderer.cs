@@ -10,6 +10,7 @@ public class MeshRenderer : VirtualLayer, IGLRenderLayer
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, textureData.Handle);
         }
+        bool vertexArrayBound = false;
         foreach (var id in context.Query<Mesh>()) {
             if (!context.TryGet<MeshRenderingState>(id, out var state)) {
                 continue;
@@ -18,6 +19,7 @@ public class MeshRenderer : VirtualLayer, IGLRenderLayer
             ref readonly var materialData = ref context.Inspect<MaterialData>(meshData.MaterialId);
 
             GL.BindVertexArray(meshData.VertexArrayHandle);
+            vertexArrayBound = true;
             ApplyMaterial(context, in materialData);
 
             int instanceCount = state.Instances.Count;
@@ -34,7 +36,9 @@ public class MeshRenderer : VirtualLayer, IGLRenderLayer
                 GL.DrawElements(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, 0);
             }
         }
-        
+        if (vertexArrayBound) {
+            GL.BindVertexArray(0);
+        }
     }
 
     private void ApplyMaterial(IDataLayer<IComponent> context, in MaterialData materialData)
