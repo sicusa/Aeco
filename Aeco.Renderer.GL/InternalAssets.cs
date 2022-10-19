@@ -1,5 +1,6 @@
 namespace Aeco.Renderer.GL;
 
+using System.Text;
 using System.Reflection;
 
 public static class InternalAssets
@@ -7,7 +8,11 @@ public static class InternalAssets
 
     private static Dictionary<Type, Func<Stream, string, object>> s_resourceLoaders = new() {
         [typeof(ImageResource)] = ImageHelper.Load,
-        [typeof(ModelResource)] = ModelHelper.Load
+        [typeof(ModelResource)] = ModelHelper.Load,
+        [typeof(TextResource)] = (stream, hint) => {
+            var reader = new StreamReader(stream, Encoding.UTF8);
+            return new TextResource(reader.ReadToEnd());
+        }
     };
 
     public static TResource Load<TResource>(string name)
