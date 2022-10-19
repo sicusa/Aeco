@@ -1,8 +1,8 @@
 namespace Aeco.Renderer.GL;
 
-public struct VariantUniformBufferHandle : IGLObject
+public struct VariantUniformBuffer : IGLObject
 {
-    public int Value;
+    public int Handle;
 
     public void Dispose() { this = new(); }
 }

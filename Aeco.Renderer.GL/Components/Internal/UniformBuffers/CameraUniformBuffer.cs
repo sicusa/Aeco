@@ -1,8 +1,8 @@
 namespace Aeco.Renderer.GL;
 
-public struct CameraUniformBufferHandle : IGLObject
+public struct CameraUniformBuffer : IGLObject
 {
-    public int Value;
+    public int Handle;
 
     public void Dispose() { this = new(); }
 }

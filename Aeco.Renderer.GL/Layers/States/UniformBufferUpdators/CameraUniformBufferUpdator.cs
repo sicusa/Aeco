@@ -11,8 +11,8 @@ public class CameraUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
         foreach (var id in context.Query<Removed<Camera>>()) {
-            if (context.Remove<CameraUniformBufferHandle>(id, out var handle)) {
-                GL.DeleteBuffer(handle.Value);
+            if (context.Remove<CameraUniformBuffer>(id, out var handle)) {
+                GL.DeleteBuffer(handle.Handle);
             }
         }
         foreach (var id in context.Query<Camera>()) {
@@ -24,12 +24,12 @@ public class CameraUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
 
     private void DoUpdate(IDataLayer<IComponent> context, Guid id)
     {
-        ref var handle = ref context.Acquire<CameraUniformBufferHandle>(id, out bool exists).Value;
+        ref var handle = ref context.Acquire<CameraUniformBuffer>(id, out bool exists).Handle;
         if (!exists) {
             handle = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.UniformBuffer, handle);
             GL.BufferData(BufferTarget.UniformBuffer, 64 * 3 + 16, IntPtr.Zero, BufferUsageHint.DynamicDraw);
-            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 1, handle);
+            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.Camera, handle);
         }
         else {
             GL.BindBuffer(BufferTarget.UniformBuffer, handle);

@@ -13,27 +13,13 @@ public class ShaderProgramManager : ResourceManagerBase<ShaderProgram, ShaderPro
 @"#ifndef NAGULE_COMMON
 #define NAGULE_COMMON
 
-#define ENABLE_INSTANCING \
-    if (IsVariant) { \
-        ObjectToWorld = VariantObjectToWorld; \
-        WorldToObject = VariantWorldToObject; \
-    } \
-    else { \
-        ObjectToWorld = InstanceObjectToWorld; \
-        WorldToObject = InstanceWorldToObject; \
-    }
-
 layout(std140) uniform Camera {
     mat4 Matrix_V;
     mat4 Matrix_P;
     mat4 Matrix_VP;
     vec3 CameraPosition;
 };
-layout(std140) uniform Object {
-    mat4 VariantObjectToWorld;
-    mat4 VariantWorldToObject;
-    bool IsVariant;
-};
+
 layout(std140) uniform Material {
     vec4 Diffuse;
     vec4 Specular;
@@ -43,16 +29,49 @@ layout(std140) uniform Material {
     vec2 Tiling;
     vec2 Offset;
 };
+
 layout(std140) uniform MainLight {
     vec3 MainLightDirection;
     vec4 MainLightColor;
 };
 
-layout(location = 4) in mat4 InstanceObjectToWorld;
-layout(location = 8) in mat4 InstanceWorldToObject;
-
-mat4 ObjectToWorld, WorldToObject;
 #endif",
+
+        ["nagule/variant.glsl"] =
+@"#ifndef NAGULE_OBJECT
+#define NAGULE_OBJECT
+layout(std140) uniform Object {
+    mat4 ObjectToWorld;
+    bool IsVariant;
+};
+#endif",
+
+        ["nagule/instancing.glsl"] =
+@"#ifndef NAGULE_INSTANCING
+#define NAGULE_INSTANCING
+
+#define ENABLE_INSTANCING \
+    ObjectToWorld = IsVariant ? VariantObjectToWorld : InstanceObjectToWorld;
+
+layout(std140) uniform Object {
+    mat4 VariantObjectToWorld;
+    bool IsVariant;
+};
+
+layout(location = 4) in mat4 InstanceObjectToWorld;
+mat4 ObjectToWorld;
+
+#endif",
+
+    ["nagule/culling.glsl"] =
+@"#ifndef NAGULE_CULLING
+#define NAGULE_CULLING
+
+layout(std140) uniform ObjectCullingData {
+    vec4 BoundingBox[8];
+};
+
+#endif"
     };
 
     public string Desugar(string source)
@@ -124,15 +143,17 @@ mat4 ObjectToWorld, WorldToObject;
         var uniforms = new UniformLocations {
             Textures = textureLocations,
             CameraBlock = GL.GetUniformBlockIndex(program, "Camera"),
-            ObjectBlock = GL.GetUniformBlockIndex(program, "Object"),
-            MaterialBlock = GL.GetUniformBlockIndex(program, "Material"),
             MainLightBlock = GL.GetUniformBlockIndex(program, "MainLight"),
+            MaterialBlock = GL.GetUniformBlockIndex(program, "Material"),
+            ObjectBlock = GL.GetUniformBlockIndex(program, "Object"),
+            ObjectCullingDataBlock = GL.GetUniformBlockIndex(program, "ObjectCullingData")
         };
 
-        GL.UniformBlockBinding(program, uniforms.CameraBlock, 1);
-        GL.UniformBlockBinding(program, uniforms.ObjectBlock, 2);
-        GL.UniformBlockBinding(program, uniforms.MaterialBlock, 3);
-        GL.UniformBlockBinding(program, uniforms.MainLightBlock, 4);
+        GL.UniformBlockBinding(program, uniforms.CameraBlock, (int)UniformBlockBinding.Camera);
+        GL.UniformBlockBinding(program, uniforms.MainLightBlock, (int)UniformBlockBinding.MainLight);
+        GL.UniformBlockBinding(program, uniforms.MaterialBlock, (int)UniformBlockBinding.Material);
+        GL.UniformBlockBinding(program, uniforms.ObjectBlock, (int)UniformBlockBinding.Object);
+        GL.UniformBlockBinding(program, uniforms.ObjectCullingDataBlock, (int)UniformBlockBinding.ObjectCullingData);
 
         data.Handle = program;
         data.UniformLocations = uniforms;

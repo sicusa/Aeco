@@ -6,10 +6,8 @@ using System.Runtime.InteropServices;
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct MeshInstance
 {
-    public const int MemorySize = 2 * 16 * sizeof(float);
-
+    public const int MemorySize = 16 * sizeof(float);
     public Matrix4x4 ObjectToWorld;
-    public Matrix4x4 WorldToObject;
 }
 
 public struct MeshRenderingState : IGLObject

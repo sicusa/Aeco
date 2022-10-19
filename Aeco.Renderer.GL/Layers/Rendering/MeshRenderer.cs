@@ -32,7 +32,7 @@ public class MeshRenderer : VirtualLayer, IGLRenderLayer
 
             foreach (var variantId in state.VariantIds) {
                 GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 2,
-                    context.Require<VariantUniformBufferHandle>(variantId).Value);
+                    context.Require<VariantUniformBuffer>(variantId).Handle);
                 if (context.TryGet<MaterialData>(variantId, out var overwritingMaterialData)) {
                     ApplyMaterial(context, in overwritingMaterialData);
                 }
@@ -48,7 +48,7 @@ public class MeshRenderer : VirtualLayer, IGLRenderLayer
     {
         ref readonly var shaderProgramData = ref context.Inspect<ShaderProgramData>(materialData.ShaderProgramId);
 
-        GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 3, materialData.Handle);
+        GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.Material, materialData.Handle);
         GL.UseProgram(shaderProgramData.Handle);
 
         var textures = materialData.Textures;

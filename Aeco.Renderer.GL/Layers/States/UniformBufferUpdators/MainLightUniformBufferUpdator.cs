@@ -9,8 +9,8 @@ public class MainLightUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
         foreach (var id in context.Query<Removed<MainLight>>()) {
-            if (context.Remove<MainLightUniformBufferHandle>(id, out var handle)) {
-                GL.DeleteBuffer(handle.Value);
+            if (context.Remove<MainLightUniformBuffer>(id, out var handle)) {
+                GL.DeleteBuffer(handle.Handle);
             }
         }
         foreach (var id in context.Query<MainLight>()) {
@@ -22,12 +22,12 @@ public class MainLightUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
 
     private void DoUpdate(IDataLayer<IComponent> context, Guid id)
     {
-        ref var handle = ref context.Acquire<MainLightUniformBufferHandle>(id, out bool exists).Value;
+        ref var handle = ref context.Acquire<MainLightUniformBuffer>(id, out bool exists).Handle;
         if (!exists) {
             handle = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.UniformBuffer, handle);
             GL.BufferData(BufferTarget.UniformBuffer, 16 * 2, IntPtr.Zero, BufferUsageHint.DynamicDraw);
-            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 4, handle);
+            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.MainLight, handle);
         }
         else {
             GL.BindBuffer(BufferTarget.UniformBuffer, handle);

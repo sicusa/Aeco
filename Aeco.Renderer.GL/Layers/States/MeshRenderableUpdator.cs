@@ -42,14 +42,14 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
             if (renderable.IsVariant) {
                 UpdateVariantUniform(context, id);
             }
-            else if (context.Remove<VariantUniformBufferHandle>(id, out var handle)) {
-                GL.DeleteBuffer(handle.Value);
+            else if (context.Remove<VariantUniformBuffer>(id, out var handle)) {
+                GL.DeleteBuffer(handle.Handle);
             }
         }
 
         foreach (var id in context.Query<Removed<MeshRenderable>>()) {
-            if (context.Remove<VariantUniformBufferHandle>(id, out var handle)) {
-                GL.DeleteBuffer(handle.Value);
+            if (context.Remove<VariantUniformBuffer>(id, out var handle)) {
+                GL.DeleteBuffer(handle.Handle);
             }
         }
 
@@ -89,8 +89,7 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
             ref var matrices = ref context.UnsafeInspect<TransformMatrices>(id);
 
             meshState.Instances[index] = new MeshInstance {
-                ObjectToWorld = Matrix4x4.Transpose(matrices.World),
-                WorldToObject = Matrix4x4.Transpose(matrices.View)
+                ObjectToWorld = Matrix4x4.Transpose(matrices.World)
             };
 
             var meshData = context.Require<MeshData>(data.MeshId);
@@ -101,11 +100,11 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
 
     private void UpdateVariantUniform(IDataLayer<IComponent> context, Guid id)
     {
-        ref var handle = ref context.Acquire<VariantUniformBufferHandle>(id, out bool exists).Value;
+        ref var handle = ref context.Acquire<VariantUniformBuffer>(id, out bool exists).Handle;
         if (!exists) {
             handle = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.UniformBuffer, handle);
-            GL.BufferData(BufferTarget.UniformBuffer, 2 * 64 + 4, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            GL.BufferData(BufferTarget.UniformBuffer, 64 + 4, IntPtr.Zero, BufferUsageHint.DynamicDraw);
         }
         else {
             GL.BindBuffer(BufferTarget.UniformBuffer, handle);
@@ -113,11 +112,8 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
 
         ref var matrices = ref context.UnsafeInspect<TransformMatrices>(id);
         var world = Matrix4x4.Transpose(matrices.World);
-        var view = Matrix4x4.Transpose(matrices.View);
 
         GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero, 64, ref world.M11);
-        GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero + 64, 64, ref view.M11);
-
         bool isVariant = true;
         GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero + 2 * 64, 4, ref isVariant);
     }

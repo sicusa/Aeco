@@ -5,9 +5,19 @@ public struct UniformLocations
     public EnumArray<TextureType, int> Textures;
 
     public int CameraBlock;
-    public int ObjectBlock;
-    public int MaterialBlock;
     public int MainLightBlock;
+    public int MaterialBlock;
+    public int ObjectBlock;
+    public int ObjectCullingDataBlock;
+}
+
+public enum UniformBlockBinding
+{
+    Camera = 1,
+    MainLight,
+    Material,
+    Object,
+    ObjectCullingData
 }
 
 public struct ShaderProgramData : IGLObject

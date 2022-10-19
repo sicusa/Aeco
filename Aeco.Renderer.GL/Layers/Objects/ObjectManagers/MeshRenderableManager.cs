@@ -28,8 +28,7 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
 
             ref var matrices = ref context.Acquire<TransformMatrices>(id);
             var instance = new MeshInstance {
-                ObjectToWorld = Matrix4x4.Transpose(matrices.World),
-                WorldToObject = Matrix4x4.Transpose(matrices.View)
+                ObjectToWorld = Matrix4x4.Transpose(matrices.World)
             };
             instances.Add(instance);
             state.InstanceIds.Add(id);
