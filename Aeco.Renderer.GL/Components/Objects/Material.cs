@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 public struct Material : IGLResourceObject<MaterialResource>
 {
     public MaterialResource Resource { get; set; } = MaterialResource.Default;
-    public ShaderProgramResource ShaderProgram = ShaderProgramResource.Default;
+    public ShaderProgramResource? ShaderProgram = null;
 
     [DataMember] public Vector2 Tiling = Vector2.One;
     [DataMember] public Vector2 Offset = Vector2.Zero;

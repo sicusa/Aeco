@@ -148,6 +148,7 @@ public class GLRenderer : CompositeLayer
 
                 new UnusedResourceDestroyer(),
                 new DefaultTextureLoader(),
+                new DefaultShaderProgramLoader(),
 
                 new MeshRenderableManager(),
                 new MeshManager(),

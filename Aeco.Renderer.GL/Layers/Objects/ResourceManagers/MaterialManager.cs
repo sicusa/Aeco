@@ -15,13 +15,16 @@ public class MaterialManager : ResourceManagerBase<Material, MaterialData, Mater
         GL.BindBuffer(BufferTarget.UniformBuffer, data.Handle);
         GL.BufferData(BufferTarget.UniformBuffer, 16 * 4 + 8 * 3, IntPtr.Zero, BufferUsageHint.DynamicDraw);
 
-        data.ShaderProgramId = ResourceLibrary<ShaderProgramResource>.Reference<ShaderProgram>(context, material.ShaderProgram, id);
+        data.ShaderProgramId =
+            material.ShaderProgram != null
+                ? ResourceLibrary<ShaderProgramResource>.Reference<ShaderProgram>(context, material.ShaderProgram, id)
+                : GLRenderer.DefaultShaderProgramId;
 
         var resource = material.Resource;
         var textureReferences = new EnumArray<TextureType, Guid?>();
         var textures = resource.Textures;
 
-        for (int i = 0; i < textures.Count; ++i) {
+        for (int i = 0; i < textures.Length; ++i) {
             var texResource = textures[i];
             if (texResource != null) {
                 textureReferences[i] = ResourceLibrary<TextureResource>.Reference<Texture>(context, texResource, id);

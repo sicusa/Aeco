@@ -72,45 +72,33 @@ mat4 ObjectToWorld, WorldToObject;
             GL.DeleteProgram(data.Handle);
         }
 
-        var resource = shaderProgram.Resource;
+        var shaders = shaderProgram.Resource.Shaders;
 
-        // specify sources
-
-        int vertexShader = GL.CreateShader(ShaderType.VertexShader);
-        int fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
-
-        GL.ShaderSource(vertexShader, Desugar(resource.VertexShader));
-        GL.ShaderSource(fragmentShader, Desugar(resource.FragmentShader));
-
-        // compile vertex shader
-
-        GL.CompileShader(vertexShader);
-        GL.GetShader(vertexShader, ShaderParameter.CompileStatus, out int success);
-
-        if (success == 0) {
-            string infoLog = GL.GetShaderInfoLog(vertexShader);
-            Console.WriteLine(infoLog);
-        }
-
-        // compile fragment shader
-
-        GL.CompileShader(fragmentShader);
-        GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out success);
-
-        if (success == 0) {
-            string infoLog = GL.GetShaderInfoLog(fragmentShader);
-            Console.WriteLine(infoLog);
-        }
-
-        // create program handle
+        // create program
 
         int program = GL.CreateProgram();
+        var shaderHandles = new int[shaders.Length];
 
-        GL.AttachShader(program, vertexShader);
-        GL.AttachShader(program, fragmentShader);
+        try {
+            for (int i = 0; i != shaders.Length; ++i) {
+                var source = shaders[i];
+                if (source == null) { continue; }
+
+                int handle = CompileShader((ShaderType)i, source);
+                if (handle != 0) {
+                    GL.AttachShader(program, handle);
+                }
+                shaderHandles[i] = handle;
+            }
+        }
+        catch {
+            GL.DeleteProgram(program);
+            throw;
+        }
+
         GL.LinkProgram(program);
+        GL.GetProgram(program, GetProgramParameterName.LinkStatus, out var success);
 
-        GL.GetProgram(program, GetProgramParameterName.LinkStatus, out success);
         if (success == 0) {
             string infoLog = GL.GetProgramInfoLog(program);
             Console.WriteLine(infoLog);
@@ -118,14 +106,18 @@ mat4 ObjectToWorld, WorldToObject;
 
         // detach shaders
 
-        GL.DetachShader(program, vertexShader);
-        GL.DetachShader(program, fragmentShader);
-        GL.DeleteShader(vertexShader);
-        GL.DeleteShader(fragmentShader);
+        for (int i = 0; i != shaderHandles.Length; ++i) {
+            int handle = shaderHandles[i];
+            if (handle != 0) {
+                GL.DetachShader(program, handle);
+                GL.DeleteShader(handle);
+            }
+        }
 
         // create handles component
+
         var textureLocations = new EnumArray<TextureType, int>();
-        for (int i = 0; i != textureLocations.Count; i++) {
+        for (int i = 0; i != textureLocations.Length; i++) {
             textureLocations[i] = GL.GetUniformLocation(program, Enum.GetName((TextureType)i)! + "Tex");
         }
 
@@ -144,6 +136,33 @@ mat4 ObjectToWorld, WorldToObject;
 
         data.Handle = program;
         data.UniformLocations = uniforms;
+    }
+
+    private int CompileShader(ShaderType type, string source)
+    {
+        OpenTK.Graphics.OpenGL4.ShaderType glShaderType = type switch {
+            ShaderType.Fragment => OpenTK.Graphics.OpenGL4.ShaderType.FragmentShader,
+            ShaderType.Vertex => OpenTK.Graphics.OpenGL4.ShaderType.VertexShader,
+            ShaderType.Geometry => OpenTK.Graphics.OpenGL4.ShaderType.GeometryShader,
+            ShaderType.ComputeShader => OpenTK.Graphics.OpenGL4.ShaderType.ComputeShader,
+            ShaderType.TessellationEvaluation => OpenTK.Graphics.OpenGL4.ShaderType.TessEvaluationShader,
+            ShaderType.TessellationControl => OpenTK.Graphics.OpenGL4.ShaderType.TessControlShader,
+            _ => throw new NotSupportedException("Unknown shader type: " + type)
+        };
+
+        int handle = GL.CreateShader(glShaderType);
+        GL.ShaderSource(handle, Desugar(source));
+
+        GL.CompileShader(handle);
+        GL.GetShader(handle, ShaderParameter.CompileStatus, out int success);
+
+        if (success == 0) {
+            string infoLog = GL.GetShaderInfoLog(handle);
+            Console.WriteLine(infoLog);
+            GL.DeleteShader(handle);
+            return 0;
+        }
+        return handle;
     }
 
     protected override void Uninitialize(
