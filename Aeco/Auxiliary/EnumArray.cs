@@ -3,7 +3,7 @@ namespace Aeco;
 using System.Collections;
 
 public class EnumArray<TKey, TElement>
-    : IEnumerable<TElement>, ICollection<TElement>, IEnumerable, IList<TElement>
+    : IEnumerable<TElement>, ICollection<TElement>, IReadOnlyCollection<TElement>, IEnumerable
     , IStructuralComparable, IStructuralEquatable, ICloneable
     where TKey : Enum
 {
@@ -35,23 +35,21 @@ public class EnumArray<TKey, TElement>
 
     public TElement this[int index] { get => ((IList<TElement>)_array)[index]; set => ((IList<TElement>)_array)[index] = value; }
 
-    public int Count => ((ICollection<TElement>)_array).Count;
+    public int Length => _array.Length;
+
+    int ICollection<TElement>.Count => ((ICollection<TElement>)_array).Count;
+    int IReadOnlyCollection<TElement>.Count => ((ICollection<TElement>)_array).Count;
 
     public bool IsReadOnly => ((ICollection<TElement>)_array).IsReadOnly;
 
-    public void Add(TElement item)
+    public IEnumerator<TElement> GetEnumerator()
     {
-        ((ICollection<TElement>)_array).Add(item);
+        return ((IEnumerable<TElement>)_array).GetEnumerator();
     }
 
-    public void Clear()
+    IEnumerator IEnumerable.GetEnumerator()
     {
-        ((ICollection<TElement>)_array).Clear();
-    }
-
-    public object Clone()
-    {
-        return _array.Clone();
+        return _array.GetEnumerator();
     }
 
     public int CompareTo(object? other, IComparer comparer)
@@ -59,49 +57,35 @@ public class EnumArray<TKey, TElement>
         return ((IStructuralComparable)_array).CompareTo(other, comparer);
     }
 
-    public bool Contains(TElement item)
-    {
-        return ((ICollection<TElement>)_array).Contains(item);
-    }
-
-    public void CopyTo(TElement[] array, int arrayIndex)
-    {
-        ((ICollection<TElement>)_array).CopyTo(array, arrayIndex);
-    }
-
     public bool Equals(object? other, IEqualityComparer comparer)
     {
         return ((IStructuralEquatable)_array).Equals(other, comparer);
     }
-
-    public IEnumerator<TElement> GetEnumerator()
-        => ((IEnumerable<TElement>)_array).GetEnumerator();
 
     public int GetHashCode(IEqualityComparer comparer)
     {
         return ((IStructuralEquatable)_array).GetHashCode(comparer);
     }
 
-    public int IndexOf(TElement item)
+    public object Clone()
     {
-        return ((IList<TElement>)_array).IndexOf(item);
+        return _array.Clone();
     }
 
-    public void Insert(int index, TElement item)
+    void ICollection<TElement>.Add(TElement item)
+        => ((ICollection<TElement>)_array).Add(item);
+
+    void ICollection<TElement>.Clear()
+        => ((ICollection<TElement>)_array).Clear();
+
+    bool ICollection<TElement>.Contains(TElement item)
+        => ((ICollection<TElement>)_array).Contains(item);
+
+    public void CopyTo(TElement[] array, int arrayIndex)
     {
-        ((IList<TElement>)_array).Insert(index, item);
+        ((ICollection<TElement>)_array).CopyTo(array, arrayIndex);
     }
 
-    public bool Remove(TElement item)
-    {
-        return ((ICollection<TElement>)_array).Remove(item);
-    }
-
-    public void RemoveAt(int index)
-    {
-        ((IList<TElement>)_array).RemoveAt(index);
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-        => _array.GetEnumerator();
+    bool ICollection<TElement>.Remove(TElement item)
+        => ((ICollection<TElement>)_array).Remove(item);
 }
