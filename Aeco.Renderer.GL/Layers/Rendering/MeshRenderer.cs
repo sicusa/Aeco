@@ -54,7 +54,7 @@ public class MeshRenderer : VirtualLayer, IGLRenderLayer
         var textures = materialData.Textures;
         var textureLocations = shaderProgramData.UniformLocations.Textures;
 
-        for (int i = 0; i != textures.Count; ++i) {
+        for (int i = 0; i != textures.Length; ++i) {
             int location = textureLocations[i];
             if (location == -1) { continue; };
             var texId = textures[i];

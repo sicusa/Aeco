@@ -22,7 +22,7 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
         data.VertexArrayHandle = GL.GenVertexArray();
 
         GL.BindVertexArray(data.VertexArrayHandle);
-        GL.GenBuffers(buffers.Count, buffers.Raw);
+        GL.GenBuffers(buffers.Length, buffers.Raw);
 
         if (resource.Vertices != null) {
             GL.BindBuffer(BufferTarget.ArrayBuffer, buffers[MeshBufferType.Vertex]);
@@ -72,7 +72,7 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
 
     protected override void Uninitialize(IDataLayer<IComponent> context, Guid id, in Mesh mesh, in MeshData data)
     {
-        GL.DeleteBuffers(data.BufferHandles.Count, data.BufferHandles.Raw);
+        GL.DeleteBuffers(data.BufferHandles.Length, data.BufferHandles.Raw);
         GL.DeleteVertexArray(data.VertexArrayHandle);
         ResourceLibrary<MaterialResource>.Unreference(context, data.MaterialId, id);
     }
