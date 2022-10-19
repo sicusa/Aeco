@@ -24,12 +24,10 @@ public abstract class ResourceManagerBase<TObject, TObjectData, TResource>
                 ref var data = ref context.Acquire<TObjectData>(id, out bool exists);
                 if (exists) {
                     Initialize(context, id, ref obj, ref data, true);
-                    Console.WriteLine($"{typeof(TObject)} [{id}] reinitialized.");
                 }
                 else {
                     Initialize(context, id, ref obj, ref data, false);
                     ResourceLibrary<TResource>.Register(context, obj.Resource, id);
-                    Console.WriteLine($"{typeof(TObject)} [{id}] initialized.");
                 }
 
             }
@@ -56,7 +54,6 @@ public abstract class ResourceManagerBase<TObject, TObjectData, TResource>
                     throw new KeyNotFoundException($"{typeof(TObject)} [{id}] not found in resource library.");
                 }
                 Uninitialize(context, id, in obj, in data);
-                Console.WriteLine($"{typeof(TObject)} [{id}] uninitialized.");
             }
             catch (Exception e) {
                 Console.WriteLine($"Failed to uninitialize {typeof(TObject)} [{id}]: " + e);

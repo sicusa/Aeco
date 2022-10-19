@@ -57,8 +57,10 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
 
                     GL.BindVertexArray(meshData.VertexArrayHandle);
                     GL.BindBuffer(BufferTarget.ArrayBuffer, newBuffer);
-                    RenderHelper.SetInstancingAttributes();
                     GL.BindVertexArray(0);
+
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, meshData.BufferHandles[MeshBufferType.CulledInstance]);;
+                    GL.BufferData(BufferTarget.ArrayBuffer, meshData.InstanceCapacity * MeshInstance.MemorySize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
                 }
             }
         }

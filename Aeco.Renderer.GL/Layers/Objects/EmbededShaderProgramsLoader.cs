@@ -28,6 +28,7 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
             InternalAssets.Load<TextResource>("Shaders.cull.vert.glsl").Content;
         resource.Shaders[ShaderType.Geometry] =
             InternalAssets.Load<TextResource>("Shaders.cull.geo.glsl").Content;
+        resource.TransformFeedbackVaryings = new string[] { "culledObjectToWorld" };
 
         program = ref context.Acquire<ShaderProgram>(GLRenderer.CullingShaderProgramId);
         program.Resource = resource;

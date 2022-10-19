@@ -86,6 +86,7 @@ public class GLRenderer : CompositeLayer
     }
 
     public static Guid DefaultShaderProgramId { get; } = Guid.Parse("fa55827a-852c-4de2-b47e-3df941ec7619");
+    public static Guid CullingShaderProgramId { get; } = Guid.Parse("ff7d8e33-eeb5-402b-b633-e2b2a264b1e9");
     public static Guid DefaultTextureId { get; } = Guid.Parse("9a621b14-5b03-4b12-a3ac-6f317a5ed431");
     public static Guid RootId { get; } = Guid.Parse("58808b2a-9c92-487e-aef8-2b60ea766cad");
 
@@ -148,7 +149,7 @@ public class GLRenderer : CompositeLayer
 
                 new UnusedResourceDestroyer(),
                 new DefaultTextureLoader(),
-                new DefaultShaderProgramLoader(),
+                new EmbededShaderProgramsLoader(),
 
                 new MeshRenderableManager(),
                 new MeshManager(),
@@ -163,6 +164,7 @@ public class GLRenderer : CompositeLayer
 
                 new TransformMatricesUpdator(),
                 new CameraMatricesUpdator(),
+                new MeshUniformBufferUpdator(),
                 new MeshRenderableUpdator(),
 
                 new MainLightUniformBufferUpdator(),

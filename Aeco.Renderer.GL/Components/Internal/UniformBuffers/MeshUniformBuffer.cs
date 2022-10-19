@@ -1,6 +1,6 @@
 namespace Aeco.Renderer.GL;
 
-public struct MainLightUniformBuffer : IGLObject
+public struct MeshUniformBuffer : IGLObject
 {
     public int Handle;
 

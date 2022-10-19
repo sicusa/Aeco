@@ -20,11 +20,9 @@ public abstract class ObjectManagerBase<TObject, TObjectData>
 
                 if (exists) {
                     Initialize(context, id, ref obj, ref data, true);
-                    Console.WriteLine($"{typeof(TObject)} [{id}] reinitialized.");
                 }
                 else {
                     Initialize(context, id, ref obj, ref data, false);
-                    Console.WriteLine($"{typeof(TObject)} [{id}] initialized.");
                 }
 
             }
@@ -48,7 +46,6 @@ public abstract class ObjectManagerBase<TObject, TObjectData>
                     throw new KeyNotFoundException($"{typeof(TObject)} [{id}] does not have object data component.");
                 }
                 Uninitialize(context, id, in obj, in data);
-                Console.WriteLine($"{typeof(TObject)} [{id}] uninitialized.");
             }
             catch (Exception e) {
                 Console.WriteLine($"Failed to uninitialize {typeof(TObject)} [{id}]: " + e);

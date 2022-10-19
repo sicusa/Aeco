@@ -8,7 +8,7 @@ public struct UniformLocations
     public int MainLightBlock;
     public int MaterialBlock;
     public int ObjectBlock;
-    public int ObjectCullingDataBlock;
+    public int MeshBlock;
 }
 
 public enum UniformBlockBinding
@@ -16,8 +16,8 @@ public enum UniformBlockBinding
     Camera = 1,
     MainLight,
     Material,
-    Object,
-    ObjectCullingData
+    Mesh,
+    Object
 }
 
 public struct ShaderProgramData : IGLObject

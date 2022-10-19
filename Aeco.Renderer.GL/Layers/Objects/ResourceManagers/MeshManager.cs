@@ -20,6 +20,7 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
 
         var buffers = data.BufferHandles;
         data.VertexArrayHandle = GL.GenVertexArray();
+        data.CulledQueryHandle = GL.GenQuery();
 
         GL.BindVertexArray(data.VertexArrayHandle);
         GL.GenBuffers(buffers.Length, buffers.Raw);
@@ -54,7 +55,10 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
             GL.BufferData(BufferTarget.ElementArrayBuffer, resource.Indeces.Length * sizeof(int), resource.Indeces, BufferUsageHint.StaticDraw);
         }
 
-        GL.BindBuffer(BufferTarget.ArrayBuffer, buffers[MeshBufferType.Instance]);
+        // instance
+
+        var instanceBuffer = buffers[MeshBufferType.Instance];
+        GL.BindBuffer(BufferTarget.ArrayBuffer, instanceBuffer);
 
         if (context.TryGet<MeshRenderingState>(id, out var state) && state.Instances.Count != 0) {
             data.InstanceCapacity = Math.Max(data.InstanceCapacity, state.Instances.Count);
@@ -66,7 +70,17 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
             GL.BufferData(BufferTarget.ArrayBuffer, data.InstanceCapacity * MeshInstance.MemorySize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
         }
 
-        RenderHelper.SetInstancingAttributes();
+        // culling
+
+        GL.BindBuffer(BufferTarget.ArrayBuffer, buffers[MeshBufferType.CulledInstance]);
+        GL.BufferData(BufferTarget.ArrayBuffer, data.InstanceCapacity * MeshInstance.MemorySize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+        RenderHelper.EnableMatrix4x4Attributes(4, 1);
+
+        data.CullingVertexArrayHandle = GL.GenVertexArray();
+        GL.BindVertexArray(data.CullingVertexArrayHandle);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, instanceBuffer);
+        RenderHelper.EnableMatrix4x4Attributes(0);
+
         GL.BindVertexArray(0);
     }
 
@@ -74,6 +88,7 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
     {
         GL.DeleteBuffers(data.BufferHandles.Length, data.BufferHandles.Raw);
         GL.DeleteVertexArray(data.VertexArrayHandle);
+        GL.DeleteQuery(data.CulledQueryHandle);
         ResourceLibrary<MaterialResource>.Unreference(context, data.MaterialId, id);
     }
 }

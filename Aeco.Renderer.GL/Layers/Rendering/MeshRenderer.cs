@@ -2,16 +2,50 @@ namespace Aeco.Renderer.GL;
 
 using OpenTK.Graphics.OpenGL4;
 
-public class MeshRenderer : VirtualLayer, IGLRenderLayer
+using Aeco.Reactive;
+
+public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLRenderLayer
 {
+    private Group<Mesh> _g = new();
+
+    public void OnLoad(IDataLayer<IComponent> context)
+        => _g.Refresh(context);
+
     public void OnRender(IDataLayer<IComponent> context, float deltaTime)
     {
+        _g.Query(context);
+
+        var cullProgram = context.Inspect<ShaderProgramData>(GLRenderer.CullingShaderProgramId).Handle;
+        GL.UseProgram(cullProgram);
+        GL.Enable(EnableCap.RasterizerDiscard);
+
+        foreach (var id in _g) {
+            if (!context.TryGet<MeshRenderingState>(id, out var state)) {
+                continue;
+            }
+            ref readonly var meshData = ref context.Inspect<MeshData>(id);
+            ref readonly var meshUniformBuffer = ref context.Inspect<MeshUniformBuffer>(id);
+
+            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.Mesh, meshUniformBuffer.Handle);
+            GL.BindBufferBase(BufferRangeTarget.TransformFeedbackBuffer, 0, meshData.BufferHandles[MeshBufferType.CulledInstance]);
+            GL.BindVertexArray(meshData.CullingVertexArrayHandle);
+
+            GL.BeginTransformFeedback(TransformFeedbackPrimitiveType.Points);
+            GL.BeginQuery(QueryTarget.PrimitivesGenerated, meshData.CulledQueryHandle);
+            GL.DrawArrays(PrimitiveType.Points, 0, state.Instances.Count);
+            GL.EndQuery(QueryTarget.PrimitivesGenerated);
+            GL.EndTransformFeedback();
+        }
+
+        GL.Disable(EnableCap.RasterizerDiscard);
+
         if (context.TryGet<TextureData>(GLRenderer.DefaultTextureId, out var textureData)) {
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, textureData.Handle);
         }
+
         bool vertexArrayBound = false;
-        foreach (var id in context.Query<Mesh>()) {
+        foreach (var id in _g) {
             if (!context.TryGet<MeshRenderingState>(id, out var state)) {
                 continue;
             }
@@ -19,14 +53,11 @@ public class MeshRenderer : VirtualLayer, IGLRenderLayer
             ref readonly var materialData = ref context.Inspect<MaterialData>(meshData.MaterialId);
 
             GL.BindVertexArray(meshData.VertexArrayHandle);
-            vertexArrayBound = true;
             ApplyMaterial(context, in materialData);
+            vertexArrayBound = true;
 
-            int instanceCount = state.Instances.Count;
-            if (instanceCount == 1) {
-                GL.DrawElements(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
-            }
-            else if (instanceCount != 0) {
+            GL.GetQueryObject(meshData.CulledQueryHandle, GetQueryObjectParam.QueryResult, out int instanceCount);
+            if (instanceCount > 0) {
                 GL.DrawElementsInstanced(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero, instanceCount);
             }
 
@@ -41,6 +72,11 @@ public class MeshRenderer : VirtualLayer, IGLRenderLayer
         }
         if (vertexArrayBound) {
             GL.BindVertexArray(0);
+        }
+
+        var errorCode = GL.GetError();
+        if (errorCode != ErrorCode.NoError) {
+            Console.WriteLine("Warning: OpenGL error code " + errorCode);
         }
     }
 

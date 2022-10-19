@@ -20,6 +20,11 @@ layout(std140) uniform Camera {
     vec3 CameraPosition;
 };
 
+layout(std140) uniform MainLight {
+    vec3 MainLightDirection;
+    vec4 MainLightColor;
+};
+
 layout(std140) uniform Material {
     vec4 Diffuse;
     vec4 Specular;
@@ -30,9 +35,9 @@ layout(std140) uniform Material {
     vec2 Offset;
 };
 
-layout(std140) uniform MainLight {
-    vec3 MainLightDirection;
-    vec4 MainLightColor;
+layout(std140) uniform Mesh {
+    vec3 BoundingBoxMin;
+    vec3 BoundingBoxMax;
 };
 
 #endif",
@@ -61,16 +66,6 @@ layout(std140) uniform Object {
 layout(location = 4) in mat4 InstanceObjectToWorld;
 mat4 ObjectToWorld;
 
-#endif",
-
-    ["nagule/culling.glsl"] =
-@"#ifndef NAGULE_CULLING
-#define NAGULE_CULLING
-
-layout(std140) uniform ObjectCullingData {
-    vec4 BoundingBox[8];
-};
-
 #endif"
     };
 
@@ -91,7 +86,8 @@ layout(std140) uniform ObjectCullingData {
             GL.DeleteProgram(data.Handle);
         }
 
-        var shaders = shaderProgram.Resource.Shaders;
+        var resource = shaderProgram.Resource;
+        var shaders = resource.Shaders;
 
         // create program
 
@@ -114,6 +110,16 @@ layout(std140) uniform ObjectCullingData {
             GL.DeleteProgram(program);
             throw;
         }
+
+        // apply other settings
+
+        if (resource.TransformFeedbackVaryings != null) {
+            GL.TransformFeedbackVaryings(program,
+                resource.TransformFeedbackVaryings.Length, resource.TransformFeedbackVaryings,
+                TransformFeedbackMode.SeparateAttribs);
+        }
+
+        // link program
 
         GL.LinkProgram(program);
         GL.GetProgram(program, GetProgramParameterName.LinkStatus, out var success);
@@ -145,15 +151,15 @@ layout(std140) uniform ObjectCullingData {
             CameraBlock = GL.GetUniformBlockIndex(program, "Camera"),
             MainLightBlock = GL.GetUniformBlockIndex(program, "MainLight"),
             MaterialBlock = GL.GetUniformBlockIndex(program, "Material"),
-            ObjectBlock = GL.GetUniformBlockIndex(program, "Object"),
-            ObjectCullingDataBlock = GL.GetUniformBlockIndex(program, "ObjectCullingData")
+            MeshBlock = GL.GetUniformBlockIndex(program, "Mesh"),
+            ObjectBlock = GL.GetUniformBlockIndex(program, "Object")
         };
 
         GL.UniformBlockBinding(program, uniforms.CameraBlock, (int)UniformBlockBinding.Camera);
         GL.UniformBlockBinding(program, uniforms.MainLightBlock, (int)UniformBlockBinding.MainLight);
         GL.UniformBlockBinding(program, uniforms.MaterialBlock, (int)UniformBlockBinding.Material);
+        GL.UniformBlockBinding(program, uniforms.MeshBlock, (int)UniformBlockBinding.Mesh);
         GL.UniformBlockBinding(program, uniforms.ObjectBlock, (int)UniformBlockBinding.Object);
-        GL.UniformBlockBinding(program, uniforms.ObjectCullingDataBlock, (int)UniformBlockBinding.ObjectCullingData);
 
         data.Handle = program;
         data.UniformLocations = uniforms;
