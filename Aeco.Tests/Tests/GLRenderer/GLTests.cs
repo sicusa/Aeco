@@ -24,7 +24,8 @@ public static class GLTests
             Width = 800,
             Height = 600,
             //IsFullscreen = true,
-            Title = "RPG Game"
+            Title = "RPG Game",
+            IsDebugEnabled = true
         });
 
         void PrintLayerProfiles<TLayer>(string name, IEnumerable<(TLayer, GLRenderer.LayerProfile)> profiles)

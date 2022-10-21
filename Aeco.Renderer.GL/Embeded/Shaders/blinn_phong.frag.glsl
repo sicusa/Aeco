@@ -23,14 +23,14 @@ void main()
     vec3 ambientColor = Ambient.xyz * Ambient.w;
 
     // diffuse 
-    float diff = max(dot(i.Normal, -lightDir), 0.0);
+    float diff = max(0.5 * dot(i.Normal, -lightDir) + 0.5, 0.0);
     vec4 diffuseColor = Diffuse * texture(DiffuseTex, tiledCoord);
     vec3 diffuse = (diff * lightColor + ambientColor) * diffuseColor.xyz;
     
     // specular
     vec3 viewDir = normalize(CameraPosition - i.Position);
-    vec3 reflectDir = reflect(lightDir, i.Normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), Shininess);
+    vec3 divisor = normalize(viewDir - lightDir);
+    float spec = pow(max(dot(divisor, i.Normal), 0.0), Shininess);
     vec4 specularColor = Specular * texture(SpecularTex, tiledCoord);
     vec3 specular = spec * lightColor * specularColor.xyz;
 

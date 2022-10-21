@@ -19,6 +19,9 @@ public struct RendererSpec : IGLObject
     public int RenderFrequency = 60;
     public int UpdateFrequency = 60;
     public Vector4 ClearColor = new Vector4(0.2f, 0.3f, 0.3f, 1.0f);
+
+    // Debug
+    public bool IsDebugEnabled = false;
     
     public RendererSpec() {}
 

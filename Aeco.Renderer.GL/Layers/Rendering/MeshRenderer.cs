@@ -4,22 +4,77 @@ using OpenTK.Graphics.OpenGL4;
 
 using Aeco.Reactive;
 
-public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLRenderLayer
+public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRenderLayer
 {
     private Group<Mesh> _g = new();
+    private int _windowWidth;
+    private int _windowHeight;
+    private int _defaultVertexArray;
 
     public void OnLoad(IDataLayer<IComponent> context)
-        => _g.Refresh(context);
+    {
+        _g.Refresh(context);
+        _defaultVertexArray = GL.GenVertexArray();
+    }
 
     public void OnRender(IDataLayer<IComponent> context, float deltaTime)
     {
-        _g.Query(context);
+        bool vertexArrayBound = false;
+
+        ref readonly var framebuffer = ref context.Inspect<FramebufferData>(GLRenderer.DefaultFramebufferId);
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer.Handle);
+        GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.Framebuffer, framebuffer.UniformBufferHandle);
+        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        GL.BindVertexArray(_defaultVertexArray);
+
+        // hierarchical-Z occlusion culling
+
+        ref readonly var hizProgramData = ref context.Inspect<ShaderProgramData>(GLRenderer.HierarchicalZShaderProgramId);
+
+        var hizProgram = hizProgramData.Handle;
+        int lastMipSizeLocation = hizProgramData.UniformLocations.Custom["LastMipSize"];
+
+        GL.UseProgram(hizProgram);
+        GL.ColorMask(false, false, false, false);
+        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.BindTexture(TextureTarget.Texture2D, framebuffer.DepthTextureHandle);
+        GL.DepthFunc(DepthFunction.Always);
+
+        int width = framebuffer.Width;
+        int height = framebuffer.Height;
+        int levelCount = 1 + (int)MathF.Floor(MathF.Log2(MathF.Max(width, height)));
+        
+        for (int i = 1; i < levelCount; ++i) {
+            GL.Uniform2(lastMipSizeLocation, width, height);
+
+            width /= 2;
+            height /= 2;
+            width = width > 0 ? width : 1;
+            height = height > 0 ? height : 1;
+
+            GL.Viewport(0, 0, width, height);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, i - 1);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, i - 1);
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
+                FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, framebuffer.DepthTextureHandle, i);
+            GL.DrawArrays(PrimitiveType.Points, 0, 1);
+        }
+
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, 0);
+        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
+            FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, framebuffer.DepthTextureHandle, 0);
+        GL.DepthFunc(DepthFunction.Lequal);
+        GL.ColorMask(true, true, true, true);
+        GL.Viewport(0, 0, framebuffer.Width, framebuffer.Height);
+
+        // instance cloud culling
 
         var cullProgram = context.Inspect<ShaderProgramData>(GLRenderer.CullingShaderProgramId).Handle;
         GL.UseProgram(cullProgram);
         GL.Enable(EnableCap.RasterizerDiscard);
 
-        foreach (var id in _g) {
+        foreach (var id in _g.Query(context)) {
             if (!context.TryGet<MeshRenderingState>(id, out var state)) {
                 continue;
             }
@@ -29,6 +84,7 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLRenderLayer
             GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.Mesh, meshUniformBuffer.Handle);
             GL.BindBufferBase(BufferRangeTarget.TransformFeedbackBuffer, 0, meshData.BufferHandles[MeshBufferType.CulledInstance]);
             GL.BindVertexArray(meshData.CullingVertexArrayHandle);
+            vertexArrayBound = true;
 
             GL.BeginTransformFeedback(TransformFeedbackPrimitiveType.Points);
             GL.BeginQuery(QueryTarget.PrimitivesGenerated, meshData.CulledQueryHandle);
@@ -39,12 +95,13 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLRenderLayer
 
         GL.Disable(EnableCap.RasterizerDiscard);
 
+        // rendering
+
         if (context.TryGet<TextureData>(GLRenderer.DefaultTextureId, out var textureData)) {
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, textureData.Handle);
         }
 
-        bool vertexArrayBound = false;
         foreach (var id in _g) {
             if (!context.TryGet<MeshRenderingState>(id, out var state)) {
                 continue;
@@ -62,7 +119,7 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLRenderLayer
             }
 
             foreach (var variantId in state.VariantIds) {
-                GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 2,
+                GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.Object,
                     context.Require<VariantUniformBuffer>(variantId).Handle);
                 if (context.TryGet<MaterialData>(variantId, out var overwritingMaterialData)) {
                     ApplyMaterial(context, in overwritingMaterialData);
@@ -74,10 +131,17 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLRenderLayer
             GL.BindVertexArray(0);
         }
 
-        var errorCode = GL.GetError();
-        if (errorCode != ErrorCode.NoError) {
-            Console.WriteLine("Warning: OpenGL error code " + errorCode);
-        }
+        GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
+        GL.BlitFramebuffer(
+            0, 0, framebuffer.Width, framebuffer.Height,
+            0, 0, _windowWidth, _windowHeight,
+            ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Linear);
+    }
+
+    public void OnResize(IDataLayer<IComponent> context, int width, int height)
+    {
+        _windowWidth = width;
+        _windowHeight = height;
     }
 
     private void ApplyMaterial(IDataLayer<IComponent> context, in MaterialData materialData)
@@ -91,7 +155,7 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLRenderLayer
         var textureLocations = shaderProgramData.UniformLocations.Textures;
 
         for (int i = 0; i != textures.Length; ++i) {
-            int location = textureLocations[i];
+            int location = textureLocations![i];
             if (location == -1) { continue; };
             var texId = textures[i];
             if (texId == null) { continue; }

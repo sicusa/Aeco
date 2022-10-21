@@ -25,10 +25,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Embeded\Shaders\frag.glsl" />
-    <EmbeddedResource Include="Embeded\Shaders\vert.glsl" />
+    <EmbeddedResource Include="Embeded\Shaders\empty.vert.glsl" />
+    <EmbeddedResource Include="Embeded\Shaders\blinn_phong.frag.glsl" />
+    <EmbeddedResource Include="Embeded\Shaders\blinn_phong.vert.glsl" />
     <EmbeddedResource Include="Embeded\Shaders\cull.geo.glsl" />
     <EmbeddedResource Include="Embeded\Shaders\cull.vert.glsl" />
+    <EmbeddedResource Include="Embeded\Shaders\hiz.frag.glsl" />
+    <EmbeddedResource Include="Embeded\Shaders\hiz.geo.glsl" />
     <EmbeddedResource Include="Embeded\Textures\wall.jpg" />
     <EmbeddedResource Include="Embeded\Models\plane.glb" />
     <EmbeddedResource Include="Embeded\Models\sphere.glb" />

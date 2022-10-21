@@ -22,5 +22,5 @@ void main()
     gl_Position = pos * Matrix_VP;
     o.Position = pos.xyz;
     o.TexCoord = texCoord;
-    o.Normal = normalize(normal * mat3(transpose(inverse(ObjectToWorld))));
+    o.Normal = normalize(normal * mat3(ObjectToWorld));
 }

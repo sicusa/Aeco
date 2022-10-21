@@ -24,7 +24,6 @@ public abstract class ObjectManagerBase<TObject, TObjectData>
                 else {
                     Initialize(context, id, ref obj, ref data, false);
                 }
-
             }
             catch (Exception e) {
                 Console.WriteLine($"Failed to initialize {typeof(TObject)} [{id}]: " + e);

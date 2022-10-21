@@ -25,7 +25,6 @@ public static class ModelHelper
         }
         var scene = _assimpImporter.ImportFileFromStream(
             stream, Assimp.PostProcessPreset.TargetRealTimeMaximumQuality, formatHint);
-        Console.WriteLine(scene);
         return new ModelResource {
             RootNode = LoadNode(new AssimpLoaderState(), scene, scene.RootNode)
         };

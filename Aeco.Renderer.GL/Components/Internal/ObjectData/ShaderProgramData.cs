@@ -1,9 +1,13 @@
 namespace Aeco.Renderer.GL;
 
+using System.Collections.Immutable;
+
 public struct UniformLocations
 {
-    public EnumArray<TextureType, int> Textures;
+    public EnumArray<TextureType, int>? Textures;
+    public ImmutableDictionary<string, int> Custom;
 
+    public int FramebufferBlock;
     public int CameraBlock;
     public int MainLightBlock;
     public int MaterialBlock;
@@ -13,7 +17,8 @@ public struct UniformLocations
 
 public enum UniformBlockBinding
 {
-    Camera = 1,
+    Framebuffer = 1,
+    Camera,
     MainLight,
     Material,
     Mesh,

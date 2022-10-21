@@ -73,7 +73,7 @@ public static class LocalTests
         );
         compositeLayer.EntityFactory = entityFactory;
 
-        var entity = compositeLayer.GetEntity("ae2a4c30-86c5-4aad-8293-bb6757a0741e");
+        var entity = compositeLayer.CreateEntity();
         entity.Acquire<Persistent>();
         Console.WriteLine(compositeLayer.Contains<Persistent>(entity.Id));
 

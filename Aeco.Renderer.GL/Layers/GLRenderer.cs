@@ -1,5 +1,6 @@
 namespace Aeco.Renderer.GL;
 
+using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
@@ -15,7 +16,9 @@ public class GLRenderer : CompositeLayer
 {
     private class InternalWindow : GameWindow
     {
+        private RendererSpec _spec;
         private GLRenderer _context;
+        private DebugProc? _debugProc;
         private System.Numerics.Vector4 _clearColor;
 
         public InternalWindow(GLRenderer context, in RendererSpec spec)
@@ -42,17 +45,32 @@ public class GLRenderer : CompositeLayer
                         ? WindowState.Fullscreen : WindowState.Normal
                 })
         {
+            _spec = spec;
             _context = context;
             _clearColor = spec.ClearColor;
+        }
+
+        private void DebugProc(DebugSource source, DebugType type, int id, DebugSeverity severity, int length, IntPtr messagePtr, IntPtr userParam)
+        {
+            string message = Marshal.PtrToStringAnsi(messagePtr, length);
+            Console.WriteLine($"[GL Message] type={type}, severity={severity}, message={message}");
         }
 
         protected override void OnLoad()
         {
             base.OnLoad();
+            
             GL.ClearColor(_clearColor.X, _clearColor.Y, _clearColor.Z, _clearColor.W);
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.FramebufferSrgb); 
             GL.Enable(EnableCap.CullFace);
+
+            if (_spec.IsDebugEnabled) {
+                _debugProc = DebugProc;
+                GL.Enable(EnableCap.DebugOutput);
+                GL.DebugMessageCallback(_debugProc, IntPtr.Zero);
+            }
+
             _context.Load();
         }
 
@@ -65,7 +83,6 @@ public class GLRenderer : CompositeLayer
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             _context.Update((float)e.Time);
             SwapBuffers();
         }
@@ -85,8 +102,10 @@ public class GLRenderer : CompositeLayer
         public double MinimumTime;
     }
 
+    public static Guid DefaultFramebufferId { get; } = Guid.Parse("ae2a4c30-86c5-4aad-8293-bb6757a0741e");
     public static Guid DefaultShaderProgramId { get; } = Guid.Parse("fa55827a-852c-4de2-b47e-3df941ec7619");
     public static Guid CullingShaderProgramId { get; } = Guid.Parse("ff7d8e33-eeb5-402b-b633-e2b2a264b1e9");
+    public static Guid HierarchicalZShaderProgramId { get; } = Guid.Parse("b04b536e-3e4a-4896-b289-6f8910746ef2");
     public static Guid DefaultTextureId { get; } = Guid.Parse("9a621b14-5b03-4b12-a3ac-6f317a5ed431");
     public static Guid RootId { get; } = Guid.Parse("58808b2a-9c92-487e-aef8-2b60ea766cad");
 
@@ -148,9 +167,11 @@ public class GLRenderer : CompositeLayer
                 new PolyPoolStorage<IGLObject>(),
 
                 new UnusedResourceDestroyer(),
+                new DefaultFramebufferLoader(),
                 new DefaultTextureLoader(),
                 new EmbededShaderProgramsLoader(),
 
+                new FramebufferManager(),
                 new MeshRenderableManager(),
                 new MeshManager(),
                 new MaterialManager(),
