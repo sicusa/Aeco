@@ -181,7 +181,7 @@ mat4 ObjectToWorld;
         if (resource.TransformFeedbackVaryings != null) {
             GL.TransformFeedbackVaryings(program,
                 resource.TransformFeedbackVaryings.Length, resource.TransformFeedbackVaryings,
-                TransformFeedbackMode.SeparateAttribs);
+                TransformFeedbackMode.InterleavedAttribs);
         }
 
         // link program

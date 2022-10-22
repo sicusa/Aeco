@@ -84,9 +84,14 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
     public static void InitializeInstanceBuffer(BufferTarget target, int handle, ref MeshData data)
     {
         GL.BindBuffer(target, handle);
-        GL.BufferStorage(target,
-            data.InstanceCapacity * MeshInstance.MemorySize, IntPtr.Zero,
-            BufferStorageFlags.MapWriteBit | BufferStorageFlags.DynamicStorageBit | BufferStorageFlags.MapPersistentBit | BufferStorageFlags.MapCoherentBit);
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
+            GL.BufferData(target, data.InstanceCapacity * MeshInstance.MemorySize, IntPtr.Zero, BufferUsageHint.StaticDraw);
+        }
+        else {
+            GL.BufferStorage(target,
+                data.InstanceCapacity * MeshInstance.MemorySize, IntPtr.Zero,
+                BufferStorageFlags.MapWriteBit | BufferStorageFlags.DynamicStorageBit | BufferStorageFlags.MapPersistentBit | BufferStorageFlags.MapCoherentBit);
+        }
         data.InstanceBufferPointer = GL.MapBuffer(BufferTarget.ArrayBuffer, BufferAccess.WriteOnly);
     }
 
