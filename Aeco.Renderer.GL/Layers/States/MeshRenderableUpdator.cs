@@ -2,7 +2,6 @@ namespace Aeco.Renderer.GL;
 
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Collections.Concurrent;
 
 using OpenTK.Graphics.OpenGL4;
 
@@ -11,7 +10,6 @@ using Aeco.Reactive;
 public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
 {
     private Query<MeshRenderable, TransformMatricesDirty> _q = new();
-    private ConcurrentDictionary<int, List<MeshInstance>> _dirtyBuffers = new();
 
     private List<Guid> _dirtyList = new();
     private Action[] _actions = new Action[ParallelCount];
@@ -33,7 +31,7 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
         OnUpdate(context, 0);
     }
 
-    public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
+    public unsafe void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
         foreach (var id in context.Query<Modified<MeshRenderable>>()) {
             if (!context.TryGet<MeshRenderable>(id, out var renderable))  {
@@ -54,9 +52,9 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
         }
 
         _dirtyList.AddRange(_q.Query(context));
+
         int count = _dirtyList.Count;
         if (count == 0) { return; }
-
         if (count > 64) {
             _bundleSize = count / _actions.Length;
             Parallel.Invoke(_actions);
@@ -64,22 +62,17 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
         else {
             DoUpdate(0, count, context);
         }
-        _dirtyList.Clear();
 
-        foreach (var pair in _dirtyBuffers) {
-            var span = CollectionsMarshal.AsSpan(pair.Value);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, pair.Key);
-            GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, pair.Value.Count * MeshInstance.MemorySize, ref span[0]);
-        }
-        _dirtyBuffers.Clear();
+        _dirtyList.Clear();
     }
 
-    private void DoUpdate(int start, int end, IDataLayer<IComponent> context)
+    private unsafe void DoUpdate(int start, int end, IDataLayer<IComponent> context)
     {
         for (int i = start; i != end; ++i) {
             var id = _dirtyList[i];
             var data = context.Inspect<MeshRenderableData>(id);
             int index = data.InstanceIndex;
+
             if (index == -1) {
                 UpdateVariantUniform(context, id);
                 continue;
@@ -93,8 +86,13 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
             };
 
             var meshData = context.Require<MeshData>(data.MeshId);
-            int instanceBufferHandle = meshData.BufferHandles[MeshBufferType.Instance];
-            _dirtyBuffers.TryAdd(instanceBufferHandle, meshState.Instances);
+            var span = CollectionsMarshal.AsSpan(meshState.Instances);
+
+            fixed (MeshInstance* arr = span) {
+                int offset = index * MeshInstance.MemorySize;
+                System.Buffer.MemoryCopy(arr + index, (void*)(meshData.InstanceBufferPointer + offset),
+                    MeshInstance.MemorySize, MeshInstance.MemorySize);
+            }
         }
     }
 

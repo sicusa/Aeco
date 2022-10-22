@@ -14,10 +14,11 @@ public enum MeshBufferType
 public struct MeshData : IGLObject
 {
     public int IndexCount = 0;
-    public int VertexArrayHandle = 0;
-    public int CullingVertexArrayHandle = 0;
-    public int CulledQueryHandle = 0;
+    public int VertexArrayHandle = -1;
+    public int CullingVertexArrayHandle = -1;
+    public int CulledQueryHandle = -1;
     public readonly EnumArray<MeshBufferType, int> BufferHandles = new();
+    public IntPtr InstanceBufferPointer = IntPtr.Zero;
     public Guid MaterialId = Guid.Empty;
     public int InstanceCapacity = 1;
 

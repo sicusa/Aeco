@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
 {
-    protected override void Initialize(
+    protected unsafe override void Initialize(
         IDataLayer<IComponent> context, Guid id, ref Mesh mesh, ref MeshData data, bool updating)
     {
         if (updating) {
@@ -57,31 +57,48 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
 
         // instance
 
-        var instanceBuffer = buffers[MeshBufferType.Instance];
-        GL.BindBuffer(BufferTarget.ArrayBuffer, instanceBuffer);
-
         if (context.TryGet<MeshRenderingState>(id, out var state) && state.Instances.Count != 0) {
             data.InstanceCapacity = Math.Max(data.InstanceCapacity, state.Instances.Count);
-            GL.BufferData(BufferTarget.ArrayBuffer, data.InstanceCapacity * MeshInstance.MemorySize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            InitializeInstanceBuffer(ref data);
+
             var span = CollectionsMarshal.AsSpan(state.Instances);
-            GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, state.Instances.Count * MeshInstance.MemorySize, ref span[0]);
+            fixed (MeshInstance* ptr = span) {
+                var length = span.Length * MeshInstance.MemorySize;
+                System.Buffer.MemoryCopy(ptr, (void*)data.InstanceBufferPointer, length, length);
+            }
         }
         else {
-            GL.BufferData(BufferTarget.ArrayBuffer, data.InstanceCapacity * MeshInstance.MemorySize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            InitializeInstanceBuffer(ref data);
         }
 
-        // culling
+        data.CullingVertexArrayHandle = GL.GenVertexArray();
+        InitializeInstanceCulling(ref data);
 
-        GL.BindBuffer(BufferTarget.ArrayBuffer, buffers[MeshBufferType.CulledInstance]);
+        GL.BindVertexArray(0);
+    }
+
+    public static void InitializeInstanceBuffer(ref MeshData data)
+        => InitializeInstanceBuffer(
+            BufferTarget.ArrayBuffer, data.BufferHandles[MeshBufferType.Instance], ref data);
+
+    public static void InitializeInstanceBuffer(BufferTarget target, int handle, ref MeshData data)
+    {
+        GL.BindBuffer(target, handle);
+        GL.BufferStorage(target,
+            data.InstanceCapacity * MeshInstance.MemorySize, IntPtr.Zero,
+            BufferStorageFlags.MapWriteBit | BufferStorageFlags.DynamicStorageBit | BufferStorageFlags.MapPersistentBit | BufferStorageFlags.MapCoherentBit);
+        data.InstanceBufferPointer = GL.MapBuffer(BufferTarget.ArrayBuffer, BufferAccess.WriteOnly);
+    }
+
+    public static void InitializeInstanceCulling(ref MeshData data)
+    {
+        GL.BindBuffer(BufferTarget.ArrayBuffer, data.BufferHandles[MeshBufferType.CulledInstance]);
         GL.BufferData(BufferTarget.ArrayBuffer, data.InstanceCapacity * MeshInstance.MemorySize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
         RenderHelper.EnableMatrix4x4Attributes(4, 1);
 
-        data.CullingVertexArrayHandle = GL.GenVertexArray();
         GL.BindVertexArray(data.CullingVertexArrayHandle);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, instanceBuffer);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, data.BufferHandles[MeshBufferType.Instance]);
         RenderHelper.EnableMatrix4x4Attributes(0);
-
-        GL.BindVertexArray(0);
     }
 
     protected override void Uninitialize(IDataLayer<IComponent> context, Guid id, in Mesh mesh, in MeshData data)
