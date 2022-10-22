@@ -20,47 +20,47 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
         if (renderable.IsVariant) {
             state.VariantIds.Add(id);
             data.InstanceIndex = -1;
+            return;
         }
-        else {
-            var instances = state.Instances;
-            int index = instances.Count;
-            data.InstanceIndex = index;
 
-            ref var matrices = ref context.Acquire<TransformMatrices>(id);
-            instances.Add(new MeshInstance {
-                ObjectToWorld = Matrix4x4.Transpose(matrices.World)
-            });
-            state.InstanceIds.Add(id);
+        var instances = state.Instances;
+        int index = instances.Count;
+        data.InstanceIndex = index;
 
-            if (context.Contains<MeshData>(meshId)) {
-                ref var meshData = ref context.Require<MeshData>(meshId);
-                if (instances.Count <= meshData.InstanceCapacity) {
-                    var span = CollectionsMarshal.AsSpan(instances);
-                    fixed (MeshInstance* ptr = span) {
-                        int offset = index * MeshInstance.MemorySize;
-                        System.Buffer.MemoryCopy(ptr + index, (void*)(meshData.InstanceBufferPointer + offset),
-                            MeshInstance.MemorySize, MeshInstance.MemorySize);
-                    }
+        ref var matrices = ref context.Acquire<TransformMatrices>(id);
+        instances.Add(new MeshInstance {
+            ObjectToWorld = Matrix4x4.Transpose(matrices.World)
+        });
+        state.InstanceIds.Add(id);
+
+        if (context.Contains<MeshData>(meshId)) {
+            ref var meshData = ref context.Require<MeshData>(meshId);
+            if (instances.Count <= meshData.InstanceCapacity) {
+                var span = CollectionsMarshal.AsSpan(instances);
+                fixed (MeshInstance* ptr = span) {
+                    int offset = index * MeshInstance.MemorySize;
+                    System.Buffer.MemoryCopy(ptr + index, (void*)(meshData.InstanceBufferPointer + offset),
+                        MeshInstance.MemorySize, MeshInstance.MemorySize);
                 }
-                else {
-                    meshData.InstanceCapacity *= 4;
+            }
+            else {
+                meshData.InstanceCapacity *= 4;
 
-                    int instanceBufferHandle = meshData.BufferHandles[MeshBufferType.Instance];
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, instanceBufferHandle);
+                int instanceBufferHandle = meshData.BufferHandles[MeshBufferType.Instance];
+                GL.BindBuffer(BufferTarget.ArrayBuffer, instanceBufferHandle);
 
-                    var newBuffer = GL.GenBuffer();
-                    meshData.BufferHandles[MeshBufferType.Instance] = newBuffer;
+                var newBuffer = GL.GenBuffer();
+                meshData.BufferHandles[MeshBufferType.Instance] = newBuffer;
 
-                    MeshManager.InitializeInstanceBuffer(BufferTarget.CopyWriteBuffer, newBuffer, ref meshData);
-                    GL.CopyBufferSubData(BufferTarget.ArrayBuffer, BufferTarget.CopyWriteBuffer, IntPtr.Zero, IntPtr.Zero, instances.Count * MeshInstance.MemorySize);
+                MeshManager.InitializeInstanceBuffer(BufferTarget.CopyWriteBuffer, newBuffer, ref meshData);
+                GL.CopyBufferSubData(BufferTarget.ArrayBuffer, BufferTarget.CopyWriteBuffer, IntPtr.Zero, IntPtr.Zero, instances.Count * MeshInstance.MemorySize);
 
-                    GL.BindBuffer(BufferTarget.CopyWriteBuffer, 0);
-                    GL.DeleteBuffer(instanceBufferHandle);
+                GL.BindBuffer(BufferTarget.CopyWriteBuffer, 0);
+                GL.DeleteBuffer(instanceBufferHandle);
 
-                    GL.BindVertexArray(meshData.VertexArrayHandle);
-                    MeshManager.InitializeInstanceCulling(ref meshData);
-                    GL.BindVertexArray(0);
-                }
+                GL.BindVertexArray(meshData.VertexArrayHandle);
+                MeshManager.InitializeInstanceCulling(ref meshData);
+                GL.BindVertexArray(0);
             }
         }
     }
