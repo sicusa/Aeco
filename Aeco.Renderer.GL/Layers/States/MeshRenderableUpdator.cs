@@ -113,6 +113,6 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
 
         GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero, 64, ref world.M11);
         bool isVariant = true;
-        GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero + 2 * 64, 4, ref isVariant);
+        GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero + 64, 4, ref isVariant);
     }
 }
