@@ -6,8 +6,7 @@ using System.Runtime.Serialization;
 [DataContract]
 public struct MainLight : IGLReactiveObject
 {
-    [DataMember]
-    public Vector4 Color = Vector4.One;
+    [DataMember] public Vector4 Color = Vector4.One;
 
     public MainLight() {}
 

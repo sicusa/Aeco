@@ -1,27 +1,29 @@
 namespace Aeco.Renderer.GL;
 
 using System.Numerics;
+using System.Runtime.Serialization;
 
+[DataContract]
 public struct RendererSpec : IGLObject
 {
     // Window
-    public int Width = 800;
-    public int Height = 600;
-    public string Title = "Aeco Renderer";
-    public bool IsResizable = true;
-    public bool IsFullscreen = false;
-    public bool HasBorder = true;
-    public (int, int)? MaximumSize = null;
-    public (int, int)? MinimumSize = null;
-    public (int, int)? Location = null;
+    [DataMember] public int Width = 800;
+    [DataMember] public int Height = 600;
+    [DataMember] public string Title = "Aeco Renderer";
+    [DataMember] public bool IsResizable = true;
+    [DataMember] public bool IsFullscreen = false;
+    [DataMember] public bool HasBorder = true;
+    [DataMember] public (int, int)? MaximumSize = null;
+    [DataMember] public (int, int)? MinimumSize = null;
+    [DataMember] public (int, int)? Location = null;
 
     // Rendering
-    public int RenderFrequency = 60;
-    public int UpdateFrequency = 60;
-    public Vector4 ClearColor = new Vector4(0.2f, 0.3f, 0.3f, 1.0f);
+    [DataMember] public int RenderFrequency = 60;
+    [DataMember] public int UpdateFrequency = 60;
+    [DataMember] public Vector4 ClearColor = new Vector4(0.2f, 0.3f, 0.3f, 1.0f);
 
     // Debug
-    public bool IsDebugEnabled = false;
+    [DataMember] public bool IsDebugEnabled = false;
     
     public RendererSpec() {}
 

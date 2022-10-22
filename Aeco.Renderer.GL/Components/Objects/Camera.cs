@@ -5,9 +5,9 @@ using System.Runtime.Serialization;
 [DataContract]
 public struct Camera : IGLReactiveObject
 {
-    public float FieldOfView = 60f;
-    public float NearPlaneDistance = 0.01f;
-    public float FarPlaneDistance = 200f;
+    [DataMember] public float FieldOfView = 60f;
+    [DataMember] public float NearPlaneDistance = 0.01f;
+    [DataMember] public float FarPlaneDistance = 200f;
 
     public Camera() {}
 

@@ -3,10 +3,9 @@ namespace Aeco.Renderer.GL;
 using System.Numerics;
 using System.Runtime.Serialization;
 
-[DataContract]
 public struct WorldRotation : IGLReactiveObject, IDisposable
 {
-    [DataMember] public Quaternion Value = Quaternion.Identity;
+    public Quaternion Value = Quaternion.Identity;
 
     public WorldRotation() {}
 

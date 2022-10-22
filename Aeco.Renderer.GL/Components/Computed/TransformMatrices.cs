@@ -5,23 +5,23 @@ using System.Numerics;
 public struct TransformMatrices : IGLObject
 {
     public Matrix4x4 World {
-        get => WorldRaw;
+        get => _world;
         internal set {
-            WorldRaw = value;
+            _world = value;
             _viewDirty = true;
         }
     }
     public Matrix4x4 View {
         get {
             if (_viewDirty) {
-                Matrix4x4.Invert(World, out ViewInternal);
+                Matrix4x4.Invert(World, out _view);
                 _viewDirty = false;
             }
-            return ViewInternal;
+            return _view;
         }
     }
-    internal Matrix4x4 WorldRaw = Matrix4x4.Identity;
-    internal Matrix4x4 ViewInternal = Matrix4x4.Identity;
+    private Matrix4x4 _world = Matrix4x4.Identity;
+    private Matrix4x4 _view = Matrix4x4.Identity;
     private bool _viewDirty = false;
 
     public Matrix4x4 Combined { get; internal set; }

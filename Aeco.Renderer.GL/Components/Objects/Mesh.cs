@@ -6,7 +6,6 @@ using System.Runtime.Serialization;
 public struct Mesh : IGLResourceObject<MeshResource>
 {
     public MeshResource Resource { get; set; } = MeshResource.Empty;
-    public bool IsCompleteInstanceRefreshEnabled = false;
     
     public Mesh() {}
 
