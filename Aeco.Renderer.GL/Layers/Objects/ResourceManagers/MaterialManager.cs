@@ -1,10 +1,12 @@
 namespace Aeco.Renderer.GL;
 
+using System.Numerics;
+
 using OpenTK.Graphics.OpenGL4;
 
 public class MaterialManager : ResourceManagerBase<Material, MaterialData, MaterialResource>
 {
-    protected override void Initialize(
+    protected unsafe override void Initialize(
         IDataLayer<IComponent> context, Guid id, ref Material material, ref MaterialData data, bool updating)
     {
         if (updating) {
@@ -13,7 +15,7 @@ public class MaterialManager : ResourceManagerBase<Material, MaterialData, Mater
 
         data.Handle = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.UniformBuffer, data.Handle);
-        GL.BufferData(BufferTarget.UniformBuffer, 16 * 4 + 8 * 3, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+        data.Pointer = GLHelper.InitializeBuffer(BufferTarget.UniformBuffer, MaterialParameters.MemorySize);
 
         data.ShaderProgramId =
             material.ShaderProgram != null
@@ -32,19 +34,15 @@ public class MaterialManager : ResourceManagerBase<Material, MaterialData, Mater
         }
         data.Textures = textureReferences;
 
-        GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero, 16, ref resource.DiffuseColor.X);
-        GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero + 16, 16, ref resource.SpecularColor.X);
-        GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero + 16 * 2, 16, ref resource.AmbientColor.X);
-        GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero + 16 * 3, 16, ref resource.EmissiveColor.X);
-        GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero + 16 * 4, 4, ref resource.Shininess);
-        GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero + 16 * 4 + 8, 8, ref material.Tiling.X);
-        GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero + 16 * 4 + 8 * 2, 8, ref material.Offset.X);
+        fixed (MaterialParameters* parameters = &resource.Parameters) {
+            System.Buffer.MemoryCopy(&parameters->DiffuseColor, (void*)data.Pointer,
+                MaterialParameters.MemorySize, MaterialParameters.MemorySize);
+        }
     }
 
     protected override void Uninitialize(IDataLayer<IComponent> context, Guid id, in Material material, in MaterialData data)
     {
         GL.DeleteBuffer(data.Handle);
-
         ResourceLibrary<ShaderProgramResource>.Unreference(context, data.ShaderProgramId, id);
 
         var textures = data.Textures;

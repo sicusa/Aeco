@@ -100,13 +100,15 @@ public static class ModelHelper
         }
 
         materialResource = new MaterialResource {
-            DiffuseColor = mat.HasColorDiffuse ? FromColor(mat.ColorDiffuse) : Vector4.One,
-            SpecularColor = mat.HasColorSpecular ? FromColor(mat.ColorSpecular) : Vector4.Zero,
-            AmbientColor = mat.HasColorAmbient ? FromColor(mat.ColorAmbient) : new Vector4(0.2f, 0.2f, 0.2f, 1f),
-            EmissiveColor = mat.HasColorEmissive ? FromColor(mat.ColorEmissive) : Vector4.Zero,
-            Shininess = mat.HasShininess ? mat.Shininess : 0,
-            ShininessStrength = mat.HasShininessStrength ? mat.ShininessStrength : 1f,
-            Opacity = mat.HasOpacity ? mat.Opacity : 1f
+            Parameters = new() {
+                DiffuseColor = mat.HasColorDiffuse ? FromColor(mat.ColorDiffuse) : Vector4.One,
+                SpecularColor = mat.HasColorSpecular ? FromColor(mat.ColorSpecular) : Vector4.Zero,
+                AmbientColor = mat.HasColorAmbient ? FromColor(mat.ColorAmbient) : new Vector4(0.2f, 0.2f, 0.2f, 1f),
+                EmissiveColor = mat.HasColorEmissive ? FromColor(mat.ColorEmissive) : Vector4.Zero,
+                Shininess = mat.HasShininess ? mat.Shininess : 0,
+                ShininessStrength = mat.HasShininessStrength ? mat.ShininessStrength : 1f,
+                Opacity = mat.HasOpacity ? mat.Opacity : 1f
+            }
         };
 
         var textures = materialResource.Textures;

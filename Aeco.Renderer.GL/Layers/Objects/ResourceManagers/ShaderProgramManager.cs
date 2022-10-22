@@ -38,6 +38,9 @@ layout(std140) uniform Material {
     vec4 Ambient;
     vec4 Emission;
     float Shininess;
+    float ShininessStrength;
+    float Reflectivity;
+    float Opacity;
     vec2 Tiling;
     vec2 Offset;
 };
