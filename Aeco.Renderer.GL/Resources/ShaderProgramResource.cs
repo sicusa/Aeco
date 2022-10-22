@@ -7,7 +7,7 @@ public enum ShaderType
     Geometry,
     TessellationEvaluation,
     TessellationControl,
-    ComputeShader
+    Compute
 }
 
 public class ShaderProgramResource : IGLResource

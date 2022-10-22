@@ -288,7 +288,7 @@ mat4 ObjectToWorld;
             ShaderType.Fragment => OpenTK.Graphics.OpenGL4.ShaderType.FragmentShader,
             ShaderType.Vertex => OpenTK.Graphics.OpenGL4.ShaderType.VertexShader,
             ShaderType.Geometry => OpenTK.Graphics.OpenGL4.ShaderType.GeometryShader,
-            ShaderType.ComputeShader => OpenTK.Graphics.OpenGL4.ShaderType.ComputeShader,
+            ShaderType.Compute => OpenTK.Graphics.OpenGL4.ShaderType.ComputeShader,
             ShaderType.TessellationEvaluation => OpenTK.Graphics.OpenGL4.ShaderType.TessEvaluationShader,
             ShaderType.TessellationControl => OpenTK.Graphics.OpenGL4.ShaderType.TessControlShader,
             _ => throw new NotSupportedException("Unknown shader type: " + type)
