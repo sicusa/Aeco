@@ -153,7 +153,16 @@ public interface ITrackableDataLayer<in TComponent>
 {
 }
 
-public interface IReadOnlyCompositeLayer<in TComponent, out TSublayer> : IReadOnlyLayer<TComponent>
+public interface IDataLayerTree<in TComponent>
+{
+    bool IsSublayerCachable { get; }
+    bool CheckSupported(Type componentType);
+    IDataLayer<TComponent>? FindTerminalDataLayer<UComponent>()
+        where UComponent : TComponent;
+}
+
+public interface IReadOnlyCompositeLayer<in TComponent, out TSublayer>
+    : IReadOnlyLayer<TComponent>, IDataLayerTree<TComponent>
     where TSublayer : IReadOnlyLayer<TComponent>
 {
     IReadOnlyList<TSublayer> Sublayers { get; }
@@ -178,11 +187,6 @@ public interface IReadOnlyCompositeDataLayer<in TComponent, out TSublayer>
     : IReadOnlyCompositeLayer<TComponent, TSublayer>, IReadOnlyDataLayer<TComponent>
     where TSublayer : IReadOnlyLayer<TComponent>
 {
-    bool IsSublayerCachable { get; }
-    IDataLayer<TComponent>? FindTerminalDataLayer<UComponent>()
-        where UComponent : TComponent;
-    IDataLayer<TComponent> RequireTerminalDataLayer<UComponent>()
-        where UComponent : TComponent;
 }
 
 public interface ICompositeDataLayer<in TComponent, out TSublayer>

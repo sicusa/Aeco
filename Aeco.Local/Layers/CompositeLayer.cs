@@ -177,16 +177,21 @@ public class CompositeLayer<TComponent, TSublayer>
             return cachedLayer;
         }
         foreach (var sublayer in Sublayers) {
-            if (sublayer is not IDataLayer<TComponent> dataLayer
-                    || !dataLayer.CheckSupported(compT)) {
-                continue;
-            }
-            if (sublayer is ICompositeDataLayer<TComponent, TSublayer> compositeDataLayer) {
-                var terminalDataLayer = compositeDataLayer.FindTerminalDataLayer<UComponent>();
+            IDataLayer<TComponent>? dataLayer;
+            if (sublayer is IDataLayerTree<TComponent> dataLayerTree) {
+                if (!dataLayerTree.CheckSupported(compT)) { continue; }
+                var terminalDataLayer = dataLayerTree.FindTerminalDataLayer<UComponent>();
                 if (terminalDataLayer == null) {
                     continue;
                 }
-                dataLayer = compositeDataLayer.IsSublayerCachable ? terminalDataLayer : compositeDataLayer;
+                dataLayer = dataLayerTree.IsSublayerCachable
+                    ? terminalDataLayer : (IDataLayer<TComponent>)dataLayerTree;
+            }
+            else {
+                dataLayer = sublayer as IDataLayer<TComponent>;
+                if (dataLayer == null || !dataLayer.CheckSupported(compT)) {
+                    continue;
+                }
             }
             ImmutableInterlocked.AddOrUpdate(ref _dataLayers, dataLayer,
                 _ => ImmutableHashSet<Type>.Empty, (_, comps) => comps.Add(compT));

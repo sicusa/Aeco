@@ -4,16 +4,32 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Collections.Immutable;
 
-public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBase<TComponent, TSelectedComponent>
+public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBase<TComponent, TSelectedComponent>, IDataLayerTree<TComponent>
     where TSelectedComponent : TComponent
 {
     private Func<Type, IDataLayer<TComponent>> _substorageCreator;
     private ImmutableDictionary<Type, IDataLayer<TComponent>> _substorages =
         ImmutableDictionary<Type, IDataLayer<TComponent>>.Empty;
 
+    public bool IsSublayerCachable => true;
+
     public CompositeStorage(Func<Type, IDataLayer<TComponent>> substorageCreator)
     {
         _substorageCreator = substorageCreator;
+    }
+
+    public IDataLayer<TComponent>? FindTerminalDataLayer<UComponent>()
+        where UComponent : TComponent
+        => AcquireSubstorage<UComponent>();
+
+    private IDataLayer<TComponent>? FindSubstorage<UComponent>()
+        where UComponent : TComponent
+    {
+        var type = typeof(UComponent);
+        if (!_substorages.TryGetValue(type, out var substorage)) {
+            return null;
+        }
+        return substorage;
     }
 
     private IDataLayer<TComponent> AcquireSubstorage<UComponent>()
@@ -23,16 +39,6 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
         if (!_substorages.TryGetValue(type, out var substorage)) {
             substorage = _substorageCreator(type);
             ImmutableInterlocked.TryAdd(ref _substorages, type, substorage);
-        }
-        return substorage;
-    }
-
-    private IDataLayer<TComponent>? FindSubstorage<UComponent>()
-        where UComponent : TComponent
-    {
-        var type = typeof(UComponent);
-        if (!_substorages.TryGetValue(type, out var substorage)) {
-            return null;
         }
         return substorage;
     }
