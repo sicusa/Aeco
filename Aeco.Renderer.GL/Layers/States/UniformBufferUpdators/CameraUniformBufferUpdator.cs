@@ -22,27 +22,31 @@ public class CameraUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
         }
     }
 
-    private void DoUpdate(IDataLayer<IComponent> context, Guid id)
+    private unsafe void DoUpdate(IDataLayer<IComponent> context, Guid id)
     {
-        ref var handle = ref context.Acquire<CameraUniformBuffer>(id, out bool exists).Handle;
+        ref var buffer = ref context.Acquire<CameraUniformBuffer>(id, out bool exists);
+        IntPtr pointer;
+
         if (!exists) {
-            handle = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.UniformBuffer, handle);
-            GL.BufferData(BufferTarget.UniformBuffer, 64 * 3 + 16, IntPtr.Zero, BufferUsageHint.DynamicDraw);
-            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.Camera, handle);
+            buffer.Handle = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.UniformBuffer, buffer.Handle);
+            pointer = GLHelper.InitializeBuffer(BufferTarget.UniformBuffer, CameraParameters.MemorySize);
+            buffer.Pointer = pointer;
+            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.Camera, buffer.Handle);
         }
         else {
-            GL.BindBuffer(BufferTarget.UniformBuffer, handle);
+            pointer = buffer.Pointer;
         }
 
-        var view = Matrix4x4.Transpose(context.UnsafeInspect<TransformMatrices>(id).View);
-        var proj = Matrix4x4.Transpose(context.UnsafeAcquire<CameraMatrices>(id).ProjectionRaw);
-        var vp = proj * view;
-        ref var pos = ref context.UnsafeAcquire<WorldPosition>(id).Value;
+        ref var pars = ref buffer.Parameters;
+        pars.View = Matrix4x4.Transpose(context.UnsafeInspect<TransformMatrices>(id).View);
+        pars.Projection = Matrix4x4.Transpose(context.UnsafeAcquire<CameraMatrices>(id).ProjectionRaw);
+        pars.ViewProjection = pars.Projection * pars.View;
+        pars.Position = context.UnsafeAcquire<WorldPosition>(id).Value;
 
-        GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero, 64, ref view.M11);
-        GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero + 64, 64, ref proj.M11);
-        GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero + 64 * 2, 64, ref vp.M11);
-        GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero + 64 * 3, 12, ref pos.X);
+        fixed (CameraParameters* parsPtr = &pars) {
+            System.Buffer.MemoryCopy(parsPtr, (void*)pointer,
+                CameraParameters.MemorySize, CameraParameters.MemorySize);
+        }
     }
 }
