@@ -7,7 +7,7 @@ public static class ConcurrentTests
 {
     public interface ITestLayer : ILayer<IComponent>
     {
-        void Update(ConcurrentCompositeLayer layer);
+        void Update(ConcurrentDataLayer layer);
     }
 
     public struct TestChannel : IComponent
@@ -26,7 +26,7 @@ public static class ConcurrentTests
     {
         public Guid ChannelId { get; init; }
 
-        public void Update(ConcurrentCompositeLayer world)
+        public void Update(ConcurrentDataLayer world)
         {
             while (world.Remove<EchoCmd>(ChannelId, out var cmd)) {
                 Console.WriteLine("Received: " + cmd.Id);
@@ -38,10 +38,11 @@ public static class ConcurrentTests
     {
         var channelId = Guid.NewGuid();
 
-        var world = new ConcurrentCompositeLayer(
+        var world = new CompositeLayer(
             new PooledChannelLayer(),
             new PolyHashStorage(),
-            new TestConcurrentLayer { ChannelId = channelId } );
+            new TestConcurrentLayer { ChannelId = channelId });
+        var worldConcurrent = new ConcurrentDataLayer(world);
 
         var testLayers = world.GetSublayers<ITestLayer>().ToArray();
         
@@ -70,7 +71,7 @@ public static class ConcurrentTests
 
         while (true) {
             foreach (var layer in testLayers) {
-                layer.Update(world);
+                layer.Update(worldConcurrent);
             }
             Thread.Sleep(100);
         }
