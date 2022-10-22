@@ -51,5 +51,23 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
         program.Resource = resource;
 
         Console.WriteLine("Hierarchical-Z shader program loaded: " + GLRenderer.HierarchicalZShaderProgramId);
+
+        // load post-processing shader program
+
+        resource = new ShaderProgramResource {
+            IsMaterialTexturesEnabled = false
+        };
+        
+        resource.Shaders[ShaderType.Vertex] = emptyVertShader;
+        resource.Shaders[ShaderType.Fragment] =
+            InternalAssets.Load<TextResource>("Shaders.post.frag.glsl").Content;
+        resource.Shaders[ShaderType.Geometry] =
+            InternalAssets.Load<TextResource>("Shaders.post.geo.glsl").Content;
+
+        program = ref context.Acquire<ShaderProgram>(GLRenderer.PostProcessingShaderProgramId);
+        program.Resource = resource;
+
+        Console.WriteLine(Guid.NewGuid());
+        Console.WriteLine("Post-processing shader program loaded: " + GLRenderer.PostProcessingShaderProgramId);
     }
 }

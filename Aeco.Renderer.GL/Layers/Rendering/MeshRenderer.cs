@@ -132,10 +132,19 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
         }
 
         GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
-        GL.BlitFramebuffer(
-            0, 0, framebuffer.Width, framebuffer.Height,
-            0, 0, _windowWidth, _windowHeight,
-            ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Linear);
+        GL.BindVertexArray(_defaultVertexArray);
+
+        ref readonly var postProgram = ref context.Inspect<ShaderProgramData>(GLRenderer.PostProcessingShaderProgramId);
+        GL.UseProgram(postProgram.Handle);
+
+        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.BindTexture(TextureTarget.Texture2D, framebuffer.ColorTextureHandle);
+        GL.ActiveTexture(TextureUnit.Texture1);
+        GL.BindTexture(TextureTarget.Texture2D, framebuffer.DepthTextureHandle);
+
+        GL.Disable(EnableCap.DepthTest);
+        GL.DrawArrays(PrimitiveType.Points, 0, 1);
+        GL.Enable(EnableCap.DepthTest);
     }
 
     public void OnResize(IDataLayer<IComponent> context, int width, int height)
