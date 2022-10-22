@@ -53,7 +53,8 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
                 meshData.BufferHandles[MeshBufferType.Instance] = newBuffer;
 
                 MeshManager.InitializeInstanceBuffer(BufferTarget.CopyWriteBuffer, newBuffer, ref meshData);
-                GL.CopyBufferSubData(BufferTarget.ArrayBuffer, BufferTarget.CopyWriteBuffer, IntPtr.Zero, IntPtr.Zero, instances.Count * MeshInstance.MemorySize);
+                GL.CopyBufferSubData(BufferTarget.ArrayBuffer, BufferTarget.CopyWriteBuffer,
+                    IntPtr.Zero, IntPtr.Zero, instances.Count * MeshInstance.MemorySize);
 
                 GL.BindBuffer(BufferTarget.CopyWriteBuffer, 0);
                 GL.DeleteBuffer(instanceBufferHandle);

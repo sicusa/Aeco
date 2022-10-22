@@ -96,23 +96,25 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
         }
     }
 
-    private void UpdateVariantUniform(IDataLayer<IComponent> context, Guid id)
+    private unsafe void UpdateVariantUniform(IDataLayer<IComponent> context, Guid id)
     {
-        ref var handle = ref context.Acquire<VariantUniformBuffer>(id, out bool exists).Handle;
+        ref var buffer = ref context.Acquire<VariantUniformBuffer>(id, out bool exists);
+        IntPtr pointer;
         if (!exists) {
-            handle = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.UniformBuffer, handle);
-            GL.BufferData(BufferTarget.UniformBuffer, 64 + 4, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            buffer.Handle = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.UniformBuffer, buffer.Handle);
+            pointer = GLHelper.InitializeBuffer(BufferTarget.UniformBuffer, MeshInstance.MemorySize + 4);
+            buffer.Pointer = pointer;
         }
         else {
-            GL.BindBuffer(BufferTarget.UniformBuffer, handle);
+            pointer = buffer.Pointer;
         }
 
         ref var matrices = ref context.UnsafeInspect<TransformMatrices>(id);
         var world = Matrix4x4.Transpose(matrices.World);
-
-        GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero, 64, ref world.M11);
         bool isVariant = true;
-        GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero + 64, 4, ref isVariant);
+
+        System.Buffer.MemoryCopy(&world, (Matrix4x4*)pointer, MeshInstance.MemorySize, MeshInstance.MemorySize);
+        System.Buffer.MemoryCopy(&isVariant, (Matrix4x4*)pointer + 1, 4, 4);
     }
 }
