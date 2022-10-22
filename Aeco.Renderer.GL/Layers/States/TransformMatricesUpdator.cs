@@ -7,22 +7,9 @@ using System.Collections.Concurrent;
 public class TransformMatricesUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLayer
 {
     private const int ParallelCount = 8;
-    private ConcurrentBag<Guid> _modifiedIds = new();
 
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
-    {
-        Traverse(context, GLRenderer.RootId);
-
-        if (_modifiedIds.Count != 0) {
-            foreach (var id in _modifiedIds) {
-                context.Remove<WorldAxes>(id);
-                context.Remove<WorldPosition>(id);
-                context.Remove<WorldRotation>(id);
-                context.Acquire<TransformMatricesDirty>(id);
-            }
-            _modifiedIds.Clear();
-        }
-    }
+        => Traverse(context, GLRenderer.RootId);
 
     public void OnLateUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
@@ -74,7 +61,9 @@ public class TransformMatricesUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpd
 
     private void UpdateRecursively(IDataLayer<IComponent> context, Guid id, ref TransformMatrices matrices)
     {
-        _modifiedIds.Add(id);
+        context.Remove<WorldAxes>(id);
+        context.Remove<WorldPosition>(id);
+        context.Remove<WorldRotation>(id);
 
         if (context.TryGet<Children>(id, out var children)) {
             var childrenIds = children.Ids;
@@ -102,7 +91,8 @@ public class TransformMatricesUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpd
         for (int i = start; i != end; ++i) {
             var childId = childrenIds[i];
             ref var childMatrices = ref context.Require<TransformMatrices>(childId);
-            if (context.Contains<TransformMatricesDirty>(childId)) {
+            context.Acquire<TransformMatricesDirty>(childId, out bool exists);
+            if (exists) {
                 childMatrices.Combined = childMatrices.Scale * childMatrices.Rotation * childMatrices.Translation;
             }
             childMatrices.World = childMatrices.Combined * worldMatrix;

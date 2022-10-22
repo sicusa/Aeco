@@ -67,7 +67,6 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
         program = ref context.Acquire<ShaderProgram>(GLRenderer.PostProcessingShaderProgramId);
         program.Resource = resource;
 
-        Console.WriteLine(Guid.NewGuid());
         Console.WriteLine("Post-processing shader program loaded: " + GLRenderer.PostProcessingShaderProgramId);
     }
 }
