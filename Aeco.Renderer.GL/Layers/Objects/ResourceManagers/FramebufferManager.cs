@@ -29,16 +29,18 @@ public class FramebufferManager : ResourceManagerBase<Framebuffer, FramebufferDa
         if (updating) {
             DeleteTextures(in data);
         }
-        else if (resource.AutoResizeByWindow) {
-            context.Acquire<FramebufferAutoResizeByWindow>(id);
-            width = _windowWidth;
-            height = _windowHeight;
-
+        else {
             data.Handle = GL.GenFramebuffer();
             data.UniformBufferHandle = GL.GenBuffer();
 
             GL.BindBuffer(BufferTarget.UniformBuffer, data.UniformBufferHandle);
-            GL.BufferData(BufferTarget.UniformBuffer, 8, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            GL.BufferData(BufferTarget.UniformBuffer, 8, IntPtr.Zero, BufferUsageHint.StaticDraw);
+
+            if (resource.AutoResizeByWindow) {
+                context.Acquire<FramebufferAutoResizeByWindow>(id);
+                width = _windowWidth;
+                height = _windowHeight;
+            }
         }
         UpdateData(context, id, ref framebuffer, ref data, width, height);
     }
@@ -97,5 +99,6 @@ public class FramebufferManager : ResourceManagerBase<Framebuffer, FramebufferDa
     {
         GL.DeleteTexture(data.ColorTextureHandle);
         GL.DeleteTexture(data.MaxDepthTextureHandle);
+        GL.DeleteTexture(data.MinDepthTextureHandle);
     }
 }

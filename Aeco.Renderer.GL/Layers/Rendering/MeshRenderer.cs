@@ -21,10 +21,10 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
     {
         bool vertexArrayBound = false;
 
-        ref readonly var framebuffer = ref context.Inspect<FramebufferData>(GLRenderer.DefaultFramebufferId);
+        ref var framebuffer = ref context.Require<FramebufferData>(GLRenderer.DefaultFramebufferId);
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer.Handle);
-        GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.Framebuffer, framebuffer.UniformBufferHandle);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.Framebuffer, framebuffer.UniformBufferHandle);
         GL.BindVertexArray(_defaultVertexArray);
 
         // hierarchical-Z occlusion culling
@@ -33,13 +33,12 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
         int lastMipSizeLocation = hizProgramData.CustomLocations["LastMipSize"];
 
         GL.UseProgram(hizProgramData.Handle);
-        GL.ColorMask(false, false, false, false);
+        GL.ColorMask(true, false, false, false);
+
         GL.ActiveTexture(TextureUnit.Texture0);
         GL.BindTexture(TextureTarget.Texture2D, framebuffer.MaxDepthTextureHandle);
         GL.Uniform1(hizProgramData.CustomLocations["LastMaxMip"], 0);
-        GL.ActiveTexture(TextureUnit.Texture1);
-        GL.BindTexture(TextureTarget.Texture2D, framebuffer.MinDepthTextureHandle);
-        GL.Uniform1(hizProgramData.CustomLocations["LastMinMip"], 1);
+
         GL.DepthFunc(DepthFunction.Always);
 
         int width = framebuffer.Width;
@@ -74,9 +73,12 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
 
         // instance cloud culling
 
-        var cullProgram = context.Inspect<ShaderProgramData>(GLRenderer.CullingShaderProgramId).Handle;
-        GL.UseProgram(cullProgram);
+        var cullProgram = context.Inspect<ShaderProgramData>(GLRenderer.CullingShaderProgramId);
+        GL.UseProgram(cullProgram.Handle);
         GL.Enable(EnableCap.RasterizerDiscard);
+
+        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.BindTexture(TextureTarget.Texture2D, framebuffer.MaxDepthTextureHandle);
 
         foreach (var id in _g.Query(context)) {
             if (!context.TryGet<MeshRenderingState>(id, out var state)) {
@@ -145,9 +147,11 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
         GL.ActiveTexture(TextureUnit.Texture0);
         GL.BindTexture(TextureTarget.Texture2D, framebuffer.ColorTextureHandle);
         GL.Uniform1(customLocations["ColorBuffer"], 0);
+
         GL.ActiveTexture(TextureUnit.Texture1);
         GL.BindTexture(TextureTarget.Texture2D, framebuffer.MaxDepthTextureHandle);
         GL.Uniform1(customLocations["MaxDepthBuffer"], 1);
+
         GL.ActiveTexture(TextureUnit.Texture2);
         GL.BindTexture(TextureTarget.Texture2D, framebuffer.MinDepthTextureHandle);
         GL.Uniform1(customLocations["MinDepthBuffer"], 2);

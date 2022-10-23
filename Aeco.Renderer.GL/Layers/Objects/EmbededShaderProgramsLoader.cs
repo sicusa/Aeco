@@ -21,7 +21,10 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
 
         // load culling shader program
 
-        resource = new ShaderProgramResource { IsMaterialTexturesEnabled = false };
+        resource = new ShaderProgramResource {
+            IsMaterialTexturesEnabled = false,
+            CustomUniforms = new() { "HiZBuffer" }
+        };
         
         resource.Shaders[ShaderType.Vertex] =
             InternalAssets.Load<TextResource>("Shaders.cull.vert.glsl").Content;

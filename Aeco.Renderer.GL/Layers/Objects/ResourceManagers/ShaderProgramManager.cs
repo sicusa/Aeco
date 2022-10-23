@@ -16,8 +16,8 @@ public class ShaderProgramManager : ResourceManagerBase<ShaderProgram, ShaderPro
 #define NAGULE_COMMON
 
 layout(std140) uniform Framebuffer {
-    float ViewportWidth;
-    float ViewportHeight;
+    int ViewportWidth;
+    int ViewportHeight;
 };
 
 layout(std140) uniform Camera {

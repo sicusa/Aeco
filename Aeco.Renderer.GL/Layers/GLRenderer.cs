@@ -60,9 +60,13 @@ public class GLRenderer : CompositeLayer
         {
             base.OnLoad();
             
+            GL.ClearDepth(1f);
             GL.ClearColor(_clearColor.X, _clearColor.Y, _clearColor.Z, _clearColor.W);
+
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
+            GL.Disable(EnableCap.Blend);
+            GL.DepthMask(true);
 
             if (_spec.IsDebugEnabled) {
                 _debugProc = DebugProc;
