@@ -37,6 +37,7 @@ public class GLRenderer : CompositeLayer
                         ? null : new Vector2i(spec.Location.Value.Item1, spec.Location.Value.Item2),
                     Title = spec.Title,
                     APIVersion = new Version(4, 1),
+                    SrgbCapable = true,
                     Flags = ContextFlags.ForwardCompatible,
                     WindowBorder = spec.HasBorder
                         ? (spec.IsResizable ? WindowBorder.Resizable : WindowBorder.Fixed)
