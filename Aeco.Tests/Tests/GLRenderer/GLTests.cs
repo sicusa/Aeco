@@ -52,7 +52,7 @@ public static class GLTests
         var mainLight = game.CreateEntity();
         mainLight.Acquire<Parent>().Id = GLRenderer.RootId;
         mainLight.Acquire<Rotation>().Value = Quaternion.CreateFromYawPitchRoll(-90, -45, 0);
-        mainLight.Acquire<MainLight>().Color = new Vector4(1, 1, 1, 2f);
+        mainLight.Acquire<MainLight>().Color = new Vector4(1, 1, 1, 5f);
 
         var cameraId = Guid.Parse("c2003019-0b2a-4f4c-ba31-9930c958ff83");
         game.Acquire<Camera>(cameraId);
@@ -133,13 +133,13 @@ public static class GLTests
                 if (id == rotatorId) { continue; }
                 if (id == firstId) { continue; }
                 game.Acquire<Rotation>(id).Value = Quaternion.CreateFromYawPitchRoll(time, 0, 0);
-            }*/
+            }
 
             ref readonly var rotatorAxes = ref game.Inspect<WorldAxes>(rotatorId);
             ref var rotatorPos = ref game.Acquire<Position>(rotatorId).Value;
             rotatorPos += rotatorAxes.Forward * deltaTime * 2;
             game.Acquire<Rotation>(rotatorId).Value = Quaternion.CreateFromAxisAngle(Vector3.UnitY, time);
-            game.Acquire<WorldAxes>(firstId).Forward = rotatorPos;
+            game.Acquire<WorldAxes>(firstId).Forward = rotatorPos;*/
 
             game.Acquire<Rotation>(cameraId).Value = Quaternion.CreateFromYawPitchRoll(-x, -y, 0);
 

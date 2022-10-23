@@ -3,8 +3,7 @@
 #include <nagule/common.glsl>
 
 uniform sampler2D ColorBuffer;
-uniform sampler2D MaxDepthBuffer;
-uniform sampler2D MinDepthBuffer;
+uniform sampler2D DepthBuffer;
 
 in vec2 TexCoord;
 out vec4 FragColor;
@@ -20,7 +19,5 @@ void main()
     // gamma correction 
     mapped = pow(mapped, vec3(1.0 / gamma));
   
-    float depth = LinearizeDepth(textureLod(MaxDepthBuffer, TexCoord, 1).x);
-    mapped = vec3(depth, depth, depth);
     FragColor = vec4(mapped, 1.0);
 }

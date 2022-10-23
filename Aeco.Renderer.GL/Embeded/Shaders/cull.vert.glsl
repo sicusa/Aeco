@@ -7,7 +7,7 @@ layout(location = 0) in mat4 ObjectToWorld;
 out mat4 OriginalObjectToWorld;
 flat out int ObjectVisible;
 
-uniform sampler2D HiZBuffer;
+uniform sampler2D DepthBuffer;
 
 vec4 boundingBox[8];
 
@@ -77,10 +77,10 @@ bool HiZOcclusionCull()
 	
 	/* finally fetch the depth texture using explicit LOD lookups */
 	vec4 samples;
-	samples.x = textureLod(HiZBuffer, vec2(boundingRect[0].x, boundingRect[0].y), LOD).x;
-	samples.y = textureLod(HiZBuffer, vec2(boundingRect[0].x, boundingRect[1].y), LOD).x;
-	samples.z = textureLod(HiZBuffer, vec2(boundingRect[1].x, boundingRect[1].y), LOD).x;
-	samples.w = textureLod(HiZBuffer, vec2(boundingRect[1].x, boundingRect[0].y), LOD).x;
+	samples.x = textureLod(DepthBuffer, vec2(boundingRect[0].x, boundingRect[0].y), LOD).x;
+	samples.y = textureLod(DepthBuffer, vec2(boundingRect[0].x, boundingRect[1].y), LOD).x;
+	samples.z = textureLod(DepthBuffer, vec2(boundingRect[1].x, boundingRect[1].y), LOD).x;
+	samples.w = textureLod(DepthBuffer, vec2(boundingRect[1].x, boundingRect[0].y), LOD).x;
 	float maxDepth = max(max(samples.x, samples.y), max(samples.z, samples.w));
 	
 	/* if the instance depth is bigger than the depth in the texture discard the instance */

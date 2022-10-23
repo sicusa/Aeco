@@ -68,6 +68,9 @@ public class GLRenderer : CompositeLayer
             GL.Disable(EnableCap.Blend);
             GL.DepthMask(true);
 
+            GL.Enable(EnableCap.PrimitiveRestart);
+            GL.PrimitiveRestartIndex(0xFFFFFFFF);
+
             if (_spec.IsDebugEnabled) {
                 _debugProc = DebugProc;
                 GL.Enable(EnableCap.DebugOutput);
@@ -107,6 +110,7 @@ public class GLRenderer : CompositeLayer
 
     public static Guid DefaultFramebufferId { get; } = Guid.Parse("ae2a4c30-86c5-4aad-8293-bb6757a0741e");
     public static Guid DefaultShaderProgramId { get; } = Guid.Parse("fa55827a-852c-4de2-b47e-3df941ec7619");
+    public static Guid MotionShaderProgramId { get; } = Guid.Parse("904b37e2-bb65-4e4f-9cf8-b28ba6563641");
     public static Guid CullingShaderProgramId { get; } = Guid.Parse("ff7d8e33-eeb5-402b-b633-e2b2a264b1e9");
     public static Guid HierarchicalZShaderProgramId { get; } = Guid.Parse("b04b536e-3e4a-4896-b289-6f8910746ef2");
     public static Guid PostProcessingShaderProgramId { get; } = Guid.Parse("8fa594b9-3c16-4996-b7e1-c9cb36037aa2");

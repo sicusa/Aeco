@@ -24,6 +24,7 @@ layout(std140) uniform Camera {
     mat4 Matrix_V;
     mat4 Matrix_P;
     mat4 Matrix_VP;
+    mat4 Matrix_Prev_VP;
     vec3 CameraPosition;
     float CameraNearPlaneDistance;
     float CameraFarPlaneDistance;
@@ -59,6 +60,24 @@ float LinearizeDepth(float depth)
     return (2.0 * n) / (f + n - depth * (f - n));
 }
 
+vec3 GetViewSpacePositionFromDepth(float depth, vec2 uv)
+{
+    float x = uv.x * 2 - 1;
+    float y = (1 - uv.y) * 2 - 1;
+    vec4 projPos = vec4(x, y, depth, 1);
+    vec4 pos = projPos * inverse(Matrix_P);
+    return pos.xyz / pos.w;
+}
+
+vec3 GetWorldSpacePositionFromDepth(float depth, vec2 uv)
+{
+    float x = uv.x * 2 - 1;
+    float y = (1 - uv.y) * 2 - 1;
+    vec4 projPos = vec4(x, y, depth, 1);
+    vec4 pos = projPos * inverse(Matrix_VP);
+    return pos.xyz / pos.w;
+}
+
 #endif",
 
         ["nagule/variant.glsl"] =
@@ -88,6 +107,65 @@ layout(location = 4) in mat4 InstanceObjectToWorld;
 mat4 ObjectToWorld;
 
 #endif"
+    };
+
+
+    private static readonly Dictionary<Type, Action<int, object>> s_uniformSetters = new() {
+        [typeof(int)] = (location, value) => GL.Uniform1(location, (int)value),
+        [typeof(int[])] = (location, value) => {
+            var arr = (int[])value;
+            GL.Uniform1(location, arr.Length, arr);
+        },
+        [typeof(float)] = (location, value) => GL.Uniform1(location, (float)value),
+        [typeof(float[])] = (location, value) => {
+            var arr = (float[])value;
+            GL.Uniform1(location, arr.Length, arr);
+        },
+        [typeof(double)] = (location, value) => GL.Uniform1(location, (double)value),
+        [typeof(double[])] = (location, value) => {
+            var arr = (double[])value;
+            GL.Uniform1(location, arr.Length, arr);
+        },
+        [typeof(Vector2)] = (location, value) => {
+            var vec = (Vector2)value;
+            GL.Uniform2(location, vec.X, vec.Y);
+        },
+        [typeof(Vector2[])] = (location, value) => {
+            var arr = (Vector2[])value;
+            GL.Uniform2(location, arr.Length, ref arr[0].X);
+        },
+        [typeof(Vector3)] = (location, value) => {
+            var vec = (Vector3)value;
+            GL.Uniform3(location, vec.X, vec.Y, vec.Z);
+        },
+        [typeof(Vector3[])] = (location, value) => {
+            var arr = (Vector3[])value;
+            GL.Uniform3(location, arr.Length, ref arr[0].X);
+        },
+        [typeof(Vector4)] = (location, value) => {
+            var vec = (Vector4)value;
+            GL.Uniform4(location, vec.X, vec.Y, vec.Z, vec.W);
+        },
+        [typeof(Vector4[])] = (location, value) => {
+            var arr = (Vector4[])value;
+            GL.Uniform3(location, arr.Length, ref arr[0].X);
+        },
+        [typeof(Matrix3x2)] = (location, value) => {
+            var mat = (Matrix3x2)value;
+            GL.UniformMatrix2x3(location, 1, true, ref mat.M11);
+        },
+        [typeof(Matrix3x2[])] = (location, value) => {
+            var arr = (Matrix3x2[])value;
+            GL.UniformMatrix2x3(location, arr.Length, true, ref arr[0].M11);
+        },
+        [typeof(Matrix4x4)] = (location, value) => {
+            var mat = (Matrix4x4)value;
+            GL.UniformMatrix4(location, 1, true, ref mat.M11);
+        },
+        [typeof(Matrix4x4[])] = (location, value) => {
+            var arr = (Matrix4x4[])value;
+            GL.UniformMatrix4(location, arr.Length, true, ref arr[0].M11);
+        },
     };
 
     public string Desugar(string source)
@@ -162,6 +240,8 @@ mat4 ObjectToWorld;
 
         // initialize uniform locations
 
+        data.DepthBufferLocation = GL.GetUniformLocation(program, "DepthBuffer");
+
         EnumArray<TextureType, int>? textureLocations = null;
         if (resource.IsMaterialTexturesEnabled) {
             textureLocations = new EnumArray<TextureType, int>();
@@ -178,6 +258,25 @@ mat4 ObjectToWorld;
                 builder.Add(uniform, location);
             }
             customLocations = builder.ToImmutable();
+        }
+
+        if (resource.DefaultUniformValues != null) {
+            foreach (var (name, value) in resource.DefaultUniformValues) {
+                var location = GL.GetUniformLocation(program, name);
+                if (location == -1) {
+                    Console.WriteLine($"Failed to set uniform '{name}': uniform not found.");
+                }
+                if (!s_uniformSetters.TryGetValue(value.GetType(), out var setter)) {
+                    Console.WriteLine($"Failed to set uniform '{name}': uniform type unrecognized.");
+                    continue;
+                }
+                try {
+                    setter(location, value);
+                }
+                catch (Exception e) {
+                    Console.WriteLine($"Failed to set uniform '{name}': " + e.Message);
+                }
+            }
         }
 
         var blockLocations = new BlockLocations {

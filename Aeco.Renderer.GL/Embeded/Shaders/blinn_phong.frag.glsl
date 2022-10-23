@@ -5,6 +5,7 @@
 uniform sampler2D DiffuseTex;
 uniform sampler2D SpecularTex;
 uniform sampler2D EmissionTex;
+uniform sampler2D DepthBuffer;
 
 in VertOutput {
     vec3 Position;
