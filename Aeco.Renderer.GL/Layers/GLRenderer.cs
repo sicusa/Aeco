@@ -62,7 +62,6 @@ public class GLRenderer : CompositeLayer
             
             GL.ClearColor(_clearColor.X, _clearColor.Y, _clearColor.Z, _clearColor.W);
             GL.Enable(EnableCap.DepthTest);
-            GL.Enable(EnableCap.FramebufferSrgb); 
             GL.Enable(EnableCap.CullFace);
 
             if (_spec.IsDebugEnabled) {
