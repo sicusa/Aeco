@@ -52,7 +52,7 @@ public static class GLTests
         var mainLight = game.CreateEntity();
         mainLight.Acquire<Parent>().Id = GLRenderer.RootId;
         mainLight.Acquire<Rotation>().Value = Quaternion.CreateFromYawPitchRoll(-90, -45, 0);
-        mainLight.Acquire<MainLight>().Color = new Vector4(1, 1, 1, 0.8f);
+        mainLight.Acquire<MainLight>().Color = new Vector4(1, 1, 1, 2f);
 
         var cameraId = Guid.Parse("c2003019-0b2a-4f4c-ba31-9930c958ff83");
         game.Acquire<Camera>(cameraId);
@@ -63,7 +63,7 @@ public static class GLTests
         var torusMesh = torusModel.RootNode!.Meshes![0];
         torusMesh.Material = new MaterialResource {
             Parameters = new() {
-                AmbientColor = new Vector4(0.2f),
+                AmbientColor = new Vector4(0.3f),
                 DiffuseColor = new Vector4(1, 1, 1, 1),
                 SpecularColor = new Vector4(0.3f),
                 Shininess = 32

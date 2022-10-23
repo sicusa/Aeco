@@ -27,7 +27,7 @@ public class TextureManager : ResourceManagerBase<Texture, TextureData, TextureR
 
         var image = resource.Image ?? ImageResource.Hint;
         GL.TexImage2D(
-            TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
+            TextureTarget.Texture2D, 0, PixelInternalFormat.SrgbAlpha,
             image.Width, image.Height, 0, PixelFormat.Rgba,
             PixelType.UnsignedByte, image.Bytes);
 
