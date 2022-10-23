@@ -24,8 +24,8 @@ public static class GLTests
             Width = 800,
             Height = 600,
             //IsFullscreen = true,
-            Title = "RPG Game",
-            IsDebugEnabled = true
+            Title = "RPG Game"
+            //IsDebugEnabled = true
         });
 
         void PrintLayerProfiles<TLayer>(string name, IEnumerable<(TLayer, GLRenderer.LayerProfile)> profiles)
@@ -52,7 +52,7 @@ public static class GLTests
         var mainLight = game.CreateEntity();
         mainLight.Acquire<Parent>().Id = GLRenderer.RootId;
         mainLight.Acquire<Rotation>().Value = Quaternion.CreateFromYawPitchRoll(-90, -45, 0);
-        mainLight.Acquire<MainLight>().Color = new Vector4(1, 1, 1, 1f);
+        mainLight.Acquire<MainLight>().Color = new Vector4(1, 1, 1, 0.8f);
 
         var cameraId = Guid.Parse("c2003019-0b2a-4f4c-ba31-9930c958ff83");
         game.Acquire<Camera>(cameraId);
@@ -62,10 +62,12 @@ public static class GLTests
         var torusModel = InternalAssets.Load<ModelResource>("Models.torus.glb");
         var torusMesh = torusModel.RootNode!.Meshes![0];
         torusMesh.Material = new MaterialResource {
-            AmbientColor = new Vector4(0.2f),
-            DiffuseColor = new Vector4(1, 1, 1, 1),
-            SpecularColor = new Vector4(0.3f),
-            Shininess = 32
+            Parameters = new() {
+                AmbientColor = new Vector4(0.2f),
+                DiffuseColor = new Vector4(1, 1, 1, 1),
+                SpecularColor = new Vector4(0.3f),
+                Shininess = 32
+            }
         };
         torusMesh.Material.Textures[TextureType.Diffuse] =
             new TextureResource(InternalAssets.Load<ImageResource>("Textures.wall.jpg"));
@@ -73,10 +75,12 @@ public static class GLTests
         var sphereModel = InternalAssets.Load<ModelResource>("Models.sphere.glb");
         var sphereMesh = sphereModel.RootNode!.Meshes![0];
         sphereMesh.Material = new MaterialResource {
-            AmbientColor = new Vector4(0.2f),
-            DiffuseColor = new Vector4(1, 1, 1, 1),
-            SpecularColor = new Vector4(0.3f),
-            Shininess = 32
+            Parameters = new() {
+                AmbientColor = new Vector4(0.2f),
+                DiffuseColor = new Vector4(1, 1, 1, 1),
+                SpecularColor = new Vector4(0.3f),
+                Shininess = 32
+            }
         };
         sphereMesh.Material.Textures[TextureType.Diffuse] =
             new TextureResource(InternalAssets.Load<ImageResource>("Textures.wall.jpg"));
@@ -96,7 +100,7 @@ public static class GLTests
         Guid firstId = prevId;
         game.Acquire<Scale>(prevId).Value = new Vector3(0.3f);
 
-        for (int i = 0; i < 5000; ++i) {
+        for (int i = 0; i < 10000; ++i) {
             prevId = CreateObject(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), firstId, torusMesh);
             game.Acquire<Scale>(prevId).Value = new Vector3(0.99f);
         }
