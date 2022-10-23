@@ -25,6 +25,8 @@ layout(std140) uniform Camera {
     mat4 Matrix_P;
     mat4 Matrix_VP;
     vec3 CameraPosition;
+    float CameraNearPlaneDistance;
+    float CameraFarPlaneDistance;
 };
 
 layout(std140) uniform MainLight {
@@ -50,15 +52,24 @@ layout(std140) uniform Mesh {
     vec3 BoundingBoxMax;
 };
 
+float LinearizeDepth(float depth)
+{
+    float n = CameraNearPlaneDistance;
+    float f = CameraFarPlaneDistance;
+    return (2.0 * n) / (f + n - depth * (f - n));
+}
+
 #endif",
 
         ["nagule/variant.glsl"] =
 @"#ifndef NAGULE_OBJECT
 #define NAGULE_OBJECT
+
 layout(std140) uniform Object {
     mat4 ObjectToWorld;
     bool IsVariant;
 };
+
 #endif",
 
         ["nagule/instancing.glsl"] =
@@ -77,64 +88,6 @@ layout(location = 4) in mat4 InstanceObjectToWorld;
 mat4 ObjectToWorld;
 
 #endif"
-    };
-
-    private static readonly Dictionary<Type, Action<int, object>> s_uniformSetters = new() {
-        [typeof(int)] = (location, value) => GL.Uniform1(location, (int)value),
-        [typeof(int[])] = (location, value) => {
-            var arr = (int[])value;
-            GL.Uniform1(location, arr.Length, arr);
-        },
-        [typeof(float)] = (location, value) => GL.Uniform1(location, (float)value),
-        [typeof(float[])] = (location, value) => {
-            var arr = (float[])value;
-            GL.Uniform1(location, arr.Length, arr);
-        },
-        [typeof(double)] = (location, value) => GL.Uniform1(location, (double)value),
-        [typeof(double[])] = (location, value) => {
-            var arr = (double[])value;
-            GL.Uniform1(location, arr.Length, arr);
-        },
-        [typeof(Vector2)] = (location, value) => {
-            var vec = (Vector2)value;
-            GL.Uniform2(location, vec.X, vec.Y);
-        },
-        [typeof(Vector2[])] = (location, value) => {
-            var arr = (Vector2[])value;
-            GL.Uniform2(location, arr.Length, ref arr[0].X);
-        },
-        [typeof(Vector3)] = (location, value) => {
-            var vec = (Vector3)value;
-            GL.Uniform3(location, vec.X, vec.Y, vec.Z);
-        },
-        [typeof(Vector3[])] = (location, value) => {
-            var arr = (Vector3[])value;
-            GL.Uniform3(location, arr.Length, ref arr[0].X);
-        },
-        [typeof(Vector4)] = (location, value) => {
-            var vec = (Vector4)value;
-            GL.Uniform4(location, vec.X, vec.Y, vec.Z, vec.W);
-        },
-        [typeof(Vector4[])] = (location, value) => {
-            var arr = (Vector4[])value;
-            GL.Uniform3(location, arr.Length, ref arr[0].X);
-        },
-        [typeof(Matrix3x2)] = (location, value) => {
-            var mat = (Matrix3x2)value;
-            GL.UniformMatrix2x3(location, 1, true, ref mat.M11);
-        },
-        [typeof(Matrix3x2[])] = (location, value) => {
-            var arr = (Matrix3x2[])value;
-            GL.UniformMatrix2x3(location, arr.Length, true, ref arr[0].M11);
-        },
-        [typeof(Matrix4x4)] = (location, value) => {
-            var mat = (Matrix4x4)value;
-            GL.UniformMatrix4(location, 1, true, ref mat.M11);
-        },
-        [typeof(Matrix4x4[])] = (location, value) => {
-            var arr = (Matrix4x4[])value;
-            GL.UniformMatrix4(location, arr.Length, true, ref arr[0].M11);
-        },
     };
 
     public string Desugar(string source)
@@ -227,28 +180,7 @@ mat4 ObjectToWorld;
             customLocations = builder.ToImmutable();
         }
 
-        if (resource.DefaultUniformValues != null) {
-            foreach (var (name, value) in resource.DefaultUniformValues) {
-                var location = GL.GetUniformLocation(program, name);
-                if (location == -1) {
-                    Console.WriteLine($"Failed to set uniform '{name}': uniform not found.");
-                }
-                if (!s_uniformSetters.TryGetValue(value.GetType(), out var setter)) {
-                    Console.WriteLine($"Failed to set uniform '{name}': uniform type unrecognized.");
-                    continue;
-                }
-                try {
-                    setter(location, value);
-                }
-                catch (Exception e) {
-                    Console.WriteLine($"Failed to set uniform '{name}': " + e.Message);
-                }
-            }
-        }
-
-        var uniforms = new UniformLocations {
-            Textures = textureLocations,
-            Custom = customLocations,
+        var blockLocations = new BlockLocations {
             FramebufferBlock = GL.GetUniformBlockIndex(program, "Framebuffer"),
             CameraBlock = GL.GetUniformBlockIndex(program, "Camera"),
             MainLightBlock = GL.GetUniformBlockIndex(program, "MainLight"),
@@ -257,29 +189,31 @@ mat4 ObjectToWorld;
             ObjectBlock = GL.GetUniformBlockIndex(program, "Object")
         };
 
-        if (uniforms.FramebufferBlock != -1) {
-            GL.UniformBlockBinding(program, uniforms.FramebufferBlock, (int)UniformBlockBinding.Framebuffer);
+        if (blockLocations.FramebufferBlock != -1) {
+            GL.UniformBlockBinding(program, blockLocations.FramebufferBlock, (int)UniformBlockBinding.Framebuffer);
         }
-        if (uniforms.CameraBlock != -1) {
-            GL.UniformBlockBinding(program, uniforms.CameraBlock, (int)UniformBlockBinding.Camera);
+        if (blockLocations.CameraBlock != -1) {
+            GL.UniformBlockBinding(program, blockLocations.CameraBlock, (int)UniformBlockBinding.Camera);
         }
-        if (uniforms.MainLightBlock != -1) {
-            GL.UniformBlockBinding(program, uniforms.MainLightBlock, (int)UniformBlockBinding.MainLight);
+        if (blockLocations.MainLightBlock != -1) {
+            GL.UniformBlockBinding(program, blockLocations.MainLightBlock, (int)UniformBlockBinding.MainLight);
         }
-        if (uniforms.MaterialBlock != -1) {
-            GL.UniformBlockBinding(program, uniforms.MaterialBlock, (int)UniformBlockBinding.Material);
+        if (blockLocations.MaterialBlock != -1) {
+            GL.UniformBlockBinding(program, blockLocations.MaterialBlock, (int)UniformBlockBinding.Material);
         }
-        if (uniforms.MeshBlock != -1) {
-            GL.UniformBlockBinding(program, uniforms.MeshBlock, (int)UniformBlockBinding.Mesh);
+        if (blockLocations.MeshBlock != -1) {
+            GL.UniformBlockBinding(program, blockLocations.MeshBlock, (int)UniformBlockBinding.Mesh);
         }
-        if (uniforms.ObjectBlock != -1) {
-            GL.UniformBlockBinding(program, uniforms.ObjectBlock, (int)UniformBlockBinding.Object);
+        if (blockLocations.ObjectBlock != -1) {
+            GL.UniformBlockBinding(program, blockLocations.ObjectBlock, (int)UniformBlockBinding.Object);
         }
 
         // finish initialization
 
         data.Handle = program;
-        data.UniformLocations = uniforms;
+        data.TextureLocations = textureLocations;
+        data.CustomLocations = customLocations;
+        data.BlockLocations = blockLocations;
     }
 
     private int CompileShader(ShaderType type, string source)

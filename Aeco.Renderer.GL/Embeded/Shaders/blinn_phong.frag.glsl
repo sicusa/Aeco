@@ -12,7 +12,7 @@ in VertOutput {
     vec3 Normal;
 } i;
 
-out vec4 fragColor;
+out vec4 FragColor;
 
 void main()
 {
@@ -39,5 +39,5 @@ void main()
     vec3 emission = emissionColor.xyz * emissionColor.w;
 
     // result
-    fragColor = vec4(diffuse + specular + emission, 1);
+    FragColor = vec4(diffuse + specular + emission, 1);
 }

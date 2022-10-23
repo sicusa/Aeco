@@ -30,14 +30,16 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
         // hierarchical-Z occlusion culling
 
         ref readonly var hizProgramData = ref context.Inspect<ShaderProgramData>(GLRenderer.HierarchicalZShaderProgramId);
+        int lastMipSizeLocation = hizProgramData.CustomLocations["LastMipSize"];
 
-        var hizProgram = hizProgramData.Handle;
-        int lastMipSizeLocation = hizProgramData.UniformLocations.Custom["LastMipSize"];
-
-        GL.UseProgram(hizProgram);
+        GL.UseProgram(hizProgramData.Handle);
         GL.ColorMask(false, false, false, false);
         GL.ActiveTexture(TextureUnit.Texture0);
-        GL.BindTexture(TextureTarget.Texture2D, framebuffer.DepthTextureHandle);
+        GL.BindTexture(TextureTarget.Texture2D, framebuffer.MaxDepthTextureHandle);
+        GL.Uniform1(hizProgramData.CustomLocations["LastMaxMip"], 0);
+        GL.ActiveTexture(TextureUnit.Texture1);
+        GL.BindTexture(TextureTarget.Texture2D, framebuffer.MinDepthTextureHandle);
+        GL.Uniform1(hizProgramData.CustomLocations["LastMinMip"], 1);
         GL.DepthFunc(DepthFunction.Always);
 
         int width = framebuffer.Width;
@@ -51,19 +53,21 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
             height /= 2;
             width = width > 0 ? width : 1;
             height = height > 0 ? height : 1;
-
             GL.Viewport(0, 0, width, height);
+
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, i - 1);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, i - 1);
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-                FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, framebuffer.DepthTextureHandle, i);
+                FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, framebuffer.MaxDepthTextureHandle, i);
             GL.DrawArrays(PrimitiveType.Points, 0, 1);
         }
 
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, 0);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, levelCount - 1);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-            FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, framebuffer.DepthTextureHandle, 0);
+            FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, framebuffer.ColorTextureHandle, 0);
+        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
+            FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, framebuffer.MaxDepthTextureHandle, 0);
         GL.DepthFunc(DepthFunction.Lequal);
         GL.ColorMask(true, true, true, true);
         GL.Viewport(0, 0, framebuffer.Width, framebuffer.Height);
@@ -135,12 +139,18 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
         GL.BindVertexArray(_defaultVertexArray);
 
         ref readonly var postProgram = ref context.Inspect<ShaderProgramData>(GLRenderer.PostProcessingShaderProgramId);
+        var customLocations = postProgram.CustomLocations;
         GL.UseProgram(postProgram.Handle);
 
         GL.ActiveTexture(TextureUnit.Texture0);
         GL.BindTexture(TextureTarget.Texture2D, framebuffer.ColorTextureHandle);
+        GL.Uniform1(customLocations["ColorBuffer"], 0);
         GL.ActiveTexture(TextureUnit.Texture1);
-        GL.BindTexture(TextureTarget.Texture2D, framebuffer.DepthTextureHandle);
+        GL.BindTexture(TextureTarget.Texture2D, framebuffer.MaxDepthTextureHandle);
+        GL.Uniform1(customLocations["MaxDepthBuffer"], 1);
+        GL.ActiveTexture(TextureUnit.Texture2);
+        GL.BindTexture(TextureTarget.Texture2D, framebuffer.MinDepthTextureHandle);
+        GL.Uniform1(customLocations["MinDepthBuffer"], 2);
 
         GL.Disable(EnableCap.DepthTest);
         GL.DrawArrays(PrimitiveType.Points, 0, 1);
@@ -161,7 +171,7 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
         GL.UseProgram(shaderProgramData.Handle);
 
         var textures = materialData.Textures;
-        var textureLocations = shaderProgramData.UniformLocations.Textures;
+        var textureLocations = shaderProgramData.TextureLocations;
 
         for (int i = 0; i != textures.Length; ++i) {
             int location = textureLocations![i];

@@ -38,7 +38,7 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
 
         resource = new ShaderProgramResource {
             IsMaterialTexturesEnabled = false,
-            CustomUniforms = new() { "LastMipSize" }
+            CustomUniforms = new() { "LastMaxMip", "LastMinMip", "LastMipSize" }
         };
         
         resource.Shaders[ShaderType.Vertex] = emptyVertShader;
@@ -55,7 +55,8 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
         // load post-processing shader program
 
         resource = new ShaderProgramResource {
-            IsMaterialTexturesEnabled = false
+            IsMaterialTexturesEnabled = false,
+            CustomUniforms = new() { "ColorBuffer", "MaxDepthBuffer", "MinDepthBuffer" }
         };
         
         resource.Shaders[ShaderType.Vertex] = emptyVertShader;

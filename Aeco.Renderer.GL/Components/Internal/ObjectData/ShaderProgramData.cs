@@ -2,11 +2,8 @@ namespace Aeco.Renderer.GL;
 
 using System.Collections.Immutable;
 
-public struct UniformLocations
+public struct BlockLocations
 {
-    public EnumArray<TextureType, int>? Textures;
-    public ImmutableDictionary<string, int> Custom;
-
     public int FramebufferBlock;
     public int CameraBlock;
     public int MainLightBlock;
@@ -28,7 +25,10 @@ public enum UniformBlockBinding
 public struct ShaderProgramData : IGLObject
 {
     public int Handle;
-    public UniformLocations UniformLocations;
+    public BlockLocations BlockLocations;
+    public EnumArray<TextureType, int>? TextureLocations;
+    public ImmutableDictionary<string, int> CustomLocations;
+
 
     public void Dispose() { this = new(); }
 }

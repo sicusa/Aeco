@@ -24,6 +24,7 @@ public class CameraUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
 
     private unsafe void DoUpdate(IDataLayer<IComponent> context, Guid id)
     {
+        ref readonly var camera = ref context.Inspect<Camera>(id);
         ref var buffer = ref context.Acquire<CameraUniformBuffer>(id, out bool exists);
         IntPtr pointer;
 
@@ -43,6 +44,8 @@ public class CameraUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
         pars.Projection = Matrix4x4.Transpose(context.UnsafeAcquire<CameraMatrices>(id).ProjectionRaw);
         pars.ViewProjection = pars.Projection * pars.View;
         pars.Position = context.UnsafeAcquire<WorldPosition>(id).Value;
+        pars.NearPlaneDistance = camera.NearPlaneDistance;
+        pars.FarPlaneDistance = camera.FarPlaneDistance;
 
         fixed (CameraParameters* parsPtr = &pars) {
             System.Buffer.MemoryCopy(parsPtr, (void*)pointer,
