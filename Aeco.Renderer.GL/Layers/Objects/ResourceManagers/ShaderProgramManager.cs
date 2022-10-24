@@ -117,7 +117,7 @@ float GetTransparencyDepthWeight(float z, float a)
     return clamp(pow(min(1.0, a * 10.0) + 0.01, 3.0) * 1e8 * pow(1.0 - z * 0.9, 3.0), 1e-2, 3e3);
 }
 
-float GetBlendAlpha(float a)
+float GetWeightedCoverage(float a)
 {
     return GetTransparencyDepthWeight(gl_FragCoord.z, a) * a;
 }
