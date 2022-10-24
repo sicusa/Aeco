@@ -1,16 +1,18 @@
 namespace Aeco.Renderer.GL;
 
-public struct FramebufferData : IGLObject
+public struct RenderTargetData : IGLObject
 {
-    public int Handle;
-    public int ColorTextureHandle;
-    public int TransparencyAccumTextureHandle;
-    public int TransparencyAlphaTextureHandle;
-    public int DepthTextureHandle;
     public int UniformBufferHandle;
-
     public int Width;
     public int Height;
+
+    public int ColorFramebufferHandle;
+    public int ColorTextureHandle;
+    public int DepthTextureHandle;
+
+    public int TransparencyFramebufferHandle;
+    public int TransparencyAccumTextureHandle;
+    public int TransparencyAlphaTextureHandle;
 
     public void Dispose() { this = new(); }
 }

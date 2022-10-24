@@ -1,8 +1,8 @@
 namespace Aeco.Renderer.GL;
 
-public record FramebufferResource : IGLResource
+public record RenderTargetResource : IGLResource
 {
-    public static readonly FramebufferResource Default = new() {
+    public static readonly RenderTargetResource Default = new() {
         AutoResizeByWindow = true
     };
 

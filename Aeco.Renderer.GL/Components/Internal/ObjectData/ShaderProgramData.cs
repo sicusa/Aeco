@@ -14,7 +14,7 @@ public struct BlockLocations
 
 public enum UniformBlockBinding
 {
-    Framebuffer = 1,
+    RenderTarget = 1,
     Camera,
     MainLight,
     Material,

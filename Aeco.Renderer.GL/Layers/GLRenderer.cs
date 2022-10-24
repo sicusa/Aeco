@@ -109,7 +109,7 @@ public class GLRenderer : CompositeLayer
         public double MinimumTime;
     }
 
-    public static Guid DefaultFramebufferId { get; } = Guid.Parse("ae2a4c30-86c5-4aad-8293-bb6757a0741e");
+    public static Guid DefaultRenderTargetId { get; } = Guid.Parse("ae2a4c30-86c5-4aad-8293-bb6757a0741e");
     public static Guid DefaultShaderProgramId { get; } = Guid.Parse("fa55827a-852c-4de2-b47e-3df941ec7619");
     public static Guid DefaultTransparentShaderProgramId { get; } = Guid.Parse("f03617c0-61c3-415c-bc37-ffce0e652de3");
     public static Guid MotionShaderProgramId { get; } = Guid.Parse("904b37e2-bb65-4e4f-9cf8-b28ba6563641");
@@ -179,11 +179,11 @@ public class GLRenderer : CompositeLayer
                 new PolyPoolStorage<IGLObject>(),
 
                 new UnusedResourceDestroyer(),
-                new DefaultFramebufferLoader(),
+                new DefaultRenderTargetLoader(),
                 new DefaultTextureLoader(),
                 new EmbededShaderProgramsLoader(),
 
-                new FramebufferManager(),
+                new RenderTargetManager(),
                 new MeshRenderableManager(),
                 new MeshManager(),
                 new MaterialManager(),

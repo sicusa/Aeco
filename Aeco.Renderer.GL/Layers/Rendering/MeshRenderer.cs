@@ -13,9 +13,6 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
     private int _windowHeight;
     private int _defaultVertexArray;
 
-    private DrawBuffersEnum[] _normalDraw = { DrawBuffersEnum.ColorAttachment0 };
-    private DrawBuffersEnum[] _transparentDraw = { DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1 };
-
     public void OnLoad(IDataLayer<IComponent> context)
     {
         _g.Refresh(context);
@@ -24,14 +21,14 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
 
     public void OnRender(IDataLayer<IComponent> context, float deltaTime)
     {
-        ref readonly var framebuffer = ref context.Inspect<FramebufferData>(GLRenderer.DefaultFramebufferId);
+        ref readonly var renderTarget = ref context.Inspect<RenderTargetData>(GLRenderer.DefaultRenderTargetId);
 
-        GL.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer.Handle);
-        GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.Framebuffer, framebuffer.UniformBufferHandle);
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, renderTarget.ColorFramebufferHandle);
+        GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.RenderTarget, renderTarget.UniformBufferHandle);
         GL.BindVertexArray(_defaultVertexArray);
 
         GL.ActiveTexture(TextureUnit.Texture0);
-        GL.BindTexture(TextureTarget.Texture2D, framebuffer.DepthTextureHandle);
+        GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
 
         // motion-based depth filling
 
@@ -49,10 +46,10 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
 
         GL.UseProgram(hizProgramData.Handle);
         GL.ActiveTexture(TextureUnit.Texture0);
-        GL.BindTexture(TextureTarget.Texture2D, framebuffer.DepthTextureHandle);
+        GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
 
-        int width = framebuffer.Width;
-        int height = framebuffer.Height;
+        int width = renderTarget.Width;
+        int height = renderTarget.Height;
         int levelCount = 1 + (int)MathF.Floor(MathF.Log2(MathF.Max(width, height)));
 
         for (int i = 1; i < levelCount; ++i) {
@@ -67,20 +64,20 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, i - 1);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, i - 1);
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-                FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, framebuffer.DepthTextureHandle, i);
+                FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, renderTarget.DepthTextureHandle, i);
             GL.DrawArrays(PrimitiveType.Points, 0, 1);
         }
 
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, levelCount - 1);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-            FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, framebuffer.ColorTextureHandle, 0);
+            FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, renderTarget.ColorTextureHandle, 0);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-            FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, framebuffer.DepthTextureHandle, 0);
+            FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, renderTarget.DepthTextureHandle, 0);
 
         GL.DepthFunc(DepthFunction.Lequal);
         GL.ColorMask(true, true, true, true);
-        GL.Viewport(0, 0, framebuffer.Width, framebuffer.Height);
+        GL.Viewport(0, 0, renderTarget.Width, renderTarget.Height);
 
         // instance cloud culling
 
@@ -90,7 +87,7 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
 
         foreach (var id in _g.Query(context)) {
             ref readonly var meshData = ref context.Inspect<MeshData>(id);
-            Cull(context, id, in meshData, in framebuffer);
+            Cull(context, id, in meshData);
         }
 
         GL.Disable(EnableCap.RasterizerDiscard);
@@ -108,16 +105,13 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
                 _transparentIds.Add(id);
                 continue;
             }
-            Render(context, id, in meshData, in framebuffer);
+            Render(context, id, in meshData, in renderTarget);
         }
 
         // render transparent objects
+
         if (_transparentIds.Count != 0) {
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-                FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, framebuffer.TransparencyAccumTextureHandle, 0);
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-                FramebufferAttachment.ColorAttachment1, TextureTarget.Texture2D, framebuffer.TransparencyAlphaTextureHandle, 0);
-            GL.DrawBuffers(2, _transparentDraw);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, renderTarget.TransparencyFramebufferHandle);
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
             GL.DepthMask(false);
@@ -126,14 +120,10 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
 
             foreach (var id in _transparentIds) {
                 ref readonly var meshData = ref context.Inspect<MeshData>(id);
-                Render(context, id, in meshData, in framebuffer);
+                Render(context, id, in meshData, in renderTarget);
             }
-            
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-                FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, framebuffer.ColorTextureHandle, 0);
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-                FramebufferAttachment.ColorAttachment1, TextureTarget.Texture2D, 0, 0);
-            GL.DrawBuffers(1, _normalDraw);
+
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, renderTarget.ColorFramebufferHandle);
 
             // compose transparency
 
@@ -143,11 +133,11 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
             GL.UseProgram(composeProgram.Handle);
 
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, framebuffer.TransparencyAccumTextureHandle);
+            GL.BindTexture(TextureTarget.Texture2D, renderTarget.TransparencyAccumTextureHandle);
             GL.Uniform1(composeProgram.CustomLocations["AccumColorTex"], 0);
 
             GL.ActiveTexture(TextureUnit.Texture1);
-            GL.BindTexture(TextureTarget.Texture2D, framebuffer.TransparencyAlphaTextureHandle);
+            GL.BindTexture(TextureTarget.Texture2D, renderTarget.TransparencyAlphaTextureHandle);
             GL.Uniform1(composeProgram.CustomLocations["AccumAlphaTex"], 1);
 
             GL.DrawArrays(PrimitiveType.Points, 0, 1);
@@ -167,11 +157,11 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
         GL.UseProgram(postProgram.Handle);
 
         GL.ActiveTexture(TextureUnit.Texture0);
-        GL.BindTexture(TextureTarget.Texture2D, framebuffer.ColorTextureHandle);
+        GL.BindTexture(TextureTarget.Texture2D, renderTarget.ColorTextureHandle);
         GL.Uniform1(customLocations["ColorBuffer"], 0);
 
         GL.ActiveTexture(TextureUnit.Texture1);
-        GL.BindTexture(TextureTarget.Texture2D, framebuffer.DepthTextureHandle);
+        GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
         GL.Uniform1(postProgram.DepthBufferLocation, 1);
 
         GL.Disable(EnableCap.DepthTest);
@@ -179,7 +169,7 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
         GL.Enable(EnableCap.DepthTest);
     }
 
-    private void Cull(IDataLayer<IComponent> context, Guid id, in MeshData meshData, in FramebufferData framebuffer)
+    private void Cull(IDataLayer<IComponent> context, Guid id, in MeshData meshData)
     {
         ref readonly var meshUniformBuffer = ref context.Inspect<MeshUniformBuffer>(id);
         ref readonly var state = ref context.Inspect<MeshRenderingState>(id);
@@ -195,13 +185,13 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
         GL.EndTransformFeedback();
     }
 
-    private void Render(IDataLayer<IComponent> context, Guid id, in MeshData meshData, in FramebufferData framebuffer)
+    private void Render(IDataLayer<IComponent> context, Guid id, in MeshData meshData, in RenderTargetData renderTarget)
     {
         ref readonly var materialData = ref context.Inspect<MaterialData>(meshData.MaterialId);
         ref readonly var state = ref context.Inspect<MeshRenderingState>(id);
 
         GL.BindVertexArray(meshData.VertexArrayHandle);
-        ApplyMaterial(context, in materialData, in framebuffer);
+        ApplyMaterial(context, in materialData, in renderTarget);
 
         GL.GetQueryObject(meshData.CulledQueryHandle, GetQueryObjectParam.QueryResult, out int instanceCount);
         if (instanceCount > 0) {
@@ -212,7 +202,7 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
             GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.Object,
                 context.Require<VariantUniformBuffer>(variantId).Handle);
             if (context.TryGet<MaterialData>(variantId, out var overwritingMaterialData)) {
-                ApplyMaterial(context, in overwritingMaterialData, in framebuffer);
+                ApplyMaterial(context, in overwritingMaterialData, in renderTarget);
             }
             GL.DrawElements(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, 0);
         }
@@ -224,7 +214,7 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
         _windowHeight = height;
     }
 
-    private void ApplyMaterial(IDataLayer<IComponent> context, in MaterialData materialData, in FramebufferData framebufferData)
+    private void ApplyMaterial(IDataLayer<IComponent> context, in MaterialData materialData, in RenderTargetData renderTarget)
     {
         ref readonly var shaderProgramData = ref context.Inspect<ShaderProgramData>(materialData.ShaderProgramId);
 
@@ -248,7 +238,7 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
 
         if (shaderProgramData.DepthBufferLocation != -1) {
             GL.ActiveTexture(TextureUnit.Texture1 + texturesLength + 1);
-            GL.BindTexture(TextureTarget.Texture2D, framebufferData.DepthTextureHandle);
+            GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
             GL.Uniform1(texturesLength, texturesLength + 2);
         }
     }

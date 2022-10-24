@@ -359,7 +359,7 @@ vec4 BlinnPhong(vec3 position, vec2 texCoord, vec3 normal)
         };
 
         if (blockLocations.FramebufferBlock != -1) {
-            GL.UniformBlockBinding(program, blockLocations.FramebufferBlock, (int)UniformBlockBinding.Framebuffer);
+            GL.UniformBlockBinding(program, blockLocations.FramebufferBlock, (int)UniformBlockBinding.RenderTarget);
         }
         if (blockLocations.CameraBlock != -1) {
             GL.UniformBlockBinding(program, blockLocations.CameraBlock, (int)UniformBlockBinding.Camera);
