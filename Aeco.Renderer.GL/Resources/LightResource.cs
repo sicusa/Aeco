@@ -1,5 +1,5 @@
 namespace Aeco.Renderer.GL;
 
-public class LightResource : IGLResource
+public record LightResource : IGLResource
 {
 }

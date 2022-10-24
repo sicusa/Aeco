@@ -2,7 +2,7 @@ namespace Aeco.Renderer.GL;
 
 using System.Numerics;
 
-public class MeshResource : IGLResource
+public record MeshResource : IGLResource
 {
     public static readonly MeshResource Empty = new() {
         Material = MaterialResource.Default

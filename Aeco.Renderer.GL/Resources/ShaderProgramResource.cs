@@ -10,11 +10,12 @@ public enum ShaderType
     Compute
 }
 
-public class ShaderProgramResource : IGLResource
+public record ShaderProgramResource : IGLResource
 {
     public readonly EnumArray<ShaderType, string?> Shaders = new();
     public string[]? TransformFeedbackVaryings;
     public bool IsMaterialTexturesEnabled = true;
     public Dictionary<string, object>? DefaultUniformValues;
     public HashSet<string>? CustomUniforms;
+    public HashSet<(ShaderType, string)>? Subroutines;
 }

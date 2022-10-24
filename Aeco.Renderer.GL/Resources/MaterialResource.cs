@@ -22,9 +22,10 @@ public struct MaterialParameters
     public MaterialParameters() {}
 }
 
-public class MaterialResource : IGLResource
+public record MaterialResource : IGLResource
 {
     public static readonly MaterialResource Default = new();
     public MaterialParameters Parameters = new();
     public readonly EnumArray<TextureType, TextureResource?> Textures = new();
+    public bool IsTransparent = false;
 }

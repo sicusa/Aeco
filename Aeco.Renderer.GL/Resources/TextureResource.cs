@@ -19,7 +19,7 @@ public enum TextureType
     Unknown
 }
 
-public class TextureResource : IGLResource
+public record TextureResource : IGLResource
 {
     public static readonly TextureResource None = new(ImageResource.Hint);
     public static readonly TextureResource White = new(ImageResource.White);

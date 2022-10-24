@@ -1,6 +1,6 @@
 namespace Aeco.Renderer.GL;
 
-public class ImageResource : IGLResource
+public record ImageResource : IGLResource
 {
     public static readonly ImageResource Hint = new() {
         Bytes = new byte[] {255, 255, 0, 0},

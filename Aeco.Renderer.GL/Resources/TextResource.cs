@@ -1,6 +1,6 @@
 namespace Aeco.Renderer.GL;
 
-public class TextResource : IGLResource
+public record TextResource : IGLResource
 {
     public string Content;
 

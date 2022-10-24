@@ -1,5 +1,5 @@
 namespace Aeco.Renderer.GL;
 
-public class AnimationResource : IGLResource
+public record AnimationResource : IGLResource
 {
 }

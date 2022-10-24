@@ -2,7 +2,7 @@ namespace Aeco.Renderer.GL;
 
 using System.Numerics;
 
-public class ModelNodeResource : IGLResource
+public record ModelNodeResource : IGLResource
 {
     public string Name = "";
     public Vector3 Position;
