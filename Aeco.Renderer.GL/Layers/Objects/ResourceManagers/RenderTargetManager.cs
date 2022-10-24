@@ -102,6 +102,7 @@ public class RenderTargetManager : ResourceManagerBase<RenderTarget, RenderTarge
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, data.TransparencyFramebufferHandle);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, data.TransparencyAccumTextureHandle, 0);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment1, TextureTarget.Texture2D, data.TransparencyAlphaTextureHandle, 0);
+        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, data.DepthTextureHandle, 0);
         GL.DrawBuffers(2, _transparentDraw);
 
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);

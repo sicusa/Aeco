@@ -112,14 +112,14 @@ mat4 ObjectToWorld;
 @"#ifndef NAGULE_TRANSPARENCY
 #define NAGULE_TRANSPARENCY
 
-float GetTransparencyDepthWeight(float z, float a)
+float GetTransparencyWeight(float z, float a)
 {
-    return clamp(pow(min(1.0, a * 10.0) + 0.01, 3.0) * 1e8 * pow(1.0 - z * 0.9, 3.0), 1e-2, 3e3);
+    return a * max(0.01, min(3e3, 10 / (1e-5 + z * z * 0.25 + pow(z / 200, 6))));
 }
 
-float GetWeightedCoverage(float a)
+float GetTransparencyAlpha(float a)
 {
-    return GetTransparencyDepthWeight(gl_FragCoord.z, a) * a;
+    return GetTransparencyWeight(gl_FragCoord.z, a) * a;
 }
 
 #endif",

@@ -9,9 +9,11 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
 {
     private Group<Mesh, MeshRenderingState> _g = new();
     private List<Guid> _transparentIds = new();
+
     private int _windowWidth;
     private int _windowHeight;
     private int _defaultVertexArray;
+    private float[] _transparencyAccumClearColor = {0, 0, 0, 1};
 
     public void OnLoad(IDataLayer<IComponent> context)
     {
@@ -33,8 +35,8 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
         // motion-based depth filling
 
         ref readonly var motionProgramData = ref context.Inspect<ShaderProgramData>(GLRenderer.MotionShaderProgramId);
-
         GL.UseProgram(motionProgramData.Handle);
+
         GL.ColorMask(false, false, false, false);
         GL.DepthFunc(DepthFunction.Always);
         GL.DrawArrays(PrimitiveType.Points, 0, 1);
@@ -43,8 +45,8 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
 
         ref readonly var hizProgramData = ref context.Inspect<ShaderProgramData>(GLRenderer.HierarchicalZShaderProgramId);
         int lastMipSizeLocation = hizProgramData.CustomLocations["LastMipSize"];
-
         GL.UseProgram(hizProgramData.Handle);
+
         GL.ActiveTexture(TextureUnit.Texture0);
         GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
 
@@ -71,8 +73,6 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, levelCount - 1);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-            FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, renderTarget.ColorTextureHandle, 0);
-        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
             FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, renderTarget.DepthTextureHandle, 0);
 
         GL.DepthFunc(DepthFunction.Lequal);
@@ -97,6 +97,7 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
         ref readonly var defaultTexData = ref context.Inspect<TextureData>(GLRenderer.DefaultTextureId);
         GL.ActiveTexture(TextureUnit.Texture0);
         GL.BindTexture(TextureTarget.Texture2D, defaultTexData.Handle);
+
         GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
 
         foreach (var id in _g) {
@@ -112,7 +113,8 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
 
         if (_transparentIds.Count != 0) {
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, renderTarget.TransparencyFramebufferHandle);
-            GL.Clear(ClearBufferMask.ColorBufferBit);
+            GL.ClearBuffer(ClearBuffer.Color, 0, _transparencyAccumClearColor);
+            GL.ClearBuffer(ClearBuffer.Color, 1, _transparencyAccumClearColor);
 
             GL.DepthMask(false);
             GL.Enable(EnableCap.Blend);
@@ -128,9 +130,8 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
             // compose transparency
 
             ref readonly var composeProgram = ref context.Inspect<ShaderProgramData>(GLRenderer.TransparencyComposeShaderProgramId);
-
-            GL.BlendFunc(BlendingFactor.One, BlendingFactor.OneMinusSrcAlpha);
             GL.UseProgram(composeProgram.Handle);
+            GL.BlendFunc(BlendingFactor.One, BlendingFactor.OneMinusSrcAlpha);
 
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, renderTarget.TransparencyAccumTextureHandle);

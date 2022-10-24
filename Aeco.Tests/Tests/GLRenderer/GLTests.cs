@@ -78,7 +78,7 @@ public static class GLTests
                 IsTransparent = true,
                 Parameters = new() {
                     AmbientColor = new Vector4(1),
-                    DiffuseColor = new Vector4(1, 1, 1, 0.1f),
+                    DiffuseColor = new Vector4(1, 1, 1, 0.2f),
                     SpecularColor = new Vector4(0.3f),
                     Shininess = 32
                 }

@@ -19,6 +19,6 @@ layout(location = 1) out float AccumAlpha;
 void main()
 {
     vec4 color = BlinnPhong(i.Position, i.TexCoord, i.Normal);
-    AccumAlpha = GetWeightedCoverage(color.a);
+    AccumAlpha = GetTransparencyAlpha(color.a);
     AccumColor = vec4(color.rgb * AccumAlpha, color.a);
 }
