@@ -13,7 +13,7 @@ public record ModelNodeResource : IGLResource
     public readonly Dictionary<string, object> Metadata = new();
 }
 
-public class ModelResource : IGLResource
+public record ModelResource : IGLResource
 {
     public AnimationResource[]? Animations;
     public LightResource[]? Lights;
