@@ -39,7 +39,7 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
         GL.DepthFunc(DepthFunction.Always);
         GL.DrawArrays(PrimitiveType.Points, 0, 1);
 
-        // hierarchical-Z occlusion culling
+        // generate hierarchical-Z buffer
 
         ref readonly var hizProgramData = ref context.Inspect<ShaderProgramData>(GLRenderer.HierarchicalZShaderProgramId);
         int lastMipSizeLocation = hizProgramData.CustomLocations["LastMipSize"];
@@ -79,7 +79,7 @@ public class MeshRenderer : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRende
         GL.ColorMask(true, true, true, true);
         GL.Viewport(0, 0, renderTarget.Width, renderTarget.Height);
 
-        // instance cloud culling
+        // cull instances by camera frustum and occlusion
 
         var cullProgram = context.Inspect<ShaderProgramData>(GLRenderer.CullingShaderProgramId);
         GL.UseProgram(cullProgram.Handle);
