@@ -106,6 +106,57 @@ layout(std140) uniform Object {
 layout(location = 4) in mat4 InstanceObjectToWorld;
 mat4 ObjectToWorld;
 
+#endif",
+
+        ["nagule/transparency.glsl"] =
+@"#ifndef NAGULE_TRANSPARENCY
+#define NAGULE_TRANSPARENCY
+
+float GetTransparencyDepthWeight(float z, float a)
+{
+    return clamp(pow(min(1.0, a * 10.0) + 0.01, 3.0) * 1e8 * pow(1.0 - z * 0.9, 3.0), 1e-2, 3e3);
+}
+
+float GetBlendAlpha(float a)
+{
+    return GetTransparencyDepthWeight(gl_FragCoord.z, a) * a;
+}
+
+#endif",
+
+        ["nagule/blinn_phong.glsl"] =
+@"#ifndef NAGULE_BLINN_PHONG
+#define NAGULE_BLINN_PHONG
+
+#include <nagule/common.glsl>
+
+vec4 BlinnPhong(vec3 position, vec2 texCoord, vec3 normal)
+{
+    vec2 tiledCoord = texCoord * Tiling;
+
+    vec3 lightDir = MainLightDirection;
+    vec3 lightColor = MainLightColor.rgb * MainLightColor.a;
+    vec3 ambientColor = Ambient.rgb * Ambient.a;
+
+    // diffuse 
+    float diff = max(0.5 * dot(normal, -lightDir) + 0.5, 0.0);
+    vec4 diffuseColor = Diffuse * texture(DiffuseTex, tiledCoord);
+    vec3 diffuse = (diff * lightColor + ambientColor) * diffuseColor.rgb;
+    
+    // specular
+    vec3 viewDir = normalize(CameraPosition - position);
+    vec3 divisor = normalize(viewDir - lightDir);
+    float spec = pow(max(dot(divisor, normal), 0.0), Shininess);
+    vec4 specularColor = Specular * texture(SpecularTex, tiledCoord);
+    vec3 specular = spec * lightColor * specularColor.rgb;
+
+    // emission
+    vec4 emissionColor = Emission * texture(EmissionTex, tiledCoord);
+    vec3 emission = emissionColor.rgb * emissionColor.a;
+
+    return vec4(diffuse + specular + emission, diffuseColor.a);
+}
+
 #endif"
     };
 
@@ -175,7 +226,7 @@ mat4 ObjectToWorld;
                 Console.WriteLine("Shader file not found: " + match.Value);
                 return "";
             }
-            return result;
+            return Desugar(result);
         });
 
     protected override void Initialize(
@@ -255,6 +306,10 @@ mat4 ObjectToWorld;
             var builder = ImmutableDictionary.CreateBuilder<string, int>();
             foreach (var uniform in resource.CustomUniforms) {
                 var location = GL.GetUniformLocation(program, uniform);
+                if (location == -1) {
+                    Console.WriteLine($"Custom uniform '{uniform}' not found");
+                    continue;
+                }
                 builder.Add(uniform, location);
             }
             customLocations = builder.ToImmutable();
@@ -276,6 +331,21 @@ mat4 ObjectToWorld;
                 catch (Exception e) {
                     Console.WriteLine($"Failed to set uniform '{name}': " + e.Message);
                 }
+            }
+        }
+
+        EnumArray<ShaderType, ImmutableDictionary<string, int>>? subroutineIndeces = null;
+        if (resource.Subroutines != null) {
+            foreach (var (shaderType, name) in resource.Subroutines) {
+                var index = GL.GetSubroutineIndex(program, ToGLShaderType(shaderType), name);
+                if (index == -1) {
+                    Console.WriteLine($"Subroutine index '{name}' not found");
+                    continue;
+                }
+                subroutineIndeces = subroutineIndeces ?? new();
+                var indeces = subroutineIndeces[shaderType] ?? ImmutableDictionary<string, int>.Empty;
+                indeces = indeces.Add(name, index);
+                subroutineIndeces[shaderType] = indeces;
             }
         }
 
@@ -312,21 +382,13 @@ mat4 ObjectToWorld;
         data.Handle = program;
         data.TextureLocations = textureLocations;
         data.CustomLocations = customLocations;
+        data.SubroutineLoactions = subroutineIndeces;
         data.BlockLocations = blockLocations;
-    }
+    } 
 
     private int CompileShader(ShaderType type, string source)
     {
-        OpenTK.Graphics.OpenGL4.ShaderType glShaderType = type switch {
-            ShaderType.Fragment => OpenTK.Graphics.OpenGL4.ShaderType.FragmentShader,
-            ShaderType.Vertex => OpenTK.Graphics.OpenGL4.ShaderType.VertexShader,
-            ShaderType.Geometry => OpenTK.Graphics.OpenGL4.ShaderType.GeometryShader,
-            ShaderType.Compute => OpenTK.Graphics.OpenGL4.ShaderType.ComputeShader,
-            ShaderType.TessellationEvaluation => OpenTK.Graphics.OpenGL4.ShaderType.TessEvaluationShader,
-            ShaderType.TessellationControl => OpenTK.Graphics.OpenGL4.ShaderType.TessControlShader,
-            _ => throw new NotSupportedException("Unknown shader type: " + type)
-        };
-
+        var glShaderType = ToGLShaderType(type);
         int handle = GL.CreateShader(glShaderType);
         GL.ShaderSource(handle, Desugar(source));
 
@@ -347,4 +409,15 @@ mat4 ObjectToWorld;
     {
         GL.DeleteProgram(data.Handle);
     }
+
+    private OpenTK.Graphics.OpenGL4.ShaderType ToGLShaderType(ShaderType type)
+        => type switch {
+            ShaderType.Fragment => OpenTK.Graphics.OpenGL4.ShaderType.FragmentShader,
+            ShaderType.Vertex => OpenTK.Graphics.OpenGL4.ShaderType.VertexShader,
+            ShaderType.Geometry => OpenTK.Graphics.OpenGL4.ShaderType.GeometryShader,
+            ShaderType.Compute => OpenTK.Graphics.OpenGL4.ShaderType.ComputeShader,
+            ShaderType.TessellationEvaluation => OpenTK.Graphics.OpenGL4.ShaderType.TessEvaluationShader,
+            ShaderType.TessellationControl => OpenTK.Graphics.OpenGL4.ShaderType.TessControlShader,
+            _ => throw new NotSupportedException("Unknown shader type: " + type)
+        };
 }

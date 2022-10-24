@@ -10,7 +10,7 @@ public struct MeshInstance
     public Matrix4x4 ObjectToWorld;
 }
 
-public struct MeshRenderingState : IGLObject
+public struct MeshRenderingState : IGLReactiveObject
 {
     public readonly List<MeshInstance> Instances = new();
     public readonly List<Guid> InstanceIds = new();

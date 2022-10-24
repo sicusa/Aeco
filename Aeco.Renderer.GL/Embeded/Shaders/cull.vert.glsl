@@ -9,6 +9,9 @@ flat out int ObjectVisible;
 
 uniform sampler2D DepthBuffer;
 
+subroutine bool CullFuncType();
+subroutine uniform CullFuncType CullFunc;
+
 vec4 boundingBox[8];
 
 bool InstanceCloudReduction()

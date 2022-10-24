@@ -59,18 +59,32 @@ public static class GLTests
         game.Acquire<Position>(cameraId).Value = new Vector3(0, 0, 4f);
         game.Acquire<Parent>(cameraId).Id = GLRenderer.RootId;
 
+        var wallTex = new TextureResource(InternalAssets.Load<ImageResource>("Textures.wall.jpg"));
+
         var torusModel = InternalAssets.Load<ModelResource>("Models.torus.glb");
         var torusMesh = torusModel.RootNode!.Meshes![0];
         torusMesh.Material = new MaterialResource {
             Parameters = new() {
-                AmbientColor = new Vector4(0.3f),
+                AmbientColor = new Vector4(1),
                 DiffuseColor = new Vector4(1, 1, 1, 1),
                 SpecularColor = new Vector4(0.3f),
                 Shininess = 32
             }
         };
-        torusMesh.Material.Textures[TextureType.Diffuse] =
-            new TextureResource(InternalAssets.Load<ImageResource>("Textures.wall.jpg"));
+        torusMesh.Material.Textures[TextureType.Diffuse] = wallTex;
+
+        var torusMeshTransparent = torusModel.RootNode!.Meshes![0] with {
+            Material = new MaterialResource {
+                IsTransparent = true,
+                Parameters = new() {
+                    AmbientColor = new Vector4(1),
+                    DiffuseColor = new Vector4(1, 1, 1, 0.1f),
+                    SpecularColor = new Vector4(0.3f),
+                    Shininess = 32
+                }
+            }
+        };
+        torusMeshTransparent.Material.Textures[TextureType.Diffuse] = wallTex;
 
         var sphereModel = InternalAssets.Load<ModelResource>("Models.sphere.glb");
         var sphereMesh = sphereModel.RootNode!.Meshes![0];
@@ -90,7 +104,6 @@ public static class GLTests
             var id = Guid.NewGuid();
             ref var renderable = ref game.Acquire<MeshRenderable>(id);
             renderable.Mesh = mesh;
-            //renderable.IsVariant = true;
             game.Acquire<Parent>(id).Id = parentId;
             game.Acquire<Position>(id).Value = pos;
             return id;
@@ -101,7 +114,8 @@ public static class GLTests
         game.Acquire<Scale>(prevId).Value = new Vector3(0.3f);
 
         for (int i = 0; i < 10000; ++i) {
-            prevId = CreateObject(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), firstId, torusMesh);
+            prevId = CreateObject(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), firstId,
+                i % 2 == 0 ? torusMesh : torusMeshTransparent);
             game.Acquire<Scale>(prevId).Value = new Vector3(0.99f);
         }
 
@@ -140,6 +154,13 @@ public static class GLTests
             rotatorPos += rotatorAxes.Forward * deltaTime * 2;
             game.Acquire<Rotation>(rotatorId).Value = Quaternion.CreateFromAxisAngle(Vector3.UnitY, time);
             game.Acquire<WorldAxes>(firstId).Forward = rotatorPos;*/
+
+            if (window.KeyboardState.IsKeyPressed(Keys.Space)) {
+                game.Acquire<Hidden>(firstId, out bool exists);
+                if (exists) {
+                    game.Remove<Hidden>(firstId);
+                }
+            }
 
             game.Acquire<Rotation>(cameraId).Value = Quaternion.CreateFromYawPitchRoll(-x, -y, 0);
 

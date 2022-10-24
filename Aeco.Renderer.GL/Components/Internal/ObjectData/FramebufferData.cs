@@ -4,6 +4,8 @@ public struct FramebufferData : IGLObject
 {
     public int Handle;
     public int ColorTextureHandle;
+    public int TransparencyAccumTextureHandle;
+    public int TransparencyAlphaTextureHandle;
     public int DepthTextureHandle;
     public int UniformBufferHandle;
 

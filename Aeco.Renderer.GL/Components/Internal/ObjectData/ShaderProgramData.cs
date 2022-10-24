@@ -27,6 +27,7 @@ public struct ShaderProgramData : IGLObject
     public int Handle;
     public BlockLocations BlockLocations;
     public EnumArray<TextureType, int>? TextureLocations;
+    public EnumArray<ShaderType, ImmutableDictionary<string, int>>? SubroutineLoactions;
     public ImmutableDictionary<string, int> CustomLocations;
     public int DepthBufferLocation;
 

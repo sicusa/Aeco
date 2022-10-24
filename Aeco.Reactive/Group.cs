@@ -20,7 +20,7 @@ public abstract class GroupBase : IGroup
     IEnumerator IEnumerable.GetEnumerator()
         => _l.GetEnumerator();
     
-    protected void Reset(IEnumerable<Guid> ids)
+    protected virtual void Reset(IDataLayer<IComponent> dataLayer, IEnumerable<Guid> ids)
     {
         _l.Clear();
         _l.AddRange(ids);
@@ -45,7 +45,7 @@ public class Group<T1> : GroupBase
         => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>();
     
     public override void Refresh(IDataLayer<IComponent> dataLayer)
-        => Reset(dataLayer.Query<T1>());
+        => Reset(dataLayer, dataLayer.Query<T1>());
 }
 
 public class Group<T1, T2> : GroupBase
@@ -59,7 +59,7 @@ public class Group<T1, T2> : GroupBase
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T2>>();
 
     public override void Refresh(IDataLayer<IComponent> dataLayer)
-        => Reset(_q.Query(dataLayer));
+        => Reset(dataLayer, _q.Query(dataLayer));
 }
 
 public class Group<T1, T2, T3> : GroupBase
@@ -75,7 +75,7 @@ public class Group<T1, T2, T3> : GroupBase
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T3>>();
 
     public override void Refresh(IDataLayer<IComponent> dataLayer)
-        => Reset(_q.Query(dataLayer));
+        => Reset(dataLayer, _q.Query(dataLayer));
 }
 
 public class Group<T1, T2, T3, T4> : GroupBase
@@ -93,7 +93,7 @@ public class Group<T1, T2, T3, T4> : GroupBase
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T4>>();
 
     public override void Refresh(IDataLayer<IComponent> dataLayer)
-        => Reset(_q.Query(dataLayer));
+        => Reset(dataLayer, _q.Query(dataLayer));
 }
 
 public class Group<T1, T2, T3, T4, T5> : GroupBase
@@ -113,7 +113,7 @@ public class Group<T1, T2, T3, T4, T5> : GroupBase
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T5>>();
 
     public override void Refresh(IDataLayer<IComponent> dataLayer)
-        => Reset(_q.Query(dataLayer));
+        => Reset(dataLayer, _q.Query(dataLayer));
 }
 
 public class Group<T1, T2, T3, T4, T5, T6> : GroupBase
@@ -135,7 +135,7 @@ public class Group<T1, T2, T3, T4, T5, T6> : GroupBase
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T6>>();
 
     public override void Refresh(IDataLayer<IComponent> dataLayer)
-        => Reset(_q.Query(dataLayer));
+        => Reset(dataLayer, _q.Query(dataLayer));
 }
 
 public class Group<T1, T2, T3, T4, T5, T6, T7> : GroupBase
@@ -159,7 +159,7 @@ public class Group<T1, T2, T3, T4, T5, T6, T7> : GroupBase
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T7>>();
 
     public override void Refresh(IDataLayer<IComponent> dataLayer)
-        => Reset(_q.Query(dataLayer));
+        => Reset(dataLayer, _q.Query(dataLayer));
 }
 
 public class Group<T1, T2, T3, T4, T5, T6, T7, T8> : GroupBase
@@ -185,5 +185,5 @@ public class Group<T1, T2, T3, T4, T5, T6, T7, T8> : GroupBase
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T8>>();
 
     public override void Refresh(IDataLayer<IComponent> dataLayer)
-        => Reset(_q.Query(dataLayer));
+        => Reset(dataLayer, _q.Query(dataLayer));
 }

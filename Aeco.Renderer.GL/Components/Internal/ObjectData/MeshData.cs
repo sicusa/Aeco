@@ -13,6 +13,7 @@ public enum MeshBufferType
 
 public struct MeshData : IGLObject
 {
+    public bool IsTransparent = false;
     public int IndexCount = 0;
     public int VertexArrayHandle = -1;
     public int CullingVertexArrayHandle = -1;

@@ -111,6 +111,15 @@ public static class ModelHelper
             }
         };
 
+        if (mat.HasTransparencyFactor) {
+            materialResource.IsTransparent = true;
+            materialResource.Parameters.DiffuseColor.W *= mat.TransparencyFactor;
+        }
+        if (mat.HasColorTransparent) {
+            materialResource.IsTransparent = true;
+            materialResource.Parameters.DiffuseColor *= FromColor(mat.ColorTransparent);
+        }
+
         var textures = materialResource.Textures;
 
         if (mat.HasTextureDiffuse) { textures[TextureType.Diffuse] = LoadTexture(state, scene, mat.TextureDiffuse); }
