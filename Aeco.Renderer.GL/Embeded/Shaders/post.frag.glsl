@@ -19,5 +19,7 @@ void main()
     // gamma correction 
     mapped = pow(mapped, vec3(1.0 / gamma));
   
+    //float depth = LinearizeDepth(textureLod(DepthBuffer, TexCoord, 0).r);
+    //mapped = vec3(depth, depth, depth);
     FragColor = vec4(mapped, 1.0);
 }

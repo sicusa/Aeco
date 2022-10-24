@@ -6,12 +6,11 @@ using System.Runtime.InteropServices;
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct CameraParameters
 {
-    public const int MemorySize = 4 * 64 + 12 + 2 * 4;
+    public const int MemorySize = 3 * 64 + 12 + 2 * 4;
 
     public Matrix4x4 View;
     public Matrix4x4 Proj;
     public Matrix4x4 ViewProj;
-    public Matrix4x4 PrevViewProj;
     public Vector3 Position;
     public float NearPlaneDistance;
     public float FarPlaneDistance;

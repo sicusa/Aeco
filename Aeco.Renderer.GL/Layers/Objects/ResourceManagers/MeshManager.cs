@@ -22,6 +22,7 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
 
         var buffers = data.BufferHandles;
         data.VertexArrayHandle = GL.GenVertexArray();
+        data.InstantVertexArrayHandle = GL.GenVertexArray();
         data.CulledQueryHandle = GL.GenQuery();
 
         GL.BindVertexArray(data.VertexArrayHandle);
@@ -75,6 +76,22 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
 
         data.CullingVertexArrayHandle = GL.GenVertexArray();
         InitializeInstanceCulling(ref data);
+
+        // instant vertex array
+
+        GL.BindVertexArray(data.InstantVertexArrayHandle);
+
+        if (resource.Vertices != null) {
+            GL.BindBuffer(BufferTarget.ArrayBuffer, buffers[MeshBufferType.Vertex]);
+            GL.EnableVertexAttribArray(0);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 0, 0);
+        }
+        if (resource.Indeces != null) {
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, buffers[MeshBufferType.Index]);
+        }
+        
+        GL.BindBuffer(BufferTarget.ArrayBuffer, data.BufferHandles[MeshBufferType.Instance]);
+        RenderHelper.EnableMatrix4x4Attributes(4, 1);
 
         GL.BindVertexArray(0);
     }

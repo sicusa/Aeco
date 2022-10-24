@@ -22,7 +22,7 @@ public class MaterialManager : ResourceManagerBase<Material, MaterialData, Mater
                 ? ResourceLibrary<ShaderProgramResource>.Reference<ShaderProgram>(context, material.ShaderProgram, id)
                 : (material.Resource.IsTransparent
                     ? GLRenderer.DefaultTransparentShaderProgramId
-                    : GLRenderer.DefaultShaderProgramId);
+                    : GLRenderer.DefaultOpaqueProgramId);
 
         var resource = material.Resource;
         var textureReferences = new EnumArray<TextureType, Guid?>();

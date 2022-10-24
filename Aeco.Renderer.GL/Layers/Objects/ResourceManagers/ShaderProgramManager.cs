@@ -24,7 +24,6 @@ layout(std140) uniform Camera {
     mat4 Matrix_V;
     mat4 Matrix_P;
     mat4 Matrix_VP;
-    mat4 Matrix_Prev_VP;
     vec3 CameraPosition;
     float CameraNearPlaneDistance;
     float CameraFarPlaneDistance;
@@ -60,22 +59,28 @@ float LinearizeDepth(float depth)
     return (2.0 * n) / (f + n - depth * (f - n));
 }
 
-vec3 GetViewSpacePositionFromDepth(float depth, vec2 uv)
+vec3 GetClipSpacePositionFromDepth(float depth, vec2 uv)
 {
-    float x = uv.x * 2 - 1;
-    float y = (1 - uv.y) * 2 - 1;
-    vec4 projPos = vec4(x, y, depth, 1);
-    vec4 pos = projPos * inverse(Matrix_P);
-    return pos.xyz / pos.w;
+    float z = depth * 2.0 - 1.0;
+    return vec3(uv * 2.0 - 1.0, z);
 }
 
-vec3 GetWorldSpacePositionFromDepth(float depth, vec2 uv)
+vec4 GetViewSpacePositionFromDepth(float depth, vec2 uv)
 {
-    float x = uv.x * 2 - 1;
-    float y = (1 - uv.y) * 2 - 1;
-    vec4 projPos = vec4(x, y, depth, 1);
-    vec4 pos = projPos * inverse(Matrix_VP);
-    return pos.xyz / pos.w;
+    float z = depth * 2.0 - 1.0;
+    vec4 clipPos = vec4(uv * 2.0 - 1.0, z, 1.0);
+    vec4 viewPos = clipPos * inverse(Matrix_P);
+    viewPos.xyz /= viewPos.w;
+    return viewPos;
+}
+
+vec4 GetWorldSpacePositionFromDepth(float depth, vec2 uv)
+{
+    float z = depth * 2.0 - 1.0;
+    vec4 clipPos = vec4(uv * 2.0 - 1.0, z, 1.0);
+    vec4 viewPos = clipPos * inverse(Matrix_P);
+    viewPos.xyz /= viewPos.w;
+    return viewPos * inverse(Matrix_V);
 }
 
 #endif",

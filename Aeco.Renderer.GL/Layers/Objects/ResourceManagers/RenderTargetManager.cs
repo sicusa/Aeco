@@ -67,8 +67,17 @@ public class RenderTargetManager : ResourceManagerBase<RenderTarget, RenderTarge
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
 
-        data.DepthTextureHandle = GL.GenTexture();
-        GL.BindTexture(TextureTarget.Texture2D, data.DepthTextureHandle);
+        data.MaxDepthTextureHandle = GL.GenTexture();
+        GL.BindTexture(TextureTarget.Texture2D, data.MaxDepthTextureHandle);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent32, width, height, 0, PixelFormat.DepthComponent, PixelType.UnsignedInt, IntPtr.Zero);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.NearestMipmapNearest);
+        GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+
+        data.MinDepthTextureHandle = GL.GenTexture();
+        GL.BindTexture(TextureTarget.Texture2D, data.MaxDepthTextureHandle);
         GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent32, width, height, 0, PixelFormat.DepthComponent, PixelType.UnsignedInt, IntPtr.Zero);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
@@ -78,7 +87,7 @@ public class RenderTargetManager : ResourceManagerBase<RenderTarget, RenderTarge
 
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, data.ColorFramebufferHandle);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, data.ColorTextureHandle, 0);
-        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, data.DepthTextureHandle, 0);
+        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, data.MaxDepthTextureHandle, 0);
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 
         // Initialize transparency buffer
@@ -102,7 +111,7 @@ public class RenderTargetManager : ResourceManagerBase<RenderTarget, RenderTarge
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, data.TransparencyFramebufferHandle);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, data.TransparencyAccumTextureHandle, 0);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment1, TextureTarget.Texture2D, data.TransparencyAlphaTextureHandle, 0);
-        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, data.DepthTextureHandle, 0);
+        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, data.MaxDepthTextureHandle, 0);
         GL.DrawBuffers(2, _transparentDraw);
 
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
@@ -121,7 +130,7 @@ public class RenderTargetManager : ResourceManagerBase<RenderTarget, RenderTarge
     private void DeleteTextures(in RenderTargetData data)
     {
         GL.DeleteTexture(data.ColorTextureHandle);
-        GL.DeleteTexture(data.DepthTextureHandle);
+        GL.DeleteTexture(data.MaxDepthTextureHandle);
         GL.DeleteTexture(data.TransparencyAccumTextureHandle);
         GL.DeleteTexture(data.TransparencyAlphaTextureHandle);
     }
