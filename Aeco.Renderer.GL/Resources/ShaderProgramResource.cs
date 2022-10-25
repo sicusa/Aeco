@@ -16,6 +16,7 @@ public record ShaderProgramResource : IGLResource
     public string[]? TransformFeedbackVaryings;
     public bool IsMaterialTexturesEnabled = true;
     public Dictionary<string, object>? DefaultUniformValues;
-    public HashSet<string>? CustomUniforms;
-    public HashSet<(ShaderType, string)>? Subroutines;
+    public string[]? CustomUniforms;
+    public EnumArray<ShaderType, string[]?>? Subroutines;
+    public EnumArray<ShaderType, string[]?>? DefaultSubroutines;
 }

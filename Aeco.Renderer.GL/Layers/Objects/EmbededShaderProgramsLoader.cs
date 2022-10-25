@@ -35,17 +35,19 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
         program.Resource = resource;
         Console.WriteLine("Default transparent shader program loaded: " + GLRenderer.DefaultTransparentShaderProgramId);
 
-        // load empty shader program
+        // load motion shader program
 
         resource = new ShaderProgramResource {
             IsMaterialTexturesEnabled = false
         };
         resource.Shaders[ShaderType.Vertex] = simpleVertShader;
-        resource.Shaders[ShaderType.Fragment] = whiteFragShader;
+        resource.Shaders[ShaderType.Geometry] = quadGeoShader;
+        resource.Shaders[ShaderType.Fragment] = 
+            InternalAssets.Load<TextResource>("Shaders.motion.frag.glsl").Content;
 
-        program = ref context.Acquire<ShaderProgram>(GLRenderer.EmptyShaderProgramId);
+        program = ref context.Acquire<ShaderProgram>(GLRenderer.MotionShaderProgramId);
         program.Resource = resource;
-        Console.WriteLine("Empty shader program loaded: " + GLRenderer.EmptyShaderProgramId);
+        Console.WriteLine("Motion shader program loaded: " + GLRenderer.MotionShaderProgramId);
 
         // load culling shader program
 
@@ -67,7 +69,7 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
 
         resource = new ShaderProgramResource {
             IsMaterialTexturesEnabled = false,
-            CustomUniforms = new() { "LastMinMip", "LastMipSize" }
+            CustomUniforms = new[] { "LastMip", "LastMipSize" }
         };
 
         resource.Shaders[ShaderType.Vertex] = emptyVertShader;
@@ -98,7 +100,7 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
 
         resource = new ShaderProgramResource {
             IsMaterialTexturesEnabled = false,
-            CustomUniforms = new() { "AccumColorTex", "AccumAlphaTex" }
+            CustomUniforms = new[] { "AccumColorTex", "AccumAlphaTex" }
         };
 
         resource.Shaders[ShaderType.Vertex] = emptyVertShader;
@@ -114,7 +116,20 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
 
         resource = new ShaderProgramResource {
             IsMaterialTexturesEnabled = false,
-            CustomUniforms = new() { "ColorBuffer" }
+            CustomUniforms = new[] {
+                "ColorBuffer",
+                "DepthBuffer",
+                "TransparencyAccumBuffer",
+                "TransparencyAlphaBuffer"
+            },
+            Subroutines = new() {
+                [ShaderType.Fragment] = new[] {
+                    "ShowColor",
+                    "ShowDepth",
+                    "ShowTransparencyAccum",
+                    "ShowTransparencyAlpha"
+                }
+            }
         };
 
         resource.Shaders[ShaderType.Vertex] = emptyVertShader;
@@ -130,7 +145,7 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
 
         resource = new ShaderProgramResource {
             IsMaterialTexturesEnabled = false,
-            CustomUniforms = new() { "TileCount" }
+            CustomUniforms = new[] { "TileCount" }
         };
 
         resource.Shaders[ShaderType.Vertex] = emptyVertShader;

@@ -135,6 +135,9 @@ public static class GLTests
         Vector3 currDeltaPos = Vector3.Zero;
         bool moving = false;
 
+        ref RenderTargetDebug GetDebug()
+            => ref game.Acquire<RenderTargetDebug>(GLRenderer.DefaultRenderTargetId);
+
         debugLayer.OnUpdate += deltaTime => {
             float scaledRate = deltaTime * rate;
 
@@ -155,11 +158,17 @@ public static class GLTests
             game.Acquire<Rotation>(rotatorId).Value = Quaternion.CreateFromAxisAngle(Vector3.UnitY, time);
             game.Acquire<WorldAxes>(firstId).Forward = rotatorPos;*/
 
-            if (window.KeyboardState.IsKeyPressed(Keys.Space)) {
-                game.Acquire<Hidden>(firstId, out bool exists);
-                if (exists) {
-                    game.Remove<Hidden>(firstId);
-                }
+            if (window.KeyboardState.IsKeyPressed(Keys.F1)) {
+                GetDebug().VisibleBuffer = ScreenBuffer.Color;
+            }
+            if (window.KeyboardState.IsKeyPressed(Keys.F2)) {
+                GetDebug().VisibleBuffer = ScreenBuffer.Depth;
+            }
+            if (window.KeyboardState.IsKeyPressed(Keys.F3)) {
+                GetDebug().VisibleBuffer = ScreenBuffer.TransparencyAccum;
+            }
+            if (window.KeyboardState.IsKeyPressed(Keys.F4)) {
+                GetDebug().VisibleBuffer = ScreenBuffer.TransparencyAlpha;
             }
 
             game.Acquire<Rotation>(cameraId).Value = Quaternion.CreateFromYawPitchRoll(-x, -y, 0);

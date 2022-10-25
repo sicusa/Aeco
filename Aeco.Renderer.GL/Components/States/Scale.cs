@@ -4,7 +4,7 @@ using System.Numerics;
 using System.Runtime.Serialization;
 
 [DataContract]
-public struct Scale : IGLReactiveObject, IDisposable
+public struct Scale : IGLReactiveObject
 {
     [DataMember] public Vector3 Value = Vector3.One;
 

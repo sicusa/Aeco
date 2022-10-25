@@ -87,7 +87,7 @@ bool HiZOcclusionCull()
 	float maxDepth = max(max(samples.x, samples.y), max(samples.z, samples.w));
 	
 	/* if the instance depth is bigger than the depth in the texture discard the instance */
-	return depth <= maxDepth;
+	return abs(depth - maxDepth) < 0.015 || depth <= maxDepth;
 }
 
 void main()

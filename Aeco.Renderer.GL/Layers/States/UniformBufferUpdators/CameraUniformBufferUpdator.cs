@@ -42,6 +42,7 @@ public class CameraUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
         ref var pars = ref buffer.Parameters;
         pars.View = Matrix4x4.Transpose(context.UnsafeInspect<TransformMatrices>(id).View);
         pars.Proj = Matrix4x4.Transpose(context.UnsafeAcquire<CameraMatrices>(id).ProjectionRaw);
+        pars.PrevViewProj = pars.ViewProj;
         pars.ViewProj = pars.Proj * pars.View;
         pars.Position = context.UnsafeAcquire<WorldPosition>(id).Value;
         pars.NearPlaneDistance = camera.NearPlaneDistance;

@@ -4,7 +4,7 @@ using System.Numerics;
 using System.Runtime.Serialization;
 
 [DataContract]
-public struct Rotation : IGLReactiveObject, IDisposable
+public struct Rotation : IGLReactiveObject
 {
     [DataMember] public Quaternion Value = Quaternion.Identity;
 

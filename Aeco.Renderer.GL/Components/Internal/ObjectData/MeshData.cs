@@ -16,7 +16,7 @@ public struct MeshData : IGLObject
     public bool IsTransparent = false;
     public int IndexCount = 0;
     public int VertexArrayHandle = -1;
-    public int InstantVertexArrayHandle = -1;
+    public int CompleteVertexArrayHandle = -1;
     public int CullingVertexArrayHandle = -1;
     public int CulledQueryHandle = -1;
     public readonly EnumArray<MeshBufferType, int> BufferHandles = new();

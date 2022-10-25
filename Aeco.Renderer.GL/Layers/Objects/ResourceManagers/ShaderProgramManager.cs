@@ -24,6 +24,7 @@ layout(std140) uniform Camera {
     mat4 Matrix_V;
     mat4 Matrix_P;
     mat4 Matrix_VP;
+    mat4 Matrix_Prev_VP;
     vec3 CameraPosition;
     float CameraNearPlaneDistance;
     float CameraFarPlaneDistance;
@@ -117,13 +118,11 @@ mat4 ObjectToWorld;
 @"#ifndef NAGULE_TRANSPARENCY
 #define NAGULE_TRANSPARENCY
 
-float GetTransparencyWeight(float z, float a)
-{
+float GetTransparencyWeight(float z, float a) {
     return a * max(0.01, min(3e3, 10 / (1e-5 + z * z * 0.25 + pow(z / 200, 6))));
 }
 
-float GetTransparencyAlpha(float a)
-{
+float GetTransparencyAlpha(float a) {
     return GetTransparencyWeight(gl_FragCoord.z, a) * a;
 }
 
@@ -341,16 +340,25 @@ vec4 BlinnPhong(vec3 position, vec2 texCoord, vec3 normal)
 
         EnumArray<ShaderType, ImmutableDictionary<string, int>>? subroutineIndeces = null;
         if (resource.Subroutines != null) {
-            foreach (var (shaderType, name) in resource.Subroutines) {
-                var index = GL.GetSubroutineIndex(program, ToGLShaderType(shaderType), name);
-                if (index == -1) {
-                    Console.WriteLine($"Subroutine index '{name}' not found");
+            subroutineIndeces = new();
+
+            ShaderType shaderType = 0;
+            foreach (var names in resource.Subroutines) {
+                var indeces = subroutineIndeces[shaderType] ?? ImmutableDictionary<string, int>.Empty;
+                if (names == null) {
+                    subroutineIndeces[shaderType] = indeces;
                     continue;
                 }
-                subroutineIndeces = subroutineIndeces ?? new();
-                var indeces = subroutineIndeces[shaderType] ?? ImmutableDictionary<string, int>.Empty;
-                indeces = indeces.Add(name, index);
+                foreach (var name in names) {
+                    var index = GL.GetSubroutineIndex(program, ToGLShaderType(shaderType), name);
+                    if (index == -1) {
+                        Console.WriteLine($"Subroutine index '{name}' not found");
+                        continue;
+                    }
+                    indeces = indeces.Add(name, index);
+                }
                 subroutineIndeces[shaderType] = indeces;
+                ++shaderType;
             }
         }
 
@@ -387,7 +395,7 @@ vec4 BlinnPhong(vec3 position, vec2 texCoord, vec3 normal)
         data.Handle = program;
         data.TextureLocations = textureLocations;
         data.CustomLocations = customLocations;
-        data.SubroutineLoactions = subroutineIndeces;
+        data.SubroutineIndeces = subroutineIndeces;
         data.BlockLocations = blockLocations;
     } 
 
