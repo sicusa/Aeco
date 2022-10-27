@@ -18,5 +18,4 @@ public record ShaderProgramResource : IGLResource
     public Dictionary<string, object>? DefaultUniformValues;
     public string[]? CustomUniforms;
     public EnumArray<ShaderType, string[]?>? Subroutines;
-    public EnumArray<ShaderType, string[]?>? DefaultSubroutines;
 }
