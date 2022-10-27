@@ -3,9 +3,10 @@
 #include <nagule/common.glsl>
 
 uniform sampler2D ColorBuffer;
-uniform sampler2D DepthBuffer;
 uniform sampler2D TransparencyAccumBuffer;
 uniform sampler2D TransparencyAlphaBuffer;
+uniform sampler2D MaxDepthBuffer;
+uniform sampler2D MinDepthBuffer;
 
 in vec2 TexCoord;
 out vec4 FragColor;
@@ -27,9 +28,15 @@ subroutine(PostFunc) vec4 ShowColor()
     return vec4(mapped, 1.0);
 }
 
-subroutine(PostFunc) vec4 ShowDepth()
+subroutine(PostFunc) vec4 ShowMaxDepth()
 {
-    float depth = LinearizeDepth(texture(DepthBuffer, TexCoord).r);
+    float depth = LinearizeDepth(textureLod(MaxDepthBuffer, TexCoord, 3).r);
+    return vec4(depth, depth, depth, 1.0);
+}
+
+subroutine(PostFunc) vec4 ShowMinDepth()
+{
+    float depth = LinearizeDepth(textureLod(MinDepthBuffer, TexCoord, 3).r);
     return vec4(depth, depth, depth, 1.0);
 }
 

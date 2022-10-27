@@ -5,7 +5,8 @@ public enum ScreenBuffer
     Color,
     TransparencyAccum,
     TransparencyAlpha,
-    Depth
+    MaxDepth,
+    MinDepth
 }
 
 public struct RenderTargetDebug : IGLObject

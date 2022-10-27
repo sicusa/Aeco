@@ -162,13 +162,16 @@ public static class GLTests
                 GetDebug().VisibleBuffer = ScreenBuffer.Color;
             }
             if (window.KeyboardState.IsKeyPressed(Keys.F2)) {
-                GetDebug().VisibleBuffer = ScreenBuffer.Depth;
-            }
-            if (window.KeyboardState.IsKeyPressed(Keys.F3)) {
                 GetDebug().VisibleBuffer = ScreenBuffer.TransparencyAccum;
             }
-            if (window.KeyboardState.IsKeyPressed(Keys.F4)) {
+            if (window.KeyboardState.IsKeyPressed(Keys.F3)) {
                 GetDebug().VisibleBuffer = ScreenBuffer.TransparencyAlpha;
+            }
+            if (window.KeyboardState.IsKeyPressed(Keys.F4)) {
+                GetDebug().VisibleBuffer = ScreenBuffer.MaxDepth;
+            }
+            if (window.KeyboardState.IsKeyPressed(Keys.F5)) {
+                GetDebug().VisibleBuffer = ScreenBuffer.MinDepth;
             }
 
             game.Acquire<Rotation>(cameraId).Value = Quaternion.CreateFromYawPitchRoll(-x, -y, 0);

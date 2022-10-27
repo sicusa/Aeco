@@ -69,7 +69,10 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
 
         resource = new ShaderProgramResource {
             IsMaterialTexturesEnabled = false,
-            CustomUniforms = new[] { "LastMip", "LastMipSize" }
+            CustomUniforms = new[] { "LastMip", "LastMipSize" },
+            Subroutines = new() {
+                [ShaderType.Fragment] = new[] { "GenerateMax", "GenerateMin" }
+            }
         };
 
         resource.Shaders[ShaderType.Vertex] = emptyVertShader;
@@ -118,16 +121,18 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
             IsMaterialTexturesEnabled = false,
             CustomUniforms = new[] {
                 "ColorBuffer",
-                "DepthBuffer",
                 "TransparencyAccumBuffer",
-                "TransparencyAlphaBuffer"
+                "TransparencyAlphaBuffer",
+                "MaxDepthBuffer",
+                "MinDepthBuffer"
             },
             Subroutines = new() {
                 [ShaderType.Fragment] = new[] {
                     "ShowColor",
-                    "ShowDepth",
                     "ShowTransparencyAccum",
-                    "ShowTransparencyAlpha"
+                    "ShowTransparencyAlpha",
+                    "ShowMaxDepth",
+                    "ShowMinDepth"
                 }
             }
         };
@@ -145,7 +150,7 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
 
         resource = new ShaderProgramResource {
             IsMaterialTexturesEnabled = false,
-            CustomUniforms = new[] { "TileCount" }
+            CustomUniforms = new[] { "TileSize" }
         };
 
         resource.Shaders[ShaderType.Vertex] = emptyVertShader;
