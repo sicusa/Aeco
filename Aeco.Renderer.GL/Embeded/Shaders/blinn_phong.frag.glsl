@@ -6,7 +6,7 @@ uniform sampler2D EmissionTex;
 
 #include <nagule/blinn_phong.glsl>
 
-in VertOutput {
+in VertexOutput {
     vec3 Position;
     vec2 TexCoord;
     vec3 Normal;

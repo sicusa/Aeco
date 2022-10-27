@@ -8,7 +8,7 @@ layout(location = 1) in vec2 texCoord;
 layout(location = 2) in vec3 normal;
 layout(location = 3) in vec3 tangent;
 
-out VertOutput {
+out VertexOutput {
     vec3 Position;
     vec2 TexCoord;
     vec3 Normal;
