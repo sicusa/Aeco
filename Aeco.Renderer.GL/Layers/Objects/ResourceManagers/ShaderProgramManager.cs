@@ -128,6 +128,32 @@ float GetTransparencyAlpha(float a) {
 
 #endif",
 
+        ["nagule/lighting.glsl"] =
+@"ifndef NAGULE_LIGHTING
+#define NAGULE_LIGHTING
+
+#define MAXIMUM_VISIBLE_LIGHT_COUNT 1024
+
+#define LIGHT_NONE          0
+#define LIGHT_DIRECTIONAL   1
+#define LIGHT_POINT         2
+#define LIGHT_SPOTLIGHT     3
+#define LIGHT_AREA          4
+
+struct Light {
+    int Category;
+    vec4 Color;
+    vec3 BoundingBoxMin;
+    vec3 BoundingBoxMax;
+};
+
+layout(std140) uniform Lighting {
+    int LightCount;
+    Light VisibleLights[MAXIMUM_VISIBLE_LIGHT_COUNT];
+}
+
+#endif",
+
         ["nagule/blinn_phong.glsl"] =
 @"#ifndef NAGULE_BLINN_PHONG
 #define NAGULE_BLINN_PHONG
