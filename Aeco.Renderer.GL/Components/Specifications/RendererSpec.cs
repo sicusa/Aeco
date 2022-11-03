@@ -27,5 +27,5 @@ public struct RendererSpec : IGLObject
     
     public RendererSpec() {}
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

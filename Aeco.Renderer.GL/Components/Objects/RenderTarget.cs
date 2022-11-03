@@ -9,5 +9,5 @@ public struct RenderTarget : IGLResourceObject<RenderTargetResource>
 
     public RenderTarget() {}
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

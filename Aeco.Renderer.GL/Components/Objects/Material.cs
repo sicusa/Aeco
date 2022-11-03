@@ -11,5 +11,5 @@ public struct Material : IGLResourceObject<MaterialResource>
 
     public Material() {}
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

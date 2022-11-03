@@ -8,12 +8,11 @@ public struct RenderTargetData : IGLObject
 
     public int ColorFramebufferHandle;
     public int ColorTextureHandle;
-    public int MaxDepthTextureHandle;
-    public int MinDepthTextureHandle;
+    public int DepthTextureHandle;
 
     public int TransparencyFramebufferHandle;
     public int TransparencyAccumTextureHandle;
     public int TransparencyAlphaTextureHandle;
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

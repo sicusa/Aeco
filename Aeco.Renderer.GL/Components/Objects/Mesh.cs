@@ -9,5 +9,5 @@ public struct Mesh : IGLResourceObject<MeshResource>
     
     public Mesh() {}
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

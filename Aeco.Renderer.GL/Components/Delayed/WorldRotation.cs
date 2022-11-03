@@ -9,7 +9,7 @@ public struct WorldRotation : IGLReactiveObject, IDisposable
 
     public WorldRotation() {}
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 
     public static implicit operator Quaternion(in WorldRotation rot)
         => rot.Value;

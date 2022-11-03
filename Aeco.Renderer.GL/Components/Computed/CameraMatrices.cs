@@ -9,5 +9,5 @@ public struct CameraMatrices : IGLObject, IDisposable
 
     public CameraMatrices() {}
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

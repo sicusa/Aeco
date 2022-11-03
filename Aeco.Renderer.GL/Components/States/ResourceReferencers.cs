@@ -10,5 +10,5 @@ public struct ResourceReferencers : IGLObject
 
     public ResourceReferencers() {}
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

@@ -3,11 +3,9 @@ namespace Aeco.Renderer.GL;
 using System.Runtime.Serialization;
 
 [DataContract]
-public struct Parent : IGLReactiveObject
+public struct Light : IGLResourceObject<LightResourceBase>
 {
-    [DataMember] public Guid Id = GLRenderer.RootId;
-
-    public Parent() {}
+    public LightResourceBase Resource { get; set; }
 
     public void Dispose() => this = new();
 }

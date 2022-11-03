@@ -7,5 +7,5 @@ public struct Texture : IGLResourceObject<TextureResource>
 {
     public TextureResource Resource { get; set; }
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

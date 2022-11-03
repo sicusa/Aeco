@@ -10,7 +10,7 @@ public struct Scale : IGLReactiveObject
 
     public Scale() {}
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 
     public static implicit operator Vector3(in Scale scale)
         => scale.Value;

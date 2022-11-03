@@ -11,5 +11,5 @@ public struct MeshGroup : IGLObject
 
     public MeshGroup() {}
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

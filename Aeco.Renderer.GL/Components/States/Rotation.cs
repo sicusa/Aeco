@@ -10,7 +10,7 @@ public struct Rotation : IGLReactiveObject
 
     public Rotation() {}
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 
     public static implicit operator Quaternion(in Rotation rot)
         => rot.Value;

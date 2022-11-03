@@ -7,5 +7,5 @@ public struct MaterialData : IGLObject
     public Guid ShaderProgramId;
     public EnumArray<TextureType, Guid?> Textures;
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

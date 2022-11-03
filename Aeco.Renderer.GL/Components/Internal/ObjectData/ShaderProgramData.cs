@@ -31,5 +31,5 @@ public struct ShaderProgramData : IGLObject
     public ImmutableDictionary<string, int> CustomLocations;
     public int DepthBufferLocation;
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

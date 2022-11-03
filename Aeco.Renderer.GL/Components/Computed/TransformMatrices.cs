@@ -35,5 +35,5 @@ public struct TransformMatrices : IGLObject
 
     public TransformMatrices() {}
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

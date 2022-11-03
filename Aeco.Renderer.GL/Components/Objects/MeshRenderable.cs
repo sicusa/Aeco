@@ -9,5 +9,5 @@ public struct MeshRenderable : IGLReactiveObject
 
     [DataMember] public bool IsVariant;
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

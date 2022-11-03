@@ -18,5 +18,5 @@ public struct MeshRenderingState : IGLReactiveObject
 
     public MeshRenderingState() {}
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

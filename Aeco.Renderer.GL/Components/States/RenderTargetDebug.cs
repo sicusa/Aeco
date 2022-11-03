@@ -5,13 +5,12 @@ public enum ScreenBuffer
     Color,
     TransparencyAccum,
     TransparencyAlpha,
-    MaxDepth,
-    MinDepth
+    Depth
 }
 
 public struct RenderTargetDebug : IGLObject
 {
     public ScreenBuffer VisibleBuffer;
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

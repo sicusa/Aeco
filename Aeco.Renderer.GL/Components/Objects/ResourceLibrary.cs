@@ -118,5 +118,5 @@ public struct ResourceLibrary<TResource> : IGLObject
 
     public ResourceLibrary() {}
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

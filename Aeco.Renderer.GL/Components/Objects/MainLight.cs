@@ -10,5 +10,5 @@ public struct MainLight : IGLReactiveObject
 
     public MainLight() {}
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

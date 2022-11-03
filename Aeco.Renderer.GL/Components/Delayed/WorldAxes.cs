@@ -8,5 +8,5 @@ public struct WorldAxes : IGLReactiveObject
     public Vector3 Up;
     public Vector3 Right;
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }

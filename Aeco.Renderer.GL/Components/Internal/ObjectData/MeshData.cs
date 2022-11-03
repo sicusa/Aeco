@@ -26,5 +26,5 @@ public struct MeshData : IGLObject
 
     public MeshData() {}
 
-    public void Dispose() { this = new(); }
+    public void Dispose() => this = new();
 }
