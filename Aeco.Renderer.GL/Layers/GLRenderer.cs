@@ -69,9 +69,6 @@ public class GLRenderer : CompositeLayer
             GL.Disable(EnableCap.Blend);
             GL.DepthMask(true);
 
-            GL.Enable(EnableCap.PrimitiveRestart);
-            GL.PrimitiveRestartIndex(0xFFFFFFFF);
-
             if (_spec.IsDebugEnabled) {
                 _debugProc = DebugProc;
                 GL.Enable(EnableCap.DebugOutput);
@@ -185,6 +182,7 @@ public class GLRenderer : CompositeLayer
                 new EmbededShaderProgramsLoader(),
 
                 new RenderTargetManager(),
+                new LightManager(),
                 new MeshRenderableManager(),
                 new MeshManager(),
                 new MaterialManager(),
@@ -198,11 +196,12 @@ public class GLRenderer : CompositeLayer
 
                 new TransformMatricesUpdator(),
                 new CameraMatricesUpdator(),
-                new MeshUniformBufferUpdator(),
-                new MeshRenderableUpdator(),
 
-                new MainLightUniformBufferUpdator(),
+                new MeshUniformBufferUpdator(),
+                new LightUniformBufferUpdator(),
                 new CameraUniformBufferUpdator(),
+
+                new MeshRenderableUpdator(),
 
                 new ForwardRenderPipeline()
             })

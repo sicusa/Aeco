@@ -2,7 +2,6 @@ namespace Aeco.Renderer.GL;
 
 using System.Numerics;
 using System.Collections.Immutable;
-using System.Collections.Concurrent;
 
 public class TransformMatricesUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLayer
 {
@@ -48,7 +47,7 @@ public class TransformMatricesUpdator : VirtualLayer, IGLUpdateLayer, IGLLateUpd
         for (int i = start; i != end; ++i) {
             var childId = childrenIds[i];
             if (context.Contains<TransformMatricesDirty>(childId)) {
-                ref TransformMatrices childMatrices = ref context.Require<TransformMatrices>(childId);
+                ref TransformMatrices childMatrices = ref context.Acquire<TransformMatrices>(childId);
                 childMatrices.Combined = childMatrices.Scale * childMatrices.Rotation * childMatrices.Translation;
                 childMatrices.World = childMatrices.Combined * worldMatrix;
                 UpdateRecursively(context, childId, ref childMatrices);

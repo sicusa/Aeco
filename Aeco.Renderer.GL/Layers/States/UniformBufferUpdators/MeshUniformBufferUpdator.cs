@@ -4,24 +4,9 @@ using OpenTK.Graphics.OpenGL4;
 
 using Aeco.Reactive;
 
-public class MeshUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
+public class MeshUniformBufferUpdator : ReactiveObjectUpdatorBase<Mesh, TransformMatricesDirty>
 {
-    public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
-    {
-        foreach (var id in context.Query<Removed<Mesh>>()) {
-            if (context.Remove<MeshUniformBuffer>(id, out var handle)) {
-                GL.DeleteBuffer(handle.Handle);
-            }
-        }
-        foreach (var id in context.Query<Mesh>()) {
-            if (context.Contains<TransformMatricesDirty>(id)
-                    || context.Contains<Modified<Mesh>>(id)) {
-                DoUpdate(context, id);
-            }
-        }
-    }
-
-    private void DoUpdate(IDataLayer<IComponent> context, Guid id)
+    protected override void UpdateObject(IDataLayer<IComponent> context, Guid id)
     {
         ref var handle = ref context.Acquire<MeshUniformBuffer>(id, out bool exists).Handle;
         if (!exists) {
@@ -38,5 +23,12 @@ public class MeshUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
         ref var boundingBox = ref mesh.Resource.BoudingBox;
         GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero, 12, ref boundingBox.Min);
         GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero + 16, 12, ref boundingBox.Max);
+    }
+
+    protected override void ReleaseObject(IDataLayer<IComponent> context, Guid id)
+    {
+        if (context.Remove<MeshUniformBuffer>(id, out var handle)) {
+            GL.DeleteBuffer(handle.Handle);
+        }
     }
 }

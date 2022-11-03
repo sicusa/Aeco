@@ -140,36 +140,84 @@ float GetTransparencyAlpha(float a) {
 #define TILE_MAXIMUM_LIGHT_COUNT 8
 
 #define LIGHT_NONE          0
-#define LIGHT_DIRECTIONAL   1
-#define LIGHT_POINT         2
-#define LIGHT_SPOTLIGHT     3
-#define LIGHT_AREA          4
+#define LIGHT_AMBIENT       1
+#define LIGHT_DIRECTIONAL   2
+#define LIGHT_POINT         3
+#define LIGHT_SPOT          4
+#define LIGHT_AREA          5
+
+#define LIGHT_COMPONENT_COUNT 19
 
 struct Light {
-    int Category;
-    vec4 Color;
-    vec3 Position;
-    vec3 Direction;
-    vec3 Up;
+    int Category;       // 4    1
+    vec4 Color;         // 16   5
+    vec3 Position;      // 12   8
+    vec3 Direction;     // 12   11
+    vec3 Up;            // 12   14
 
-    float AttenuationConstant;
-    float AttenuationLinear;
-    float AttenuationQuadratic;
+    float AttenuationConstant;  // 4    15
+    float AttenuationLinear;    // 4    16
+    float AttenuationQuadratic; // 4    17
 
-    float InnerConeAngle;
-    float OuterConeAngle;
+    vec2 ConeAnglesOrAreaSize; // 8 19
 };
 
 layout(std140) uniform Lighting {
-    int LightCount;
-    Light VisibleLights[TILE_TOTAL_COUNT * TILE_MAXIMUM_LIGHT_COUNT];
+    int LightIndeces[TILE_TOTAL_COUNT * TILE_MAXIMUM_LIGHT_COUNT];
 };
 
-int GetTileLightOffset(vec2 fragCoord)
+uniform samplerBuffer LightBuffer;
+
+int GetTileIndex(vec2 fragCoord)
 {
     int x = int(floor((fragCoord.x - 0.5) / ViewportWidth * TILE_HORIZONTAL_COUNT));
     int y = int(floor((fragCoord.y - 0.5) / ViewportHeight * TILE_VERTICAL_COUNT));
     return y * TILE_HORIZONTAL_COUNT + x;
+}
+
+float CalculateLightAttenuation(Light light, float distance) {
+    return 1 / (
+        light.AttenuationConstant +
+        light.AttenuationLinear * distance +
+        light.AttenuationQuadratic * distance * distance);
+}
+
+Light GetLight(int index)
+{
+    int offset = index * LIGHT_COMPONENT_COUNT;
+    Light light;
+
+    int category = int(texelFetch(LightBuffer, offset).r);
+    light.Category = category;
+
+    light.Color = vec4(
+        texelFetch(LightBuffer, offset + 1).r,
+        texelFetch(LightBuffer, offset + 2).r,
+        texelFetch(LightBuffer, offset + 3).r,
+        texelFetch(LightBuffer, offset + 4).r);
+
+    light.Position = vec3(
+        texelFetch(LightBuffer, offset + 5).r,
+        texelFetch(LightBuffer, offset + 6).r,
+        texelFetch(LightBuffer, offset + 7).r);
+    light.Direction = vec3(
+        texelFetch(LightBuffer, offset + 8).r,
+        texelFetch(LightBuffer, offset + 9).r,
+        texelFetch(LightBuffer, offset + 10).r);
+    light.Up = vec3(
+        texelFetch(LightBuffer, offset + 11).r,
+        texelFetch(LightBuffer, offset + 12).r,
+        texelFetch(LightBuffer, offset + 13).r);
+
+    light.AttenuationConstant = texelFetch(LightBuffer, offset + 14).r;
+    light.AttenuationLinear = texelFetch(LightBuffer, offset + 15).r;
+    light.AttenuationQuadratic = texelFetch(LightBuffer, offset + 16).r;
+
+    light.ConeAnglesOrAreaSize = vec2(
+        texelFetch(LightBuffer, offset + 17).r,
+        texelFetch(LightBuffer, offset + 18).r);
+
+    return light;
 }
 
 #endif",
@@ -179,32 +227,66 @@ int GetTileLightOffset(vec2 fragCoord)
 #define NAGULE_BLINN_PHONG
 
 #include <nagule/common.glsl>
+#include <nagule/lighting.glsl>
+
+uniform sampler2D DiffuseTex;
+uniform sampler2D SpecularTex;
+uniform sampler2D EmissionTex;
 
 vec4 BlinnPhong(vec3 position, vec2 texCoord, vec3 normal)
 {
     vec2 tiledCoord = texCoord * Tiling;
-
-    vec3 lightDir = MainLightDirection;
-    vec3 lightColor = MainLightColor.rgb * MainLightColor.a;
-    vec3 ambientColor = Ambient.rgb * Ambient.a;
-
-    // diffuse 
-    float diff = max(0.5 * dot(normal, -lightDir) + 0.5, 0.0);
     vec4 diffuseColor = Diffuse * texture(DiffuseTex, tiledCoord);
-    vec3 diffuse = (diff * lightColor + ambientColor) * diffuseColor.rgb;
-    
-    // specular
-    vec3 viewDir = normalize(CameraPosition - position);
-    vec3 divisor = normalize(viewDir - lightDir);
-    float spec = pow(max(dot(divisor, normal), 0.0), Shininess);
     vec4 specularColor = Specular * texture(SpecularTex, tiledCoord);
-    vec3 specular = spec * lightColor * specularColor.rgb;
+
+    vec3 diffuse = vec3(0);
+    vec3 specular = vec3(0);
+
+    Light light = GetLight(0);
+    vec3 lightColor = light.Color.rgb * light.Color.a;
+
+    int category = light.Category;
+    if (category == LIGHT_AMBIENT) {
+        diffuse += lightColor;
+    }
+    else if (category == LIGHT_DIRECTIONAL) {
+        vec3 lightDir = light.Direction;
+
+        // diffuse
+        float diff = max(0.5 * dot(normal, -lightDir) + 0.5, 0.0);
+        diffuse += diff * lightColor;
+
+        // specular
+        vec3 viewDir = normalize(CameraPosition - position);
+        vec3 divisor = normalize(viewDir - lightDir);
+        float spec = pow(max(dot(divisor, normal), 0.0), Shininess);
+        specular += spec * lightColor;
+    }
+    else {
+        vec3 lightDir = position - light.Position;
+        float distance = length(lightDir);
+        lightColor *= CalculateLightAttenuation(light, distance);
+        lightDir /= distance;
+
+        if (category == LIGHT_POINT) {
+            // diffuse
+            float diff = max(0.5 * dot(normal, -lightDir) + 0.5, 0.0);
+            diffuse += diff * lightColor;
+
+            // specular
+            vec3 viewDir = normalize(CameraPosition - position);
+            vec3 divisor = normalize(viewDir - lightDir);
+            float spec = pow(max(dot(divisor, normal), 0.0), Shininess);
+            specular += spec * lightColor;
+        }
+    }
 
     // emission
     vec4 emissionColor = Emission * texture(EmissionTex, tiledCoord);
     vec3 emission = emissionColor.rgb * emissionColor.a;
 
-    return vec4(diffuse + specular + emission, diffuseColor.a);
+    //return vec4(diffuse * diffuseColor.rgb + specular * specularColor.rgb + emission, diffuseColor.a);
+    return vec4(diffuseColor.rgb * diffuse, diffuseColor.a);
 }
 
 #endif"
@@ -341,12 +423,13 @@ vec4 BlinnPhong(vec3 position, vec2 texCoord, vec3 normal)
 
         // initialize uniform locations
 
+        data.LightBufferLocation = GL.GetUniformLocation(program, "LightBuffer");
         data.DepthBufferLocation = GL.GetUniformLocation(program, "DepthBuffer");
 
         EnumArray<TextureType, int>? textureLocations = null;
         if (resource.IsMaterialTexturesEnabled) {
             textureLocations = new EnumArray<TextureType, int>();
-            for (int i = 0; i != textureLocations.Length; i++) {
+            for (int i = 0; i != textureLocations.Length - 1; i++) {
                 textureLocations[i] = GL.GetUniformLocation(program, Enum.GetName((TextureType)i)! + "Tex");
             }
         }

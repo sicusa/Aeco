@@ -115,12 +115,11 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
         // load post-processing shader program
 
         resource = new ShaderProgramResource {
-            IsMaterialTexturesEnabled = false,
+            // IsMaterialTexturesEnabled = false,
             CustomUniforms = new[] {
                 "ColorBuffer",
                 "TransparencyAccumBuffer",
-                "TransparencyAlphaBuffer",
-                "DepthBuffer"
+                "TransparencyAlphaBuffer"
             },
             Subroutines = new() {
                 [ShaderType.Fragment] = new[] {

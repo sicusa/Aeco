@@ -101,7 +101,6 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
             GL.EnableVertexAttribArray(3);
             GL.VertexAttribPointer(3, 3, VertexAttribPointerType.Float, false, 0, 0);
         }
-
         if (resource.Indeces != null) {
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, buffers[MeshBufferType.Index]);
         }

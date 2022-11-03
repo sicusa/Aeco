@@ -49,10 +49,14 @@ public static class GLTests
 
     private static void Launch(GLRenderer game, DebugLayer debugLayer)
     {
-        var mainLight = game.CreateEntity();
-        mainLight.Acquire<Parent>().Id = GLRenderer.RootId;
-        mainLight.Acquire<Rotation>().Value = Quaternion.CreateFromYawPitchRoll(-90, -45, 0);
-        mainLight.Acquire<MainLight>().Color = new Vector4(1, 1, 1, 5f);
+        var light = game.CreateEntity();
+        //light.Acquire<Parent>().Id = GLRenderer.RootId;
+        light.Acquire<Position>().Value = new Vector3(0, 1, 0);
+        light.Acquire<Rotation>().Value = Quaternion.CreateFromYawPitchRoll(-90, -45, 0);
+        light.Acquire<Light>().Resource = new PointLightResource {
+            Color = new Vector4(1, 1, 1, 5),
+            AttenuationQuadratic = 1
+        };
 
         var cameraId = Guid.Parse("c2003019-0b2a-4f4c-ba31-9930c958ff83");
         game.Acquire<Camera>(cameraId);
@@ -121,6 +125,7 @@ public static class GLTests
 
         Guid rotatorId = CreateObject(Vector3.Zero, GLRenderer.RootId, sphereMesh);
         game.Acquire<Scale>(rotatorId).Value = new Vector3(0.3f);
+        light.Acquire<Parent>().Id = rotatorId;
 
         float Lerp(float firstFloat, float secondFloat, float by)
             => firstFloat * (1 - by) + secondFloat * by;
@@ -150,13 +155,13 @@ public static class GLTests
                 if (id == rotatorId) { continue; }
                 if (id == firstId) { continue; }
                 game.Acquire<Rotation>(id).Value = Quaternion.CreateFromYawPitchRoll(time, 0, 0);
-            }
+            }*/
 
             ref readonly var rotatorAxes = ref game.Inspect<WorldAxes>(rotatorId);
             ref var rotatorPos = ref game.Acquire<Position>(rotatorId).Value;
             rotatorPos += rotatorAxes.Forward * deltaTime * 2;
             game.Acquire<Rotation>(rotatorId).Value = Quaternion.CreateFromAxisAngle(Vector3.UnitY, time);
-            game.Acquire<WorldAxes>(firstId).Forward = rotatorPos;*/
+            //game.Acquire<WorldAxes>(firstId).Forward = rotatorPos;
 
             if (window.KeyboardState.IsKeyPressed(Keys.F1)) {
                 GetDebug().DisplayMode = DisplayMode.Color;

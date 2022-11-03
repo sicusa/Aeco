@@ -30,6 +30,13 @@ public class ForwardRenderPipeline : VirtualLayer, IGLLoadLayer, IGLResizeLayer,
         GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.RenderTarget, renderTarget.UniformBufferHandle);
         GL.BindVertexArray(_defaultVertexArray);
 
+        GL.ActiveTexture(TextureUnit.Texture1 + (int)TextureType.Unknown);
+        GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
+
+        var lightBufferHandle = context.AcquireAny<LightUniformBuffer>().Handle;
+        GL.ActiveTexture(TextureUnit.Texture1 + (int)TextureType.Unknown + 1);
+        GL.BindTexture(TextureTarget.Texture2D, lightBufferHandle);
+
         // generate hierarchical-Z buffer
 
         ref readonly var hizProgram = ref context.Inspect<ShaderProgramData>(GLRenderer.HierarchicalZShaderProgramId);
@@ -162,7 +169,7 @@ public class ForwardRenderPipeline : VirtualLayer, IGLLoadLayer, IGLResizeLayer,
 
         GL.ActiveTexture(TextureUnit.Texture3);
         GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
-        GL.Uniform1(customLocations["DepthBuffer"], 3);
+        GL.Uniform1(postProgram.DepthBufferLocation, 3);
 
         if (context.TryGet<RenderTargetDebug>(GLRenderer.DefaultRenderTargetId, out var debug)) {
             var subroutines = postProgram.SubroutineIndeces![ShaderType.Fragment];
@@ -235,10 +242,10 @@ public class ForwardRenderPipeline : VirtualLayer, IGLLoadLayer, IGLResizeLayer,
         GL.UseProgram(shaderProgramData.Handle);
 
         var textures = materialData.Textures;
-        var texturesLength = textures.Length;
         var textureLocations = shaderProgramData.TextureLocations;
+        int texCount = (int)TextureType.Unknown;
 
-        for (int i = 0; i != texturesLength; ++i) {
+        for (int i = 0; i != texCount; ++i) {
             int location = textureLocations![i];
             if (location == -1) { continue; };
             var texId = textures[i];
@@ -250,9 +257,10 @@ public class ForwardRenderPipeline : VirtualLayer, IGLLoadLayer, IGLResizeLayer,
         }
 
         if (shaderProgramData.DepthBufferLocation != -1) {
-            GL.ActiveTexture(TextureUnit.Texture1 + texturesLength + 1);
-            GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
-            GL.Uniform1(texturesLength, texturesLength + 2);
+            GL.Uniform1(shaderProgramData.DepthBufferLocation, texCount + 1);
+        }
+        if (shaderProgramData.LightBufferLocation != -1) {
+            GL.Uniform1(shaderProgramData.LightBufferLocation, texCount + 2);
         }
     }
 }

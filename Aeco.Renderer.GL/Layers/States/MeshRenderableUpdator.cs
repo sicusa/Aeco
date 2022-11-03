@@ -81,17 +81,16 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
             var meshState = context.Require<MeshRenderingState>(data.MeshId);
             ref var matrices = ref context.UnsafeInspect<TransformMatrices>(id);
 
-            meshState.Instances[index] = new MeshInstance {
+            var instance = new MeshInstance {
                 ObjectToWorld = Matrix4x4.Transpose(matrices.World)
             };
+            meshState.Instances[index] = instance;
 
             var meshData = context.Require<MeshData>(data.MeshId);
             var span = CollectionsMarshal.AsSpan(meshState.Instances);
 
             fixed (MeshInstance* arr = span) {
-                int offset = index * MeshInstance.MemorySize;
-                System.Buffer.MemoryCopy(arr + index, (void*)(meshData.InstanceBufferPointer + offset),
-                    MeshInstance.MemorySize, MeshInstance.MemorySize);
+                *((MeshInstance*)meshData.InstanceBufferPointer + index) = instance;
             }
         }
     }
@@ -112,9 +111,9 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
 
         ref var matrices = ref context.UnsafeInspect<TransformMatrices>(id);
         var world = Matrix4x4.Transpose(matrices.World);
-        bool isVariant = true;
 
-        System.Buffer.MemoryCopy(&world, (Matrix4x4*)pointer, MeshInstance.MemorySize, MeshInstance.MemorySize);
-        System.Buffer.MemoryCopy(&isVariant, (Matrix4x4*)pointer + 1, 4, 4);
+        var ptr = (Matrix4x4*)pointer;
+        *ptr = world;
+        *((bool*)(ptr + 1)) = true;
     }
 }

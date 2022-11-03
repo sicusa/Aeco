@@ -13,7 +13,7 @@ public enum TextureType
     Shininess,
     Opacity,
     Displacement,
-    Lightmap,
+    LightMap,
     Reflection,
 
     Unknown

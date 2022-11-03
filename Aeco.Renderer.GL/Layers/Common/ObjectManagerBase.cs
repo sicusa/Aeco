@@ -11,7 +11,7 @@ public abstract class ObjectManagerBase<TObject, TObjectData>
     private Query<Modified<TObject>, TObject> _q = new();
     private Query<Destroy, TObject> _destroy_q = new();
 
-    public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
+    public virtual void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
         foreach (var id in _q.Query(context)) {
             try {
@@ -31,7 +31,7 @@ public abstract class ObjectManagerBase<TObject, TObjectData>
         }
     }
 
-    public void OnLateUpdate(IDataLayer<IComponent> context, float deltaTime)
+    public virtual void OnLateUpdate(IDataLayer<IComponent> context, float deltaTime)
         => DoUninitialize(context, _destroy_q.Query(context));
 
     private void DoUninitialize(IDataLayer<IComponent> context, IEnumerable<Guid> ids)

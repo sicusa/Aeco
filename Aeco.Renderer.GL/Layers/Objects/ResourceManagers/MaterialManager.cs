@@ -28,18 +28,14 @@ public class MaterialManager : ResourceManagerBase<Material, MaterialData, Mater
         var textureReferences = new EnumArray<TextureType, Guid?>();
         var textures = resource.Textures;
 
-        for (int i = 0; i < textures.Length; ++i) {
+        for (int i = 0; i != (int)TextureType.Unknown; ++i) {
             var texResource = textures[i];
             if (texResource != null) {
                 textureReferences[i] = ResourceLibrary<TextureResource>.Reference<Texture>(context, texResource, id);
             }
         }
         data.Textures = textureReferences;
-
-        fixed (MaterialParameters* parameters = &resource.Parameters) {
-            System.Buffer.MemoryCopy(&parameters->DiffuseColor, (void*)data.Pointer,
-                MaterialParameters.MemorySize, MaterialParameters.MemorySize);
-        }
+        *((MaterialParameters*)data.Pointer) = resource.Parameters;
     }
 
     protected override void Uninitialize(IDataLayer<IComponent> context, Guid id, in Material material, in MaterialData data)
@@ -49,7 +45,7 @@ public class MaterialManager : ResourceManagerBase<Material, MaterialData, Mater
 
         var textures = data.Textures;
         if (textures != null) {
-            for (int i = 0; i < (int)TextureType.Unknown; ++i) {
+            for (int i = 0; i != (int)TextureType.Unknown; ++i) {
                 var texId = textures[i];
                 if (texId != null) {
                     ResourceLibrary<TextureResource>.Unreference(context, texId.Value, id);

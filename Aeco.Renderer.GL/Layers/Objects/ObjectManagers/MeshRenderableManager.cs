@@ -39,31 +39,29 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
             ref var meshData = ref context.Require<MeshData>(meshId);
             if (instances.Count <= meshData.InstanceCapacity) {
                 var span = CollectionsMarshal.AsSpan(instances);
-                fixed (MeshInstance* ptr = span) {
-                    int offset = index * MeshInstance.MemorySize;
-                    System.Buffer.MemoryCopy(ptr + index, (void*)(meshData.InstanceBufferPointer + offset),
-                        MeshInstance.MemorySize, MeshInstance.MemorySize);
+                fixed (MeshInstance* arr = span) {
+                    *((MeshInstance*)meshData.InstanceBufferPointer + index) = *(arr + index);
                 }
             }
             else {
                 meshData.InstanceCapacity *= 4;
 
-                int instanceBufferHandle = meshData.BufferHandles[MeshBufferType.Instance];
-                GL.BindBuffer(BufferTarget.ArrayBuffer, instanceBufferHandle);
-
                 var newBuffer = GL.GenBuffer();
-                meshData.BufferHandles[MeshBufferType.Instance] = newBuffer;
+                MeshManager.InitializeInstanceBuffer(BufferTarget.ArrayBuffer, newBuffer, ref meshData);
 
-                MeshManager.InitializeInstanceBuffer(BufferTarget.CopyWriteBuffer, newBuffer, ref meshData);
-                GL.CopyBufferSubData(BufferTarget.ArrayBuffer, BufferTarget.CopyWriteBuffer,
+                int instanceBufferHandle = meshData.BufferHandles[MeshBufferType.Instance];
+                GL.BindBuffer(BufferTarget.CopyReadBuffer, instanceBufferHandle);
+                GL.CopyBufferSubData(BufferTarget.CopyReadBuffer, BufferTarget.ArrayBuffer,
                     IntPtr.Zero, IntPtr.Zero, instances.Count * MeshInstance.MemorySize);
 
-                GL.BindBuffer(BufferTarget.CopyWriteBuffer, 0);
+                GL.BindBuffer(BufferTarget.CopyReadBuffer, 0);
                 GL.DeleteBuffer(instanceBufferHandle);
 
                 GL.BindVertexArray(meshData.VertexArrayHandle);
                 MeshManager.InitializeInstanceCulling(ref meshData);
                 GL.BindVertexArray(0);
+
+                meshData.BufferHandles[MeshBufferType.Instance] = newBuffer;
             }
         }
     }

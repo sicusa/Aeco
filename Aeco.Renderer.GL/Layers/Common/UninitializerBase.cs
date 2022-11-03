@@ -6,14 +6,14 @@ public abstract class UninitializerBase<TObject, TObjectData> : VirtualLayer, IG
     where TObject : IComponent
     where TObjectData : IComponent
 {
-    public void OnLateUpdate(IDataLayer<IComponent> context, float deltaTime)
+    public virtual void OnLateUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
         foreach (var id in context.Query<Removed<TObject>>()) {
             Uninitialize(context, id);
         }
     }
 
-    public void OnUnload(IDataLayer<IComponent> context)
+    public virtual void OnUnload(IDataLayer<IComponent> context)
     {
         foreach (var id in context.Query<TObjectData>().ToArray()) {
             Uninitialize(context, id);

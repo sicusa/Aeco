@@ -12,7 +12,7 @@ public abstract class ResourceManagerBase<TObject, TObjectData, TResource>
     private Query<Modified<TObject>, TObject> _q = new();
     private Query<Destroy, TObject> _destroy_q = new();
 
-    public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
+    public virtual void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
         foreach (var id in _q.Query(context)) {
             try {
@@ -29,7 +29,6 @@ public abstract class ResourceManagerBase<TObject, TObjectData, TResource>
                     Initialize(context, id, ref obj, ref data, false);
                     ResourceLibrary<TResource>.Register(context, obj.Resource, id);
                 }
-
             }
             catch (Exception e) {
                 Console.WriteLine($"Failed to initialize {typeof(TObject)} [{id}]: " + e);

@@ -182,7 +182,7 @@ public static class ModelHelper
         if (mat.HasTextureNormal) { textures[TextureType.Normal] = LoadTexture(state, scene, mat.TextureNormal); }
         if (mat.HasTextureOpacity) { textures[TextureType.Opacity] = LoadTexture(state, scene, mat.TextureOpacity); }
         if (mat.HasTextureDisplacement) { textures[TextureType.Displacement] = LoadTexture(state, scene, mat.TextureDisplacement); }
-        if (mat.HasTextureLightMap) { textures[TextureType.Lightmap] = LoadTexture(state, scene, mat.TextureLightMap); }
+        if (mat.HasTextureLightMap) { textures[TextureType.LightMap] = LoadTexture(state, scene, mat.TextureLightMap); }
         if (mat.HasTextureReflection) { textures[TextureType.Reflection] = LoadTexture(state, scene, mat.TextureReflection); }
 
         state.LoadedMaterials[mat] = materialResource;
@@ -260,7 +260,7 @@ public static class ModelHelper
             Assimp.TextureType.Displacement => TextureType.Displacement,
             Assimp.TextureType.Emissive => TextureType.Emissive,
             Assimp.TextureType.Height => TextureType.Height,
-            Assimp.TextureType.Lightmap => TextureType.Lightmap,
+            Assimp.TextureType.Lightmap => TextureType.LightMap,
             Assimp.TextureType.Normals => TextureType.Normal,
             Assimp.TextureType.Opacity => TextureType.Opacity,
             Assimp.TextureType.Reflection => TextureType.Reflection,

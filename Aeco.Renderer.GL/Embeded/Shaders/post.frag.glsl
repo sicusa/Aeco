@@ -34,8 +34,18 @@ subroutine(PostFunc) vec3 ShowTransparencyAlpha() {
 }
 
 subroutine(PostFunc) vec3 ShowTiles() {
-    float portion = float(GetTileLightOffset(gl_FragCoord.xy)) / TILE_TOTAL_COUNT;
+    float portion = float(GetTileIndex(gl_FragCoord.xy)) / TILE_TOTAL_COUNT;
     return vec3(portion * 0.01);
+}
+
+vec3 ACESToneMapping(vec3 color)
+{
+    const float A = 2.51f;
+    const float B = 0.03f;
+    const float C = 2.43f;
+    const float D = 0.59f;
+    const float E = 0.14f;
+    return (color * (A * color + B)) / (color * (C * color + D) + E);
 }
 
 void main()
@@ -43,8 +53,8 @@ void main()
     const float gamma = 2.2;
     vec3 hdrColor = PostFuncUniform();
   
-    // reinhard tone mapping
-    vec3 mapped = hdrColor / (hdrColor + vec3(1.0));
+    // tone mapping
+    vec3 mapped = ACESToneMapping(hdrColor);
 
     // gamma correction 
     mapped = pow(mapped, vec3(1.0 / gamma));

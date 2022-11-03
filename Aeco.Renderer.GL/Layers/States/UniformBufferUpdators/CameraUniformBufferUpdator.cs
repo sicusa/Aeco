@@ -4,25 +4,9 @@ using System.Numerics;
 
 using OpenTK.Graphics.OpenGL4;
 
-using Aeco.Reactive;
-
-public class CameraUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
+public class CameraUniformBufferUpdator : ReactiveObjectUpdatorBase<Camera, TransformMatricesDirty>
 {
-    public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
-    {
-        foreach (var id in context.Query<Removed<Camera>>()) {
-            if (context.Remove<CameraUniformBuffer>(id, out var handle)) {
-                GL.DeleteBuffer(handle.Handle);
-            }
-        }
-        foreach (var id in context.Query<Camera>()) {
-            if (context.Contains<TransformMatricesDirty>(id) || context.Contains<Modified<Camera>>(id)) {
-                DoUpdate(context, id);
-            }
-        }
-    }
-
-    private unsafe void DoUpdate(IDataLayer<IComponent> context, Guid id)
+    protected unsafe override void UpdateObject(IDataLayer<IComponent> context, Guid id)
     {
         ref readonly var camera = ref context.Inspect<Camera>(id);
         ref var buffer = ref context.Acquire<CameraUniformBuffer>(id, out bool exists);
@@ -48,9 +32,13 @@ public class CameraUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
         pars.NearPlaneDistance = camera.NearPlaneDistance;
         pars.FarPlaneDistance = camera.FarPlaneDistance;
 
-        fixed (CameraParameters* parsPtr = &pars) {
-            System.Buffer.MemoryCopy(parsPtr, (void*)pointer,
-                CameraParameters.MemorySize, CameraParameters.MemorySize);
+        *((CameraParameters*)pointer) = pars;
+    }
+
+    protected override void ReleaseObject(IDataLayer<IComponent> context, Guid id)
+    {
+        if (context.Remove<CameraUniformBuffer>(id, out var handle)) {
+            GL.DeleteBuffer(handle.Handle);
         }
     }
 }

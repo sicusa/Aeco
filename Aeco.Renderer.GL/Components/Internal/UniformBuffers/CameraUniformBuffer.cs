@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct CameraParameters
 {
-    public const int MemorySize = 4 * 64 + 12 + 2 * 4;
+    public static readonly int MemorySize = Marshal.SizeOf<CameraParameters>();
 
     public Matrix4x4 View;
     public Matrix4x4 Proj;
