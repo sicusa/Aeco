@@ -121,7 +121,6 @@ public class GLRenderer : CompositeLayer
     public static Guid BlitShaderProgramId { get; } = Guid.Parse("f57dc687-8ca9-4ec1-9b39-a71b11163b61");
     public static Guid TransparencyComposeShaderProgramId { get; } = Guid.Parse("e7c34862-7de2-494f-b7ae-272659d1a752");
     public static Guid PostProcessingShaderProgramId { get; } = Guid.Parse("8fa594b9-3c16-4996-b7e1-c9cb36037aa2");
-    public static Guid TestShaderProgramId { get; } = Guid.NewGuid();
 
     [MemberNotNullWhen(true, nameof(_renderLayerProfiles))]
     [MemberNotNullWhen(true, nameof(_updateLayerProfiles))]

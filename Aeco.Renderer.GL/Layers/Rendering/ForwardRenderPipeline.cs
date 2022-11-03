@@ -39,13 +39,8 @@ public class ForwardRenderPipeline : VirtualLayer, IGLLoadLayer, IGLResizeLayer,
         GL.ColorMask(false, false, false, false);
         GL.DepthFunc(DepthFunction.Always);
 
-        var hizSubroutines = hizProgram.SubroutineIndeces![ShaderType.Fragment];
-        int hizGenerateMaxIndex = hizSubroutines["GenerateMax"];
-        int hizGenerateMinIndex = hizSubroutines["GenerateMin"];
-
         GL.ActiveTexture(TextureUnit.Texture0);
-        GL.BindTexture(TextureTarget.Texture2D, renderTarget.MaxDepthTextureHandle);
-        GL.UniformSubroutines(OpenTK.Graphics.OpenGL4.ShaderType.FragmentShader, 1, ref hizGenerateMinIndex);
+        GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
 
         int width = renderTarget.Width;
         int height = renderTarget.Height;
@@ -63,44 +58,14 @@ public class ForwardRenderPipeline : VirtualLayer, IGLLoadLayer, IGLResizeLayer,
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, i - 1);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, i - 1);
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-                FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, renderTarget.MinDepthTextureHandle, i);
-            GL.DrawArrays(PrimitiveType.Points, 0, 1);
-
-            if (i == 1) {
-                GL.ActiveTexture(TextureUnit.Texture0);
-                GL.BindTexture(TextureTarget.Texture2D, renderTarget.MinDepthTextureHandle);
-            }
-        }
-
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, levelCount - 1);
-        GL.ActiveTexture(TextureUnit.Texture0);
-        GL.BindTexture(TextureTarget.Texture2D, renderTarget.MaxDepthTextureHandle);
-        GL.UniformSubroutines(OpenTK.Graphics.OpenGL4.ShaderType.FragmentShader, 1, ref hizGenerateMaxIndex);
-
-        width = renderTarget.Width;
-        height = renderTarget.Height;
-
-        for (int i = 1; i < levelCount; ++i) {
-            GL.Uniform2(lastMipSizeLocation, width, height);
-
-            width /= 2;
-            height /= 2;
-            width = width > 0 ? width : 1;
-            height = height > 0 ? height : 1;
-            GL.Viewport(0, 0, width, height);
-
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, i - 1);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, i - 1);
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-                FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, renderTarget.MaxDepthTextureHandle, i);
+                FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, renderTarget.DepthTextureHandle, i);
             GL.DrawArrays(PrimitiveType.Points, 0, 1);
         }
 
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBaseLevel, 0);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, levelCount - 1);
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-            FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, renderTarget.MaxDepthTextureHandle, 0);
+            FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, renderTarget.DepthTextureHandle, 0);
 
         GL.DepthFunc(DepthFunction.Lequal);
         GL.ColorMask(true, true, true, true);
@@ -196,34 +161,21 @@ public class ForwardRenderPipeline : VirtualLayer, IGLLoadLayer, IGLResizeLayer,
         GL.Uniform1(customLocations["TransparencyAlphaBuffer"], 2);
 
         GL.ActiveTexture(TextureUnit.Texture3);
-        GL.BindTexture(TextureTarget.Texture2D, renderTarget.MaxDepthTextureHandle);
-        GL.Uniform1(customLocations["MaxDepthBuffer"], 3);
+        GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
+        GL.Uniform1(customLocations["DepthBuffer"], 3);
 
-        GL.ActiveTexture(TextureUnit.Texture4);
-        GL.BindTexture(TextureTarget.Texture2D, renderTarget.MinDepthTextureHandle);
-        GL.Uniform1(customLocations["MinDepthBuffer"], 4);
-
-    /*
         if (context.TryGet<RenderTargetDebug>(GLRenderer.DefaultRenderTargetId, out var debug)) {
             var subroutines = postProgram.SubroutineIndeces![ShaderType.Fragment];
-            var subroutineName = debug.VisibleBuffer switch {
-                ScreenBuffer.TransparencyAccum => "ShowTransparencyAccum",
-                ScreenBuffer.TransparencyAlpha => "ShowTransparencyAlpha",
-                ScreenBuffer.MaxDepth => "ShowMaxDepth",
-                ScreenBuffer.MinDepth => "ShowMinDepth",
+            var subroutineName = debug.DisplayMode switch {
+                DisplayMode.TransparencyAccum => "ShowTransparencyAccum",
+                DisplayMode.TransparencyAlpha => "ShowTransparencyAlpha",
+                DisplayMode.Depth => "ShowDepth",
+                DisplayMode.Tiles => "ShowTiles",
                 _ => "ShowColor"
             };
             int index = subroutines[subroutineName];
             GL.UniformSubroutines(OpenTK.Graphics.OpenGL4.ShaderType.FragmentShader, 1, ref index);
         }
-
-        GL.Disable(EnableCap.DepthTest);
-        GL.DrawArrays(PrimitiveType.Points, 0, 1);
-        GL.Enable(EnableCap.DepthTest);*/
-
-        ref readonly var tilesProgram = ref context.Inspect<ShaderProgramData>(GLRenderer.TestShaderProgramId);
-        GL.UseProgram(tilesProgram.Handle);
-        GL.Uniform2(tilesProgram.CustomLocations["TileSize"], 32, 32);
 
         GL.Disable(EnableCap.DepthTest);
         GL.DrawArrays(PrimitiveType.Points, 0, 1);
@@ -299,7 +251,7 @@ public class ForwardRenderPipeline : VirtualLayer, IGLLoadLayer, IGLResizeLayer,
 
         if (shaderProgramData.DepthBufferLocation != -1) {
             GL.ActiveTexture(TextureUnit.Texture1 + texturesLength + 1);
-            GL.BindTexture(TextureTarget.Texture2D, renderTarget.MaxDepthTextureHandle);
+            GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
             GL.Uniform1(texturesLength, texturesLength + 2);
         }
     }

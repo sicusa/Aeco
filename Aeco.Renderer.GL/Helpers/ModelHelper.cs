@@ -13,6 +13,7 @@ public static class ModelHelper
         public Dictionary<Assimp.Mesh, MeshResource> LoadedMeshes = new();
         public Dictionary<Assimp.Material, MaterialResource> LoadedMaterials = new();
         public Dictionary<string, TextureResource> LoadedTextures = new();
+        public Dictionary<string, LightResourceBase> LoadedLights = new();
     }
 
     private static Assimp.AssimpContext? _assimpImporter;
@@ -25,38 +26,53 @@ public static class ModelHelper
         }
         var scene = _assimpImporter.ImportFileFromStream(
             stream, Assimp.PostProcessPreset.TargetRealTimeMaximumQuality, formatHint);
+        var state = new AssimpLoaderState();
+        
+        LoadLights(state, scene);
         return new ModelResource {
-            RootNode = LoadNode(new AssimpLoaderState(), scene, scene.RootNode)
+            RootNode = LoadNode(state, scene, scene.RootNode)
         };
+    }
+
+    private static void LoadLights(AssimpLoaderState state, Assimp.Scene scene)
+    {
+        var lights = state.LoadedLights;
+        foreach (var light in scene.Lights) {
+            if (LoadLight(state, scene, light) is LightResourceBase lightRes) {
+                lights[light.Name] = lightRes;
+            }
+        }
     }
 
     private static ModelNodeResource LoadNode(AssimpLoaderState state, Assimp.Scene scene, Assimp.Node node)
     {
-        var nodeResource = new ModelNodeResource {
+        var nodeRes = new ModelNodeResource {
             Name = node.Name
         };
 
-        var metadata = nodeResource.Metadata;
+        var metadata = nodeRes.Metadata;
         foreach (var (k, v) in node.Metadata) {
             metadata.Add(k,
                 v.DataType == Assimp.MetaDataType.Vector3D
                     ? FromVector(v.DataAs<Assimp.Vector3D>()!.Value) : v);
         }
 
-        Matrix4x4.Decompose(FromMatrix(node.Transform),
-            out nodeResource.Scale,
-            out nodeResource.Rotation,
-            out nodeResource.Position);
+        var transform = FromMatrix(node.Transform);
+        Matrix4x4.Decompose(transform,
+            out nodeRes.Scale, out nodeRes.Rotation, out nodeRes.Position);
 
+        if (state.LoadedLights.TryGetValue(node.Name, out var lightRes)) {
+            nodeRes.Lights = new[] { lightRes };
+        }
         if (node.HasMeshes) {
-            nodeResource.Meshes = node.MeshIndices
+            nodeRes.Meshes = node.MeshIndices
                 .Select(index => LoadMesh(state, scene, scene.Meshes[index])).ToArray();
         }
         if (node.HasChildren) {
-            nodeResource.Children = node.Children
+            nodeRes.Children = node.Children
                 .Select(node => LoadNode(state, scene, node)).ToArray();
         }
-        return nodeResource;
+        return nodeRes;
     }
 
     private static MeshResource LoadMesh(AssimpLoaderState state, Assimp.Scene scene, Assimp.Mesh mesh)
@@ -65,8 +81,11 @@ public static class ModelHelper
             return meshResource;
         }
 
+        var vertices = mesh.Vertices.Select(FromVector).ToArray();
+
         meshResource = new MeshResource {
-            Vertices = mesh.Vertices.Select(FromVector).ToArray(),
+            Vertices = vertices,
+            BoudingBox = CalculateBoundingBox(vertices),
             TexCoords = mesh.TextureCoordinateChannels[0].Select(FromVector).ToArray(),
             Normals = mesh.Normals.Select(FromVector).ToArray(),
             Tangents = mesh.Tangents.Select(FromVector).ToArray(),
@@ -74,12 +93,45 @@ public static class ModelHelper
             Material = LoadMaterial(state, scene, scene.Materials[mesh.MaterialIndex])
         };
 
-        ref var min = ref meshResource.BoudingBox.Min;
-        ref var max = ref meshResource.BoudingBox.Max;
+        state.LoadedMeshes[mesh] = meshResource;
+        return meshResource;
+    }
 
-        for (int i = 0; i < mesh.VertexCount; ++i) {
-            var vertex = FromVector(mesh.Vertices[i]);
+    private static LightResourceBase? LoadLight(AssimpLoaderState state, Assimp.Scene scene, Assimp.Light light)
+        => light.LightType switch {
+            Assimp.LightSourceType.Directional => new DirectionalLightResource {
+                Color = FromColor(light.ColorDiffuse)
+            },
+            Assimp.LightSourceType.Ambient => new AmbientLightResource {
+                Color = FromColor(light.ColorDiffuse)
+            },
+            Assimp.LightSourceType.Point => new PointLightResource {
+                AttenuationConstant = light.AttenuationConstant,
+                AttenuationLinear = light.AttenuationLinear,
+                AttenuationQuadratic = light.AttenuationQuadratic
+            },
+            Assimp.LightSourceType.Spot => new SpotLightResource {
+                AttenuationConstant = light.AttenuationConstant,
+                AttenuationLinear = light.AttenuationLinear,
+                AttenuationQuadratic = light.AttenuationQuadratic,
+                InnerConeAngle = light.AngleInnerCone,
+                OuterConeAngle = light.AngleOuterCone
+            },
+            Assimp.LightSourceType.Area => new AreaLightResource {
+                AttenuationConstant = light.AttenuationConstant,
+                AttenuationLinear = light.AttenuationLinear,
+                AttenuationQuadratic = light.AttenuationQuadratic,
+                AreaSize = FromVector(light.AreaSize)
+            },
+            _ => null
+        };
 
+    public static Rectangle CalculateBoundingBox(IEnumerable<Vector3> vertices)
+    {
+        var min = new Vector3();
+        var max = new Vector3();
+
+        foreach (var vertex in vertices) {
             min.X = MathF.Min(min.X, vertex.X);
             min.Y = MathF.Min(min.Y, vertex.Y);
             min.Z = MathF.Min(min.Z, vertex.Z);
@@ -89,8 +141,7 @@ public static class ModelHelper
             max.Z = MathF.Max(max.Z, vertex.Z);
         }
 
-        state.LoadedMeshes[mesh] = meshResource;
-        return meshResource;
+        return new Rectangle(min, max);
     }
 
     private static MaterialResource LoadMaterial(AssimpLoaderState state, Assimp.Scene scene, Assimp.Material mat)
@@ -189,12 +240,18 @@ public static class ModelHelper
             mat.B1, mat.B2, mat.B3, mat.B4,
             mat.C1, mat.C2, mat.C3, mat.C4,
             mat.D1, mat.D2, mat.D3, mat.D4);
+
+    private static Vector2 FromVector(Assimp.Vector2D v)
+        => new Vector2(v.X, v.Y);
     
     private static Vector3 FromVector(Assimp.Vector3D v)
         => new Vector3(v.X, v.Y, v.Z);
 
     private static Vector4 FromColor(Assimp.Color4D c)
         => new Vector4(c.R, c.G, c.B, c.A);
+
+    private static Vector4 FromColor(Assimp.Color3D c)
+        => new Vector4(c.R, c.G, c.B, 1);
     
     private static TextureType FromTextureType(Assimp.TextureType type)
         => type switch {

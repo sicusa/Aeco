@@ -1,16 +1,17 @@
 namespace Aeco.Renderer.GL;
 
-public enum ScreenBuffer
+public enum DisplayMode
 {
     Color,
     TransparencyAccum,
     TransparencyAlpha,
-    Depth
+    Depth,
+    Tiles
 }
 
 public struct RenderTargetDebug : IGLObject
 {
-    public ScreenBuffer VisibleBuffer;
+    public DisplayMode DisplayMode;
 
     public void Dispose() => this = new();
 }

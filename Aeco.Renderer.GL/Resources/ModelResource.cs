@@ -9,6 +9,7 @@ public record ModelNodeResource : IGLResource
     public Quaternion Rotation;
     public Vector3 Scale;
     public MeshResource[]? Meshes;
+    public LightResourceBase[]? Lights;
     public ModelNodeResource[]? Children;
     public readonly Dictionary<string, object> Metadata = new();
 }
@@ -16,6 +17,5 @@ public record ModelNodeResource : IGLResource
 public record ModelResource : IGLResource
 {
     public AnimationResource[]? Animations;
-    public LightResource[]? Lights;
     public ModelNodeResource? RootNode;
 }

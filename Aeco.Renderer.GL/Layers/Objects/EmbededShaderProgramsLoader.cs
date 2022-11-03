@@ -69,10 +69,7 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
 
         resource = new ShaderProgramResource {
             IsMaterialTexturesEnabled = false,
-            CustomUniforms = new[] { "LastMip", "LastMipSize" },
-            Subroutines = new() {
-                [ShaderType.Fragment] = new[] { "GenerateMax", "GenerateMin" }
-            }
+            CustomUniforms = new[] { "LastMip", "LastMipSize" }
         };
 
         resource.Shaders[ShaderType.Vertex] = emptyVertShader;
@@ -123,16 +120,15 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
                 "ColorBuffer",
                 "TransparencyAccumBuffer",
                 "TransparencyAlphaBuffer",
-                "MaxDepthBuffer",
-                "MinDepthBuffer"
+                "DepthBuffer"
             },
             Subroutines = new() {
                 [ShaderType.Fragment] = new[] {
                     "ShowColor",
                     "ShowTransparencyAccum",
                     "ShowTransparencyAlpha",
-                    "ShowMaxDepth",
-                    "ShowMinDepth"
+                    "ShowDepth",
+                    "ShowTiles"
                 }
             }
         };
@@ -145,20 +141,5 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
         program = ref context.Acquire<ShaderProgram>(GLRenderer.PostProcessingShaderProgramId);
         program.Resource = resource;
         Console.WriteLine("Post-processing shader program loaded: " + GLRenderer.PostProcessingShaderProgramId);
-
-        // load test tiles shader program
-
-        resource = new ShaderProgramResource {
-            IsMaterialTexturesEnabled = false,
-            CustomUniforms = new[] { "TileSize" }
-        };
-
-        resource.Shaders[ShaderType.Vertex] = emptyVertShader;
-        resource.Shaders[ShaderType.Geometry] = tilesGeoShader;
-        resource.Shaders[ShaderType.Fragment] =
-            InternalAssets.Load<TextResource>("Shaders.test.frag.glsl").Content;
-
-        program = ref context.Acquire<ShaderProgram>(GLRenderer.TestShaderProgramId);
-        program.Resource = resource;
     }
 }

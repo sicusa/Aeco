@@ -2,14 +2,7 @@
 
 #include <nagule/common.glsl>
 
-uniform ivec2 TileCount;
-
-uniform int LightCount;
-uniform sampler2D LightBuffer;
-
-uniform int DepthLOD;
-uniform sampler2D MaxDepthBuffer;
-uniform sampler2D MinDepthBuffer;
+uniform sampler2D DepthBuffer;
 
 in vec2 TexCoord;
 flat in int TileIndex;

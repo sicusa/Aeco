@@ -1,7 +1,7 @@
 #version 410 core
 
 layout(points) in;
-layout(triangle_strip, max_vertices = 1024) out;
+layout(triangle_strip, max_vertices = 256) out;
 
 uniform ivec2 TileCount;
 

@@ -129,10 +129,15 @@ float GetTransparencyAlpha(float a) {
 #endif",
 
         ["nagule/lighting.glsl"] =
-@"ifndef NAGULE_LIGHTING
+@"#ifndef NAGULE_LIGHTING
 #define NAGULE_LIGHTING
 
-#define MAXIMUM_VISIBLE_LIGHT_COUNT 1024
+#include <nagule/common.glsl>
+
+#define TILE_VERTICAL_COUNT 8
+#define TILE_HORIZONTAL_COUNT 8
+#define TILE_TOTAL_COUNT TILE_VERTICAL_COUNT * TILE_HORIZONTAL_COUNT
+#define TILE_MAXIMUM_LIGHT_COUNT 8
 
 #define LIGHT_NONE          0
 #define LIGHT_DIRECTIONAL   1
@@ -143,13 +148,28 @@ float GetTransparencyAlpha(float a) {
 struct Light {
     int Category;
     vec4 Color;
-    vec3 BoundingBoxMin;
-    vec3 BoundingBoxMax;
+    vec3 Position;
+    vec3 Direction;
+    vec3 Up;
+
+    float AttenuationConstant;
+    float AttenuationLinear;
+    float AttenuationQuadratic;
+
+    float InnerConeAngle;
+    float OuterConeAngle;
 };
 
 layout(std140) uniform Lighting {
     int LightCount;
-    Light VisibleLights[MAXIMUM_VISIBLE_LIGHT_COUNT];
+    Light VisibleLights[TILE_TOTAL_COUNT * TILE_MAXIMUM_LIGHT_COUNT];
+};
+
+int GetTileLightOffset(vec2 fragCoord)
+{
+    int x = int(floor((fragCoord.x - 0.5) / ViewportWidth * TILE_HORIZONTAL_COUNT));
+    int y = int(floor((fragCoord.y - 0.5) / ViewportHeight * TILE_VERTICAL_COUNT));
+    return y * TILE_HORIZONTAL_COUNT + x;
 }
 
 #endif",

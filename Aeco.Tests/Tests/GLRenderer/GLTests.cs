@@ -159,19 +159,19 @@ public static class GLTests
             game.Acquire<WorldAxes>(firstId).Forward = rotatorPos;*/
 
             if (window.KeyboardState.IsKeyPressed(Keys.F1)) {
-                GetDebug().VisibleBuffer = ScreenBuffer.Color;
+                GetDebug().DisplayMode = DisplayMode.Color;
             }
             if (window.KeyboardState.IsKeyPressed(Keys.F2)) {
-                GetDebug().VisibleBuffer = ScreenBuffer.TransparencyAccum;
+                GetDebug().DisplayMode = DisplayMode.TransparencyAccum;
             }
             if (window.KeyboardState.IsKeyPressed(Keys.F3)) {
-                GetDebug().VisibleBuffer = ScreenBuffer.TransparencyAlpha;
+                GetDebug().DisplayMode = DisplayMode.TransparencyAlpha;
             }
             if (window.KeyboardState.IsKeyPressed(Keys.F4)) {
-                GetDebug().VisibleBuffer = ScreenBuffer.MaxDepth;
+                GetDebug().DisplayMode = DisplayMode.Depth;
             }
             if (window.KeyboardState.IsKeyPressed(Keys.F5)) {
-                GetDebug().VisibleBuffer = ScreenBuffer.MinDepth;
+                GetDebug().DisplayMode = DisplayMode.Tiles;
             }
 
             game.Acquire<Rotation>(cameraId).Value = Quaternion.CreateFromYawPitchRoll(-x, -y, 0);
