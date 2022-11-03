@@ -13,19 +13,19 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     private FastHashBrick<Guid, TStoredComponent> _brick;
     private SortedSet<Guid> _entityIds = new();
 
-    private int _cellarCount;
+    private int _cellarCapacity;
     private Guid _singleton = Guid.Empty;
     private bool _existsTemp;
 
     public MonoPoolStorage(int brickCapacity = MonoPoolStorage.DefaultBrickCapacity)
     {
         BrickCapacity = brickCapacity;
-        _cellarCount = FastHashBrick.CalculateProperCellarCount(brickCapacity);
+        _cellarCapacity = FastHashBrick.CalculateProperCellarCapacity(brickCapacity);
         _brick = new(brickCapacity);
     }
     
     private int GetIndex(Guid entityId)
-        => FastHashBrick.CalculateIndex(entityId.GetHashCode(), _cellarCount);
+        => FastHashBrick.CalculateIndex(entityId.GetHashCode(), _cellarCapacity);
 
     public override bool TryGet(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
     {

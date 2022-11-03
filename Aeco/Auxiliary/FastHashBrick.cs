@@ -189,9 +189,9 @@ public static class FastHashBrick
 {
     public const int Lower31BitMask = 0x7FFFFFFF;
 
-    public static int CalculateProperCellarCount(int brickCapacity)
+    public static int CalculateProperCellarCapacity(int brickCapacity)
         => (int)(0.86f * brickCapacity);
     
-    public static int CalculateIndex(int hashCode, int cellarCount)
-        => (hashCode & Lower31BitMask) % cellarCount;
+    public static int CalculateIndex(int hashCode, int cellarCapacity)
+        => (hashCode & Lower31BitMask) % cellarCapacity;
 }
