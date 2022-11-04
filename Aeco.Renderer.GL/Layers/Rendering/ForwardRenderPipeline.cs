@@ -222,11 +222,15 @@ public class ForwardRenderPipeline : VirtualLayer, IGLUpdateLayer, IGLLoadLayer,
             GL.DrawElementsInstanced(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero, visibleCount);
         }
 
+        bool materialApplied = false;
         foreach (var variantId in state.VariantIds) {
             GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.Object,
                 context.Require<VariantUniformBuffer>(variantId).Handle);
             if (context.TryGet<MaterialData>(variantId, out var overwritingMaterialData)) {
                 ApplyMaterial(context, in overwritingMaterialData, in renderTarget);
+            }
+            else if (!materialApplied) {
+                ApplyMaterial(context, in materialData, in renderTarget);
             }
             GL.DrawElements(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, 0);
         }
