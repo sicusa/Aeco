@@ -5,7 +5,7 @@ using OpenTK.Graphics.OpenGL4;
 using Aeco.Reactive;
 using System.Collections.Generic;
 
-public class ForwardRenderPipeline : VirtualLayer, IGLLoadLayer, IGLResizeLayer, IGLRenderLayer
+public class ForwardRenderPipeline : VirtualLayer, IGLUpdateLayer, IGLLoadLayer, IGLResizeLayer, IGLRenderLayer
 {
     private Group<Mesh, MeshRenderingState> _g = new();
     private List<Guid> _transparentIds = new();
@@ -22,6 +22,9 @@ public class ForwardRenderPipeline : VirtualLayer, IGLLoadLayer, IGLResizeLayer,
         _defaultVertexArray = GL.GenVertexArray();
     }
 
+    public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
+        => _g.Query(context);
+
     public void OnRender(IDataLayer<IComponent> context, float deltaTime)
     {
         ref readonly var renderTarget = ref context.Inspect<RenderTargetData>(GLRenderer.DefaultRenderTargetId);
@@ -33,9 +36,9 @@ public class ForwardRenderPipeline : VirtualLayer, IGLLoadLayer, IGLResizeLayer,
         GL.ActiveTexture(TextureUnit.Texture1 + (int)TextureType.Unknown);
         GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
 
-        var lightBufferHandle = context.AcquireAny<LightUniformBuffer>().Handle;
+        var lightBufferHandle = context.AcquireAny<LightUniformBuffer>().TexHandle;
         GL.ActiveTexture(TextureUnit.Texture1 + (int)TextureType.Unknown + 1);
-        GL.BindTexture(TextureTarget.Texture2D, lightBufferHandle);
+        GL.BindTexture(TextureTarget.TextureBuffer, lightBufferHandle);
 
         // generate hierarchical-Z buffer
 
@@ -84,7 +87,7 @@ public class ForwardRenderPipeline : VirtualLayer, IGLLoadLayer, IGLResizeLayer,
         GL.UseProgram(cullProgram.Handle);
         GL.Enable(EnableCap.RasterizerDiscard);
 
-        foreach (var id in _g.Query(context)) {
+        foreach (var id in _g) {
             ref readonly var meshData = ref context.Inspect<MeshData>(id);
             Cull(context, id, in meshData);
         }
@@ -143,12 +146,13 @@ public class ForwardRenderPipeline : VirtualLayer, IGLLoadLayer, IGLResizeLayer,
 
             GL.DepthMask(true);
             GL.Disable(EnableCap.Blend);
+
             _transparentIds.Clear();
         }
 
         // render post-processed result
 
-        GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         GL.BindVertexArray(_defaultVertexArray);
 
         ref readonly var postProgram = ref context.Inspect<ShaderProgramData>(GLRenderer.PostProcessingShaderProgramId);
@@ -171,8 +175,8 @@ public class ForwardRenderPipeline : VirtualLayer, IGLLoadLayer, IGLResizeLayer,
         GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
         GL.Uniform1(postProgram.DepthBufferLocation, 3);
 
+        var subroutines = postProgram.SubroutineIndeces![ShaderType.Fragment];
         if (context.TryGet<RenderTargetDebug>(GLRenderer.DefaultRenderTargetId, out var debug)) {
-            var subroutines = postProgram.SubroutineIndeces![ShaderType.Fragment];
             var subroutineName = debug.DisplayMode switch {
                 DisplayMode.TransparencyAccum => "ShowTransparencyAccum",
                 DisplayMode.TransparencyAlpha => "ShowTransparencyAlpha",
@@ -211,11 +215,11 @@ public class ForwardRenderPipeline : VirtualLayer, IGLLoadLayer, IGLResizeLayer,
         ref readonly var state = ref context.Inspect<MeshRenderingState>(id);
 
         GL.BindVertexArray(meshData.VertexArrayHandle);
-        ApplyMaterial(context, in materialData, in renderTarget);
+        GL.GetQueryObject(meshData.CulledQueryHandle, GetQueryObjectParam.QueryResult, out int visibleCount);
 
-        GL.GetQueryObject(meshData.CulledQueryHandle, GetQueryObjectParam.QueryResult, out int instanceCount);
-        if (instanceCount > 0) {
-            GL.DrawElementsInstanced(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero, instanceCount);
+        if (visibleCount > 0) {
+            ApplyMaterial(context, in materialData, in renderTarget);
+            GL.DrawElementsInstanced(PrimitiveType.Triangles, meshData.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero, visibleCount);
         }
 
         foreach (var variantId in state.VariantIds) {

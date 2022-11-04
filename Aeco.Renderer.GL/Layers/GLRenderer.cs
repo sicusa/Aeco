@@ -25,7 +25,7 @@ public class GLRenderer : CompositeLayer
             : base(
                 new GameWindowSettings {
                     RenderFrequency = spec.RenderFrequency,
-                    UpdateFrequency = spec.UpdateFrequency
+                    UpdateFrequency = spec.UpdateFrequency,
                 },
                 new NativeWindowSettings {
                     Size = (spec.Width, spec.Height),
@@ -76,6 +76,7 @@ public class GLRenderer : CompositeLayer
             }
 
             _context.Load();
+            _context.Update(0);
         }
 
         protected override void OnUnload()
@@ -87,8 +88,14 @@ public class GLRenderer : CompositeLayer
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);
-            _context.Update((float)e.Time);
+            _context.Render((float)e.Time);
             SwapBuffers();
+        }
+
+        protected override void OnUpdateFrame(FrameEventArgs e)
+        {
+            base.OnUpdateFrame(e);
+            _context.Update((float)e.Time);
         }
 
         protected override void OnResize(ResizeEventArgs e)
@@ -112,7 +119,6 @@ public class GLRenderer : CompositeLayer
 
     public static Guid DefaultOpaqueProgramId { get; } = Guid.Parse("fa55827a-852c-4de2-b47e-3df941ec7619");
     public static Guid DefaultTransparentShaderProgramId { get; } = Guid.Parse("f03617c0-61c3-415c-bc37-ffce0e652de3");
-    public static Guid MotionShaderProgramId { get; } = Guid.Parse("904b37e2-bb65-4e4f-9cf8-b28ba6563641");
     public static Guid CullingShaderProgramId { get; } = Guid.Parse("ff7d8e33-eeb5-402b-b633-e2b2a264b1e9");
     public static Guid HierarchicalZShaderProgramId { get; } = Guid.Parse("b04b536e-3e4a-4896-b289-6f8910746ef2");
     public static Guid BlitShaderProgramId { get; } = Guid.Parse("f57dc687-8ca9-4ec1-9b39-a71b11163b61");
@@ -273,6 +279,24 @@ public class GLRenderer : CompositeLayer
         profile.AverangeTime = (profile.AverangeTime + time) / 2.0;
     }
 
+    protected void Render(float deltaTime)
+    {
+        if (IsProfileEnabled) {
+            for (int i = 0; i < _renderLayers.Length; ++i) {
+                _profileWatch.Restart();
+                _renderLayers[i].OnRender(this, deltaTime);
+                _profileWatch.Stop();
+                var time = _profileWatch.Elapsed.TotalSeconds;
+                SetProfile(ref _renderLayerProfiles[i], time);
+            }
+        }
+        else {
+            for (int i = 0; i < _renderLayers.Length; ++i) {
+                _renderLayers[i].OnRender(this, deltaTime);
+            }
+        }
+    }
+
     protected void Update(float deltaTime)
     {
         if (IsProfileEnabled) {
@@ -282,13 +306,6 @@ public class GLRenderer : CompositeLayer
                 _profileWatch.Stop();
                 var time = _profileWatch.Elapsed.TotalSeconds;
                 SetProfile(ref _updateLayerProfiles[i], time);
-            }
-            for (int i = 0; i < _renderLayers.Length; ++i) {
-                _profileWatch.Restart();
-                _renderLayers[i].OnRender(this, deltaTime);
-                _profileWatch.Stop();
-                var time = _profileWatch.Elapsed.TotalSeconds;
-                SetProfile(ref _renderLayerProfiles[i], time);
             }
             for (int i = 0; i < _lateUpdateLayers.Length; ++i) {
                 _profileWatch.Restart();
@@ -301,9 +318,6 @@ public class GLRenderer : CompositeLayer
         else {
             for (int i = 0; i < _updateLayers.Length; ++i) {
                 _updateLayers[i].OnUpdate(this, deltaTime);
-            }
-            for (int i = 0; i < _renderLayers.Length; ++i) {
-                _renderLayers[i].OnRender(this, deltaTime);
             }
             for (int i = 0; i < _lateUpdateLayers.Length; ++i) {
                 _lateUpdateLayers[i].OnLateUpdate(this, deltaTime);

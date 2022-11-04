@@ -5,9 +5,7 @@ using System.Runtime.InteropServices;
 
 using OpenTK.Graphics.OpenGL4;
 
-using Aeco.Reactive;
-
-public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRenderableData>, IGLUpdateLayer
+public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRenderableData>
 {
     protected unsafe override void Initialize(IDataLayer<IComponent> context, Guid id, ref MeshRenderable renderable, ref MeshRenderableData data, bool updating)
     {

@@ -24,7 +24,6 @@ layout(std140) uniform Camera {
     mat4 Matrix_V;
     mat4 Matrix_P;
     mat4 Matrix_VP;
-    mat4 Matrix_Prev_VP;
     vec3 CameraPosition;
     float CameraNearPlaneDistance;
     float CameraFarPlaneDistance;
@@ -285,8 +284,7 @@ vec4 BlinnPhong(vec3 position, vec2 texCoord, vec3 normal)
     vec4 emissionColor = Emission * texture(EmissionTex, tiledCoord);
     vec3 emission = emissionColor.rgb * emissionColor.a;
 
-    //return vec4(diffuse * diffuseColor.rgb + specular * specularColor.rgb + emission, diffuseColor.a);
-    return vec4(diffuseColor.rgb * diffuse, diffuseColor.a);
+    return vec4(diffuse * diffuseColor.rgb + specular * specularColor.rgb + emission, diffuseColor.a);
 }
 
 #endif"

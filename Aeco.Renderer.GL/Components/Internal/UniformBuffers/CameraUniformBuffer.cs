@@ -11,7 +11,6 @@ public struct CameraParameters
     public Matrix4x4 View;
     public Matrix4x4 Proj;
     public Matrix4x4 ViewProj;
-    public Matrix4x4 PrevViewProj;
     public Vector3 Position;
     public float NearPlaneDistance;
     public float FarPlaneDistance;

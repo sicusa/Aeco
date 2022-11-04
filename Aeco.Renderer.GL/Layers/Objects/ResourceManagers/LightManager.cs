@@ -1,18 +1,9 @@
 namespace Aeco.Renderer.GL;
 
-public class LightManager : ResourceManagerBase<Light, LightData, LightResourceBase>, IGLRenderLayer
+public class LightManager : ResourceManagerBase<Light, LightData, LightResourceBase>
 {
-    private Query<LightData, TransformMatricesDirty> _q = new();
     private Stack<int> _lightIds = new();
     private int _maxId;
-
-    public void OnRender(IDataLayer<IComponent> context, float deltaTime)
-    {
-        foreach (var id in _q.Query(context)) {
-            ref var lightData = ref context.Acquire<LightData>(id);
-            UpdateLightTransform(context, id, ref lightData.Parameters);
-        }
-    }
 
     protected unsafe override void Initialize(
         IDataLayer<IComponent> context, Guid id, ref Light light, ref LightData data, bool updating)
@@ -57,14 +48,6 @@ public class LightManager : ResourceManagerBase<Light, LightData, LightResourceB
         }
 
         pars.Category = (float)data.Category;
-    }
-
-    private void UpdateLightTransform(IDataLayer<IComponent> context, Guid id, ref LightParameters pars)
-    {
-        ref var worldAxes = ref context.Acquire<WorldAxes>(id);
-        pars.Position = context.Acquire<WorldPosition>(id).Value;
-        pars.Direction = worldAxes.Forward;
-        pars.Up = worldAxes.Up;
     }
 
     protected override void Uninitialize(IDataLayer<IComponent> context, Guid id, in Light light, in LightData data)

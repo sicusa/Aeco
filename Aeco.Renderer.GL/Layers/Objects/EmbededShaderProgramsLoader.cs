@@ -35,20 +35,6 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
         program.Resource = resource;
         Console.WriteLine("Default transparent shader program loaded: " + GLRenderer.DefaultTransparentShaderProgramId);
 
-        // load motion shader program
-
-        resource = new ShaderProgramResource {
-            IsMaterialTexturesEnabled = false
-        };
-        resource.Shaders[ShaderType.Vertex] = simpleVertShader;
-        resource.Shaders[ShaderType.Geometry] = quadGeoShader;
-        resource.Shaders[ShaderType.Fragment] = 
-            InternalAssets.Load<TextResource>("Shaders.motion.frag.glsl").Content;
-
-        program = ref context.Acquire<ShaderProgram>(GLRenderer.MotionShaderProgramId);
-        program.Resource = resource;
-        Console.WriteLine("Motion shader program loaded: " + GLRenderer.MotionShaderProgramId);
-
         // load culling shader program
 
         resource = new ShaderProgramResource {

@@ -36,7 +36,7 @@ public abstract class ResourceManagerBase<TObject, TObjectData, TResource>
         }
     }
 
-    public void OnLateUpdate(IDataLayer<IComponent> context, float deltaTime)
+    public virtual void OnLateUpdate(IDataLayer<IComponent> context, float deltaTime)
         => DoUninitialize(context, _destroy_q.Query(context));
 
     private void DoUninitialize(IDataLayer<IComponent> context, IEnumerable<Guid> ids)

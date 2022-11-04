@@ -19,12 +19,12 @@ public abstract class ReactiveObjectUpdatorBase<TObject> : VirtualLayer, IGLUpda
     public virtual void OnLateUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
         foreach (var id in _destroy_q.Query(context)) {
-            DestroyObject(context, id);
+            ReleaseObject(context, id);
         }
     }
 
     protected abstract void UpdateObject(IDataLayer<IComponent> context, Guid id);
-    protected abstract void DestroyObject(IDataLayer<IComponent> context, Guid id);
+    protected abstract void ReleaseObject(IDataLayer<IComponent> context, Guid id);
 }
 
 public abstract class ReactiveObjectUpdatorBase<TObject, TDirtyTag> : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLayer
@@ -36,8 +36,9 @@ public abstract class ReactiveObjectUpdatorBase<TObject, TDirtyTag> : VirtualLay
     public virtual void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
         foreach (var id in context.Query<TObject>()) {
-            if (context.Contains<TDirtyTag>(id) || context.Contains<Modified<TObject>>(id)) {
-                UpdateObject(context, id);
+            bool dirty = context.Contains<TDirtyTag>(id);
+            if (dirty || context.Contains<Modified<TObject>>(id)) {
+                UpdateObject(context, id, dirty);
             }
         }
     }
@@ -49,6 +50,6 @@ public abstract class ReactiveObjectUpdatorBase<TObject, TDirtyTag> : VirtualLay
         }
     }
 
-    protected abstract void UpdateObject(IDataLayer<IComponent> context, Guid id);
+    protected abstract void UpdateObject(IDataLayer<IComponent> context, Guid id, bool dirty);
     protected abstract void ReleaseObject(IDataLayer<IComponent> context, Guid id);
 }

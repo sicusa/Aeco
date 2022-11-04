@@ -23,9 +23,9 @@ public static class GLTests
         game.Initialize(new RendererSpec {
             Width = 800,
             Height = 600,
-            //IsFullscreen = true,
-            Title = "RPG Game"
-            //IsDebugEnabled = true
+           // IsFullscreen = true,
+            Title = "RPG Game",
+            IsDebugEnabled = true
         });
 
         void PrintLayerProfiles<TLayer>(string name, IEnumerable<(TLayer, GLRenderer.LayerProfile)> profiles)
@@ -50,7 +50,6 @@ public static class GLTests
     private static void Launch(GLRenderer game, DebugLayer debugLayer)
     {
         var light = game.CreateEntity();
-        //light.Acquire<Parent>().Id = GLRenderer.RootId;
         light.Acquire<Position>().Value = new Vector3(0, 1, 0);
         light.Acquire<Rotation>().Value = Quaternion.CreateFromYawPitchRoll(-90, -45, 0);
         light.Acquire<Light>().Resource = new PointLightResource {

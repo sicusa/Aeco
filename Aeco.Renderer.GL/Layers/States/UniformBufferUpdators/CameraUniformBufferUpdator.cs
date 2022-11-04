@@ -6,7 +6,7 @@ using OpenTK.Graphics.OpenGL4;
 
 public class CameraUniformBufferUpdator : ReactiveObjectUpdatorBase<Camera, TransformMatricesDirty>
 {
-    protected unsafe override void UpdateObject(IDataLayer<IComponent> context, Guid id)
+    protected unsafe override void UpdateObject(IDataLayer<IComponent> context, Guid id, bool dirty)
     {
         ref readonly var camera = ref context.Inspect<Camera>(id);
         ref var buffer = ref context.Acquire<CameraUniformBuffer>(id, out bool exists);
@@ -24,11 +24,12 @@ public class CameraUniformBufferUpdator : ReactiveObjectUpdatorBase<Camera, Tran
         }
 
         ref var pars = ref buffer.Parameters;
-        pars.View = Matrix4x4.Transpose(context.UnsafeInspect<TransformMatrices>(id).View);
-        pars.Proj = Matrix4x4.Transpose(context.UnsafeAcquire<CameraMatrices>(id).ProjectionRaw);
-        pars.PrevViewProj = pars.ViewProj;
-        pars.ViewProj = pars.Proj * pars.View;
-        pars.Position = context.UnsafeAcquire<WorldPosition>(id).Value;
+        if (dirty) {
+            pars.View = Matrix4x4.Transpose(context.UnsafeInspect<TransformMatrices>(id).View);
+            pars.Proj = Matrix4x4.Transpose(context.UnsafeAcquire<CameraMatrices>(id).ProjectionRaw);
+            pars.ViewProj = pars.Proj * pars.View;
+            pars.Position = context.UnsafeAcquire<WorldPosition>(id).Value;
+        }
         pars.NearPlaneDistance = camera.NearPlaneDistance;
         pars.FarPlaneDistance = camera.FarPlaneDistance;
 
