@@ -155,28 +155,27 @@ public class ForwardRenderPipeline : VirtualLayer, IGLUpdateLayer, IGLLoadLayer,
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         GL.BindVertexArray(_defaultVertexArray);
 
-        ref readonly var postProgram = ref context.Inspect<ShaderProgramData>(GLRenderer.PostProcessingShaderProgramId);
-        var customLocations = postProgram.CustomLocations;
-        GL.UseProgram(postProgram.Handle);
-
         GL.ActiveTexture(TextureUnit.Texture0);
         GL.BindTexture(TextureTarget.Texture2D, renderTarget.ColorTextureHandle);
-        GL.Uniform1(customLocations["ColorBuffer"], 0);
 
-        GL.ActiveTexture(TextureUnit.Texture1);
-        GL.BindTexture(TextureTarget.Texture2D, renderTarget.TransparencyAccumTextureHandle);
-        GL.Uniform1(customLocations["TransparencyAccumBuffer"], 1);
-
-        GL.ActiveTexture(TextureUnit.Texture2);
-        GL.BindTexture(TextureTarget.Texture2D, renderTarget.TransparencyAlphaTextureHandle);
-        GL.Uniform1(customLocations["TransparencyAlphaBuffer"], 2);
-
-        GL.ActiveTexture(TextureUnit.Texture3);
-        GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
-        GL.Uniform1(postProgram.DepthBufferLocation, 3);
-
-        var subroutines = postProgram.SubroutineIndeces![ShaderType.Fragment];
         if (context.TryGet<RenderTargetDebug>(GLRenderer.DefaultRenderTargetId, out var debug)) {
+            ref readonly var postProgram = ref context.Inspect<ShaderProgramData>(GLRenderer.PostProcessingDebugShaderProgramId);
+            var customLocations = postProgram.CustomLocations;
+            GL.UseProgram(postProgram.Handle);
+
+            GL.ActiveTexture(TextureUnit.Texture1);
+            GL.BindTexture(TextureTarget.Texture2D, renderTarget.TransparencyAccumTextureHandle);
+            GL.Uniform1(customLocations["TransparencyAccumBuffer"], 1);
+
+            GL.ActiveTexture(TextureUnit.Texture2);
+            GL.BindTexture(TextureTarget.Texture2D, renderTarget.TransparencyAlphaTextureHandle);
+            GL.Uniform1(customLocations["TransparencyAlphaBuffer"], 2);
+
+            GL.ActiveTexture(TextureUnit.Texture3);
+            GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
+            GL.Uniform1(postProgram.DepthBufferLocation, 3);
+
+            var subroutines = postProgram.SubroutineIndeces![ShaderType.Fragment];
             var subroutineName = debug.DisplayMode switch {
                 DisplayMode.TransparencyAccum => "ShowTransparencyAccum",
                 DisplayMode.TransparencyAlpha => "ShowTransparencyAlpha",
@@ -186,6 +185,11 @@ public class ForwardRenderPipeline : VirtualLayer, IGLUpdateLayer, IGLLoadLayer,
             };
             int index = subroutines[subroutineName];
             GL.UniformSubroutines(OpenTK.Graphics.OpenGL4.ShaderType.FragmentShader, 1, ref index);
+        }
+        else {
+            ref readonly var postProgram = ref context.Inspect<ShaderProgramData>(GLRenderer.PostProcessingShaderProgramId);
+            var customLocations = postProgram.CustomLocations;
+            GL.UseProgram(postProgram.Handle);
         }
 
         GL.Disable(EnableCap.DepthTest);

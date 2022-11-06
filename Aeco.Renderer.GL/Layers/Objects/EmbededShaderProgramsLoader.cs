@@ -98,10 +98,10 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
         program.Resource = resource;
         Console.WriteLine("Transparency compose shader program loaded: " + GLRenderer.TransparencyComposeShaderProgramId);
 
-        // load post-processing shader program
+        // load debugging post-processing shader program
 
         resource = new ShaderProgramResource {
-            // IsMaterialTexturesEnabled = false,
+            IsMaterialTexturesEnabled = false,
             CustomUniforms = new[] {
                 "ColorBuffer",
                 "TransparencyAccumBuffer",
@@ -116,6 +116,21 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
                     "ShowTiles"
                 }
             }
+        };
+
+        resource.Shaders[ShaderType.Vertex] = emptyVertShader;
+        resource.Shaders[ShaderType.Geometry] = quadGeoShader;
+        resource.Shaders[ShaderType.Fragment] =
+            InternalAssets.Load<TextResource>("Shaders.post_debug.frag.glsl").Content;
+
+        program = ref context.Acquire<ShaderProgram>(GLRenderer.PostProcessingDebugShaderProgramId);
+        program.Resource = resource;
+        Console.WriteLine("Post-processing debug shader program loaded: " + GLRenderer.PostProcessingDebugShaderProgramId);
+
+        // load post-processing shader program
+
+        resource = new ShaderProgramResource {
+            IsMaterialTexturesEnabled = false
         };
 
         resource.Shaders[ShaderType.Vertex] = emptyVertShader;

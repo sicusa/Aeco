@@ -161,6 +161,11 @@ struct Light {
     vec2 ConeAnglesOrAreaSize; // 8 19
 };
 
+struct LightingResult {
+    float Diffuse;
+    float Specular;
+};
+
 layout(std140) uniform Lighting {
     int LightIndeces[TILE_TOTAL_COUNT * TILE_MAXIMUM_LIGHT_COUNT];
 };
@@ -172,13 +177,6 @@ int GetTileIndex(vec2 fragCoord)
     int x = int(floor((fragCoord.x - 0.5) / ViewportWidth * TILE_HORIZONTAL_COUNT));
     int y = int(floor((fragCoord.y - 0.5) / ViewportHeight * TILE_VERTICAL_COUNT));
     return y * TILE_HORIZONTAL_COUNT + x;
-}
-
-float CalculateLightAttenuation(Light light, float distance) {
-    return 1 / (
-        light.AttenuationConstant +
-        light.AttenuationLinear * distance +
-        light.AttenuationQuadratic * distance * distance);
 }
 
 Light GetLight(int index)
@@ -219,6 +217,55 @@ Light GetLight(int index)
     return light;
 }
 
+float CalculateLightAttenuation(Light light, float distance)
+{
+    return 1 / (
+        light.AttenuationConstant +
+        light.AttenuationLinear * distance +
+        light.AttenuationQuadratic * distance * distance);
+}
+
+LightingResult CalculateLightingResult(vec3 position, vec3 normal, Light light)
+{
+    LightingResult r;
+    int category = light.Category;
+
+    if (category == LIGHT_AMBIENT) {
+        r.Diffuse = light.Diffuse;
+        r.Specular = 0;
+    }
+    else if (category == LIGHT_DIRECTIONAL) {
+        vec3 lightDir = light.Direction;
+
+        // diffuse
+        r.Diffuse = max(0.5 * dot(normal, -lightDir) + 0.5, 0.0);
+
+        // specular
+        vec3 viewDir = normalize(CameraPosition - position);
+        vec3 divisor = normalize(viewDir - lightDir);
+        float spec = pow(max(dot(divisor, normal), 0.0), Shininess);
+        r.Specular = spec;
+    }
+    else {
+        vec3 lightDir = position - light.Position;
+        float distance = length(lightDir);
+        float attenuation = CalculateLightAttenuation(light, distance);
+        lightDir /= distance;
+
+        if (category == LIGHT_POINT) {
+            // diffuse
+            float diff = max(0.5 * dot(normal, -lightDir) + 0.5, 0.0);
+            r.Diffuse = diff;
+
+            // specular
+            vec3 viewDir = normalize(CameraPosition - position);
+            vec3 divisor = normalize(viewDir - lightDir);
+            float spec = pow(max(dot(divisor, normal), 0.0), Shininess);
+            r.Specular = spec;
+        }
+    }
+}
+
 #endif",
 
         ["nagule/blinn_phong.glsl"] =
@@ -245,40 +292,6 @@ vec4 BlinnPhong(vec3 position, vec2 texCoord, vec3 normal)
     vec3 lightColor = light.Color.rgb * light.Color.a;
 
     int category = light.Category;
-    if (category == LIGHT_AMBIENT) {
-        diffuse += lightColor;
-    }
-    else if (category == LIGHT_DIRECTIONAL) {
-        vec3 lightDir = light.Direction;
-
-        // diffuse
-        float diff = max(0.5 * dot(normal, -lightDir) + 0.5, 0.0);
-        diffuse += diff * lightColor;
-
-        // specular
-        vec3 viewDir = normalize(CameraPosition - position);
-        vec3 divisor = normalize(viewDir - lightDir);
-        float spec = pow(max(dot(divisor, normal), 0.0), Shininess);
-        specular += spec * lightColor;
-    }
-    else {
-        vec3 lightDir = position - light.Position;
-        float distance = length(lightDir);
-        lightColor *= CalculateLightAttenuation(light, distance);
-        lightDir /= distance;
-
-        if (category == LIGHT_POINT) {
-            // diffuse
-            float diff = max(0.5 * dot(normal, -lightDir) + 0.5, 0.0);
-            diffuse += diff * lightColor;
-
-            // specular
-            vec3 viewDir = normalize(CameraPosition - position);
-            vec3 divisor = normalize(viewDir - lightDir);
-            float spec = pow(max(dot(divisor, normal), 0.0), Shininess);
-            specular += spec * lightColor;
-        }
-    }
 
     // emission
     vec4 emissionColor = Emission * texture(EmissionTex, tiledCoord);

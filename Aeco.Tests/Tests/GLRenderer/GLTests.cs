@@ -23,9 +23,9 @@ public static class GLTests
         game.Initialize(new RendererSpec {
             Width = 800,
             Height = 600,
-           // IsFullscreen = true,
-            Title = "RPG Game",
-            IsDebugEnabled = true
+            IsFullscreen = true,
+            Title = "RPG Game"
+            //IsDebugEnabled = true
         });
 
         void PrintLayerProfiles<TLayer>(string name, IEnumerable<(TLayer, GLRenderer.LayerProfile)> profiles)
@@ -116,7 +116,7 @@ public static class GLTests
         Guid firstId = prevId;
         game.Acquire<Scale>(prevId).Value = new Vector3(0.3f);
 
-        for (int i = 0; i < 10000; ++i) {
+        for (int i = 0; i < 5000; ++i) {
             prevId = CreateObject(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), firstId,
                 i % 2 == 0 ? torusMesh : torusMeshTransparent);
             game.Acquire<Scale>(prevId).Value = new Vector3(0.99f);
@@ -163,7 +163,7 @@ public static class GLTests
             //game.Acquire<WorldAxes>(firstId).Forward = rotatorPos;
 
             if (window.KeyboardState.IsKeyPressed(Keys.F1)) {
-                GetDebug().DisplayMode = DisplayMode.Color;
+                game.RemoveAny<RenderTargetDebug>();
             }
             if (window.KeyboardState.IsKeyPressed(Keys.F2)) {
                 GetDebug().DisplayMode = DisplayMode.TransparencyAccum;

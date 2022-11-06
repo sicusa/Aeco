@@ -42,6 +42,7 @@
     <EmbeddedResource Include="Embeded\Shaders\hiz.frag.glsl" />
     <EmbeddedResource Include="Embeded\Shaders\transparency_compose.frag.glsl" />
     <EmbeddedResource Include="Embeded\Shaders\post.frag.glsl" />
+    <EmbeddedResource Include="Embeded\Shaders\post_debug.frag.glsl" />
 
     <EmbeddedResource Include="Embeded\Textures\wall.jpg" />
     <EmbeddedResource Include="Embeded\Models\plane.glb" />

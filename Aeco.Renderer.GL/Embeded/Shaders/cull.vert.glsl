@@ -103,5 +103,5 @@ void main()
     boundingBox[7] = vec4(BoundingBoxMin.x, BoundingBoxMin.y, BoundingBoxMin.z, 1.0) * mvp;
 
     OriginalObjectToWorld = ObjectToWorld;
-    ObjectVisible = InstanceCloudReduction() && HiZOcclusionCull() ? 1 : 0;
+    ObjectVisible = InstanceCloudReduction() ? 1 : 0;
 }
