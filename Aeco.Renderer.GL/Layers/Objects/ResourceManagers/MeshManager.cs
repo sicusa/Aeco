@@ -22,7 +22,6 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
 
         var buffers = data.BufferHandles;
         data.VertexArrayHandle = GL.GenVertexArray();
-        data.CompleteVertexArrayHandle = GL.GenVertexArray();
         data.CullingVertexArrayHandle = GL.GenVertexArray();
         data.CulledQueryHandle = GL.GenQuery();
 
@@ -76,34 +75,6 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
         }
 
         InitializeInstanceCulling(ref data);
-
-        // complete vertex array
-
-        GL.BindVertexArray(data.CompleteVertexArrayHandle);
-
-        if (resource.Vertices != null) {
-            GL.BindBuffer(BufferTarget.ArrayBuffer, buffers[MeshBufferType.Vertex]);
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 0, 0);
-        }
-        if (resource.TexCoords != null) {
-            GL.BindBuffer(BufferTarget.ArrayBuffer, buffers[MeshBufferType.TexCoord]);
-            GL.EnableVertexAttribArray(1);
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 0, 0);
-        }
-        if (resource.Normals != null) {
-            GL.BindBuffer(BufferTarget.ArrayBuffer, buffers[MeshBufferType.Normal]);
-            GL.EnableVertexAttribArray(2);
-            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 0, 0);
-        }
-        if (resource.Tangents != null) {
-            GL.BindBuffer(BufferTarget.ArrayBuffer, buffers[MeshBufferType.Tangent]);
-            GL.EnableVertexAttribArray(3);
-            GL.VertexAttribPointer(3, 3, VertexAttribPointerType.Float, false, 0, 0);
-        }
-        if (resource.Indeces != null) {
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, buffers[MeshBufferType.Index]);
-        }
 
         GL.BindBuffer(BufferTarget.ArrayBuffer, data.BufferHandles[MeshBufferType.Instance]);
         RenderHelper.EnableMatrix4x4Attributes(4, 1);
