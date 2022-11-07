@@ -29,11 +29,6 @@ layout(std140) uniform Camera {
     float CameraFarPlaneDistance;
 };
 
-layout(std140) uniform MainLight {
-    vec3 MainLightDirection;
-    vec4 MainLightColor;
-};
-
 layout(std140) uniform Material {
     vec4 Diffuse;
     vec4 Specular;
@@ -121,7 +116,7 @@ float GetTransparencyWeight(float z, float a) {
     return a * max(0.01, min(3e3, 10 / (1e-5 + z * z * 0.25 + pow(z / 200, 6))));
 }
 
-float GetTransparencyAlpha(float a) {
+float GetTransparency(float a) {
     return GetTransparencyWeight(gl_FragCoord.z, a) * a;
 }
 
@@ -147,6 +142,11 @@ float GetTransparencyAlpha(float a) {
 
 #define LIGHT_COMPONENT_COUNT 19
 
+layout(std140) uniform LightingEnv {
+    int LightCount;
+    int LightIndeces[TILE_TOTAL_COUNT * TILE_MAXIMUM_LIGHT_COUNT];
+};
+
 struct Light {
     int Category;       // 4    1
     vec4 Color;         // 16   5
@@ -159,15 +159,6 @@ struct Light {
     float AttenuationQuadratic; // 4    17
 
     vec2 ConeAnglesOrAreaSize; // 8 19
-};
-
-struct LightingResult {
-    float Diffuse;
-    float Specular;
-};
-
-layout(std140) uniform Lighting {
-    int LightIndeces[TILE_TOTAL_COUNT * TILE_MAXIMUM_LIGHT_COUNT];
 };
 
 uniform samplerBuffer LightBuffer;
@@ -225,47 +216,6 @@ float CalculateLightAttenuation(Light light, float distance)
         light.AttenuationQuadratic * distance * distance);
 }
 
-LightingResult CalculateLightingResult(vec3 position, vec3 normal, Light light)
-{
-    LightingResult r;
-    int category = light.Category;
-
-    if (category == LIGHT_AMBIENT) {
-        r.Diffuse = light.Diffuse;
-        r.Specular = 0;
-    }
-    else if (category == LIGHT_DIRECTIONAL) {
-        vec3 lightDir = light.Direction;
-
-        // diffuse
-        r.Diffuse = max(0.5 * dot(normal, -lightDir) + 0.5, 0.0);
-
-        // specular
-        vec3 viewDir = normalize(CameraPosition - position);
-        vec3 divisor = normalize(viewDir - lightDir);
-        float spec = pow(max(dot(divisor, normal), 0.0), Shininess);
-        r.Specular = spec;
-    }
-    else {
-        vec3 lightDir = position - light.Position;
-        float distance = length(lightDir);
-        float attenuation = CalculateLightAttenuation(light, distance);
-        lightDir /= distance;
-
-        if (category == LIGHT_POINT) {
-            // diffuse
-            float diff = max(0.5 * dot(normal, -lightDir) + 0.5, 0.0);
-            r.Diffuse = diff;
-
-            // specular
-            vec3 viewDir = normalize(CameraPosition - position);
-            vec3 divisor = normalize(viewDir - lightDir);
-            float spec = pow(max(dot(divisor, normal), 0.0), Shininess);
-            r.Specular = spec;
-        }
-    }
-}
-
 #endif",
 
         ["nagule/blinn_phong.glsl"] =
@@ -279,7 +229,12 @@ uniform sampler2D DiffuseTex;
 uniform sampler2D SpecularTex;
 uniform sampler2D EmissionTex;
 
-vec4 BlinnPhong(vec3 position, vec2 texCoord, vec3 normal)
+struct LightingResult {
+    vec3 Diffuse;
+    vec3 Specular;
+};
+
+vec4 CalculateBlinnPhongLighting(vec3 position, vec2 texCoord, vec3 normal)
 {
     vec2 tiledCoord = texCoord * Tiling;
     vec4 diffuseColor = Diffuse * texture(DiffuseTex, tiledCoord);
@@ -288,12 +243,42 @@ vec4 BlinnPhong(vec3 position, vec2 texCoord, vec3 normal)
     vec3 diffuse = vec3(0);
     vec3 specular = vec3(0);
 
-    Light light = GetLight(0);
-    vec3 lightColor = light.Color.rgb * light.Color.a;
+    for (int i = 0; i < LightCount; i++) {
+        Light light = GetLight(i);
+        int category = light.Category;
+        vec3 lightColor = light.Color.rgb * light.Color.a;
 
-    int category = light.Category;
+        if (category == LIGHT_AMBIENT) {
+            diffuse += lightColor;
+        }
+        else if (category == LIGHT_DIRECTIONAL) {
+            vec3 lightDir = light.Direction;
+            float diff = max(0.5 * dot(normal, -lightDir) + 0.5, 0.0);
+            diffuse += diff * lightColor;
 
-    // emission
+            vec3 viewDir = normalize(CameraPosition - position);
+            vec3 divisor = normalize(viewDir - lightDir);
+            float spec = pow(max(dot(divisor, normal), 0.0), Shininess);
+            specular += spec * lightColor;
+        }
+        else {
+            vec3 lightDir = position - light.Position;
+            float distance = length(lightDir);
+            float attenuation = CalculateLightAttenuation(light, distance);
+            lightDir /= distance;
+
+            if (category == LIGHT_POINT) {
+                float diff = max(0.5 * dot(normal, -lightDir) + 0.5, 0.0);
+                diffuse += diff * attenuation * lightColor;
+
+                vec3 viewDir = normalize(CameraPosition - position);
+                vec3 divisor = normalize(viewDir - lightDir);
+                float spec = pow(max(dot(divisor, normal), 0.0), Shininess);
+                specular += spec * attenuation * lightColor;
+            }
+        }
+    }
+
     vec4 emissionColor = Emission * texture(EmissionTex, tiledCoord);
     vec3 emission = emissionColor.rgb * emissionColor.a;
 
@@ -503,32 +488,13 @@ vec4 BlinnPhong(vec3 position, vec2 texCoord, vec3 normal)
         }
 
         var blockLocations = new BlockLocations {
-            FramebufferBlock = GL.GetUniformBlockIndex(program, "Framebuffer"),
-            CameraBlock = GL.GetUniformBlockIndex(program, "Camera"),
-            MainLightBlock = GL.GetUniformBlockIndex(program, "MainLight"),
-            MaterialBlock = GL.GetUniformBlockIndex(program, "Material"),
-            MeshBlock = GL.GetUniformBlockIndex(program, "Mesh"),
-            ObjectBlock = GL.GetUniformBlockIndex(program, "Object")
+            FramebufferBlock = BindUniformBlock(program, "Framebuffer", UniformBlockBinding.Framebuffer),
+            CameraBlock = BindUniformBlock(program, "Camera", UniformBlockBinding.Camera),
+            LightingEnvBlock = BindUniformBlock(program, "LightingEnv", UniformBlockBinding.LightingEnv),
+            MaterialBlock = BindUniformBlock(program, "Material", UniformBlockBinding.Material),
+            MeshBlock = BindUniformBlock(program, "Mesh", UniformBlockBinding.Mesh),
+            ObjectBlock = BindUniformBlock(program, "Object", UniformBlockBinding.Object)
         };
-
-        if (blockLocations.FramebufferBlock != -1) {
-            GL.UniformBlockBinding(program, blockLocations.FramebufferBlock, (int)UniformBlockBinding.RenderTarget);
-        }
-        if (blockLocations.CameraBlock != -1) {
-            GL.UniformBlockBinding(program, blockLocations.CameraBlock, (int)UniformBlockBinding.Camera);
-        }
-        if (blockLocations.MainLightBlock != -1) {
-            GL.UniformBlockBinding(program, blockLocations.MainLightBlock, (int)UniformBlockBinding.MainLight);
-        }
-        if (blockLocations.MaterialBlock != -1) {
-            GL.UniformBlockBinding(program, blockLocations.MaterialBlock, (int)UniformBlockBinding.Material);
-        }
-        if (blockLocations.MeshBlock != -1) {
-            GL.UniformBlockBinding(program, blockLocations.MeshBlock, (int)UniformBlockBinding.Mesh);
-        }
-        if (blockLocations.ObjectBlock != -1) {
-            GL.UniformBlockBinding(program, blockLocations.ObjectBlock, (int)UniformBlockBinding.Object);
-        }
 
         // finish initialization
 
@@ -538,6 +504,15 @@ vec4 BlinnPhong(vec3 position, vec2 texCoord, vec3 normal)
         data.SubroutineIndeces = subroutineIndeces;
         data.BlockLocations = blockLocations;
     } 
+
+    private static int BindUniformBlock(int program, string name, UniformBlockBinding binding)
+    {
+        var index = GL.GetUniformBlockIndex(program, name);
+        if (index != -1) {
+            GL.UniformBlockBinding(program, index, (int)binding);
+        }
+        return index;
+    }
 
     private int CompileShader(ShaderType type, string source)
     {

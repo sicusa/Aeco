@@ -30,13 +30,13 @@ public class ForwardRenderPipeline : VirtualLayer, IGLUpdateLayer, IGLLoadLayer,
         ref readonly var renderTarget = ref context.Inspect<RenderTargetData>(GLRenderer.DefaultRenderTargetId);
 
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, renderTarget.ColorFramebufferHandle);
-        GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.RenderTarget, renderTarget.UniformBufferHandle);
+        GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.Framebuffer, renderTarget.UniformBufferHandle);
         GL.BindVertexArray(_defaultVertexArray);
 
         GL.ActiveTexture(TextureUnit.Texture1 + (int)TextureType.Unknown);
         GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
 
-        var lightBufferHandle = context.AcquireAny<LightUniformBuffer>().TexHandle;
+        var lightBufferHandle = context.AcquireAny<LightUniformBuffer>().LightsTexHandle;
         GL.ActiveTexture(TextureUnit.Texture1 + (int)TextureType.Unknown + 1);
         GL.BindTexture(TextureTarget.TextureBuffer, lightBufferHandle);
 
@@ -195,6 +195,8 @@ public class ForwardRenderPipeline : VirtualLayer, IGLUpdateLayer, IGLLoadLayer,
         GL.Disable(EnableCap.DepthTest);
         GL.DrawArrays(PrimitiveType.Points, 0, 1);
         GL.Enable(EnableCap.DepthTest);
+
+        GL.BindVertexArray(0);
     }
 
     private void Cull(IDataLayer<IComponent> context, Guid id, in MeshData meshData)

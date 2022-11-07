@@ -13,6 +13,19 @@ vec4 boundingBox[8];
 
 bool InstanceCloudReduction()
 {
+    /* calculate MVP matrix */
+    mat4 mvp = ObjectToWorld * Matrix_VP;
+
+    /* create the bounding box of the object in world space */
+    boundingBox[0] = vec4(BoundingBoxMax.x, BoundingBoxMax.y, BoundingBoxMax.z, 1.0) * mvp;
+    boundingBox[1] = vec4(BoundingBoxMin.x, BoundingBoxMax.y, BoundingBoxMax.z, 1.0) * mvp;
+    boundingBox[2] = vec4(BoundingBoxMax.x, BoundingBoxMin.y, BoundingBoxMax.z, 1.0) * mvp;
+    boundingBox[3] = vec4(BoundingBoxMin.x, BoundingBoxMin.y, BoundingBoxMax.z, 1.0) * mvp;
+    boundingBox[4] = vec4(BoundingBoxMax.x, BoundingBoxMax.y, BoundingBoxMin.z, 1.0) * mvp;
+    boundingBox[5] = vec4(BoundingBoxMin.x, BoundingBoxMax.y, BoundingBoxMin.z, 1.0) * mvp;
+    boundingBox[6] = vec4(BoundingBoxMax.x, BoundingBoxMin.y, BoundingBoxMin.z, 1.0) * mvp;
+    boundingBox[7] = vec4(BoundingBoxMin.x, BoundingBoxMin.y, BoundingBoxMin.z, 1.0) * mvp;
+
     /* check how the bounding box resides regarding to the view frustum */   
     int outOfBound[6] = int[6](0, 0, 0, 0, 0, 0);
 
@@ -89,19 +102,6 @@ bool HiZOcclusionCull()
 
 void main()
 {
-    /* calculate MVP matrix */
-    mat4 mvp = ObjectToWorld * Matrix_VP;
-
-    /* create the bounding box of the object in world space */
-    boundingBox[0] = vec4(BoundingBoxMax.x, BoundingBoxMax.y, BoundingBoxMax.z, 1.0) * mvp;
-    boundingBox[1] = vec4(BoundingBoxMin.x, BoundingBoxMax.y, BoundingBoxMax.z, 1.0) * mvp;
-    boundingBox[2] = vec4(BoundingBoxMax.x, BoundingBoxMin.y, BoundingBoxMax.z, 1.0) * mvp;
-    boundingBox[3] = vec4(BoundingBoxMin.x, BoundingBoxMin.y, BoundingBoxMax.z, 1.0) * mvp;
-    boundingBox[4] = vec4(BoundingBoxMax.x, BoundingBoxMax.y, BoundingBoxMin.z, 1.0) * mvp;
-    boundingBox[5] = vec4(BoundingBoxMin.x, BoundingBoxMax.y, BoundingBoxMin.z, 1.0) * mvp;
-    boundingBox[6] = vec4(BoundingBoxMax.x, BoundingBoxMin.y, BoundingBoxMin.z, 1.0) * mvp;
-    boundingBox[7] = vec4(BoundingBoxMin.x, BoundingBoxMin.y, BoundingBoxMin.z, 1.0) * mvp;
-
     OriginalObjectToWorld = ObjectToWorld;
-    ObjectVisible = InstanceCloudReduction() ? 1 : 0;
+    ObjectVisible = InstanceCloudReduction() && HiZOcclusionCull() ? 1 : 0;
 }

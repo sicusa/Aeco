@@ -4,20 +4,28 @@ using OpenTK.Graphics.OpenGL4;
 
 public class LightUniformBufferUpdator : ReactiveObjectUpdatorBase<Light, TransformMatricesDirty>, IGLLoadLayer
 {
-    public void OnLoad(IDataLayer<IComponent> context)
+    public unsafe void OnLoad(IDataLayer<IComponent> context)
     {
         ref var buffer = ref context.AcquireAny<LightUniformBuffer>(out bool exists);
+
         buffer.Handle = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.UniformBuffer, buffer.Handle);
+        GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.LightingEnv, buffer.Handle);
+
+        buffer.Pointer = GLHelper.InitializeBuffer(
+            BufferTarget.UniformBuffer, 4 + 4 * LightUniformBuffer.TileTotalCount * LightUniformBuffer.TileMaximumLightCount);
+
+        // initialize texture buffer of lights
+
+        buffer.LightsHandle = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.TextureBuffer, buffer.LightsHandle);
+
         buffer.Capacity = LightUniformBuffer.InitialCapacity;
+        buffer.LightsPointer = GLHelper.InitializeBuffer(BufferTarget.TextureBuffer, buffer.Capacity * LightParameters.MemorySize);
+        buffer.LightsTexHandle = GL.GenTexture();
 
-        GL.BindBuffer(BufferTarget.TextureBuffer, buffer.Handle);
-        var pointer = GLHelper.InitializeBuffer(BufferTarget.TextureBuffer, buffer.Capacity * LightParameters.MemorySize);
-
-        buffer.Pointer = pointer;
-        buffer.TexHandle = GL.GenTexture();
-
-        GL.BindTexture(TextureTarget.TextureBuffer, buffer.TexHandle);
-        GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.R32f, buffer.Handle);
+        GL.BindTexture(TextureTarget.TextureBuffer, buffer.LightsTexHandle);
+        GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.R32f, buffer.LightsHandle);
 
         GL.BindBuffer(BufferTarget.TextureBuffer, 0);
         GL.BindTexture(TextureTarget.TextureBuffer, 0);
@@ -33,7 +41,7 @@ public class LightUniformBufferUpdator : ReactiveObjectUpdatorBase<Light, Transf
             UpdateLightTransform(context, id, ref lightData.Parameters);
         }
 
-        IntPtr pointer;
+        IntPtr lightsPointer;
 
         if (buffer.Capacity < lightId) {
             int requiredCapacity = buffer.Capacity;
@@ -41,32 +49,33 @@ public class LightUniformBufferUpdator : ReactiveObjectUpdatorBase<Light, Transf
 
             int newBuffer = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.TextureBuffer, newBuffer);
-            pointer = GLHelper.InitializeBuffer(BufferTarget.TextureBuffer, requiredCapacity);
+            lightsPointer = GLHelper.InitializeBuffer(BufferTarget.TextureBuffer, requiredCapacity);
 
             GL.BindBuffer(BufferTarget.CopyWriteBuffer, newBuffer);
             GL.CopyBufferSubData(BufferTarget.CopyReadBuffer, BufferTarget.TextureBuffer,
                 IntPtr.Zero, IntPtr.Zero, buffer.Capacity * LightParameters.MemorySize);
 
-            GL.DeleteBuffer(buffer.Handle);
-            GL.DeleteTexture(buffer.TexHandle);
+            GL.DeleteBuffer(buffer.LightsHandle);
+            GL.DeleteTexture(buffer.LightsTexHandle);
 
-            buffer.TexHandle = GL.GenTexture();
-            GL.BindTexture(TextureTarget.TextureBuffer, buffer.TexHandle);
+            buffer.LightsTexHandle = GL.GenTexture();
+            GL.BindTexture(TextureTarget.TextureBuffer, buffer.LightsTexHandle);
             GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.R32f, newBuffer);
 
-            buffer.Handle = newBuffer;
             buffer.Capacity = requiredCapacity;
-            buffer.Pointer = pointer;
+            buffer.LightsHandle = newBuffer;
+            buffer.LightsPointer = lightsPointer;
 
             GL.BindTexture(TextureTarget.TextureBuffer, 0);
             GL.BindBuffer(BufferTarget.TextureBuffer, 0);
             GL.BindBuffer(BufferTarget.CopyWriteBuffer, 0);
         }
         else {
-            pointer = buffer.Pointer;
+            lightsPointer = buffer.LightsPointer;
         }
 
-        *((LightParameters*)pointer + lightId) = lightData.Parameters;
+        *((LightParameters*)lightsPointer + lightId) = lightData.Parameters;
+        *((int*)buffer.Pointer) = context.GetCount<Light>();
     }
 
     private void UpdateLightTransform(IDataLayer<IComponent> context, Guid id, ref LightParameters pars)
@@ -81,6 +90,6 @@ public class LightUniformBufferUpdator : ReactiveObjectUpdatorBase<Light, Transf
     {
         ref var buffer = ref context.AcquireAny<LightUniformBuffer>(out bool exists);
         ref readonly var lightData = ref context.Inspect<LightData>(id);
-        ((LightParameters*)buffer.Pointer + lightData.Id)->Category = 0f;
+        ((LightParameters*)buffer.LightsPointer + lightData.Id)->Category = 0f;
     }
 }

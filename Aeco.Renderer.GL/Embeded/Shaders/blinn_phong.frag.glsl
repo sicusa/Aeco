@@ -12,5 +12,5 @@ out vec4 FragColor;
 
 void main()
 {
-    FragColor = BlinnPhong(i.Position, i.TexCoord, i.Normal);
+    FragColor = CalculateBlinnPhongLighting(i.Position, i.TexCoord, i.Normal);
 }

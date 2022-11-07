@@ -6,20 +6,20 @@ public struct BlockLocations
 {
     public int FramebufferBlock;
     public int CameraBlock;
-    public int MainLightBlock;
     public int MaterialBlock;
-    public int ObjectBlock;
     public int MeshBlock;
+    public int ObjectBlock;
+    public int LightingEnvBlock;
 }
 
 public enum UniformBlockBinding
 {
-    RenderTarget = 1,
+    Framebuffer = 1,
     Camera,
-    MainLight,
     Material,
     Mesh,
-    Object
+    Object,
+    LightingEnv
 }
 
 public struct ShaderProgramData : IGLObject

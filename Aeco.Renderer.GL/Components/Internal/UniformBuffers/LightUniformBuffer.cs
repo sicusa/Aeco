@@ -9,9 +9,12 @@ public struct LightUniformBuffer : IGLObject
     public const int TileMaximumLightCount = 8;
 
     public int Handle;
-    public int TexHandle;
-    public int Capacity;
     public IntPtr Pointer;
+
+    public int LightsHandle;
+    public int LightsTexHandle;
+    public IntPtr LightsPointer;
+    public int Capacity;
 
     public void Dispose() => this = new();
 }
