@@ -90,6 +90,11 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
     public abstract IEnumerable<object> GetAll(Guid entityId);
     public abstract Guid Singleton<UComponent>()
         where UComponent : TComponent;
+
+    public abstract int GetCount();
+    public abstract int GetCount<UComponent>()
+        where UComponent : TComponent;
+
     public abstract IEnumerable<Guid> Query<UComponent>()
         where UComponent : TComponent;
     public abstract IEnumerable<Guid> Query();

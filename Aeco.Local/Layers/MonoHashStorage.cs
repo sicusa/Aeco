@@ -115,6 +115,9 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     public override IEnumerable<Guid> Query()
         => _entityIds;
 
+    public override int GetCount()
+        => _entityIds.Count;
+
     public override IEnumerable<object> GetAll(Guid entityId)
     {
         ref var comp = ref CollectionsMarshal.GetValueRefOrNullRef(_dict, entityId);

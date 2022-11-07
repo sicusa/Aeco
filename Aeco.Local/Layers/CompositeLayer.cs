@@ -285,6 +285,15 @@ public class CompositeLayer<TComponent, TSublayer>
         return dataLayer.Singleton<UComponent>();
     }
 
+    public override int GetCount()
+        => _dataLayers.Keys.Sum(l => l.GetCount());
+
+    public override int GetCount<UComponent>()
+    {
+        var dataLayer = FindTerminalDataLayer<UComponent>();
+        return dataLayer != null ? dataLayer.GetCount<UComponent>() : 0;
+    }
+
     public override IEnumerable<Guid> Query<UComponent>()
     {
         var dataLayer = FindTerminalDataLayer<UComponent>();

@@ -114,6 +114,9 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
         return _id;
     }
 
+    public override int GetCount()
+        => _id == Guid.Empty ? 0 : 1;
+
     public override IEnumerable<Guid> Query()
         => _id == Guid.Empty ? Enumerable.Empty<Guid>() : Enumerable.Repeat<Guid>(_id, 1);
 

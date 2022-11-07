@@ -89,6 +89,12 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
     public override Guid Singleton<UComponent>()
         => ChannelDataLayer.Singleton<Channel<UComponent>>();
 
+    public override int GetCount()
+        => MessageDataLayer.GetCount();
+
+    public override int GetCount<UComponent>()
+        => MessageDataLayer.GetCount<UComponent>();
+
     public override IEnumerable<Guid> Query<UComponent>()
         => ChannelDataLayer.Query<Channel<UComponent>>();
 

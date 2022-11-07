@@ -43,11 +43,15 @@ public interface IReadOnlyDataLayer<in TComponent> : IReadOnlyLayer<TComponent>
     bool ContainsAny<UComponent>()
         where UComponent : TComponent;
 
-    Guid Singleton<UComponent>()
+    int GetCount();
+    int GetCount<UComponent>()
         where UComponent : TComponent;
+
     IEnumerable<Guid> Query<UComponent>()
         where UComponent : TComponent;
     IEnumerable<Guid> Query();
+    Guid Singleton<UComponent>()
+        where UComponent : TComponent;
 }
 
 public interface IDataLayer<in TComponent>

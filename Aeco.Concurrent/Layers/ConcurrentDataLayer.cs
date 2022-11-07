@@ -326,6 +326,29 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
         }
     }
 
+    public int GetCount()
+    {
+        _lockSlim.EnterReadLock();
+        try {
+            return _inner.GetCount();
+        }
+        finally { 
+            _lockSlim.ExitReadLock();
+        }
+    }
+
+    public int GetCount<UComponent>()
+        where UComponent : TComponent
+    {
+        _lockSlim.EnterReadLock();
+        try {
+            return _inner.GetCount<UComponent>();
+        }
+        finally { 
+            _lockSlim.ExitReadLock();
+        }
+    }
+
     public IEnumerable<Guid> Query<UComponent>()
         where UComponent : TComponent
     {

@@ -129,6 +129,15 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
         return substorage.Query<UComponent>();
     }
 
+    public override int GetCount()
+        => _substorages.Values.Sum(s => s.GetCount());
+
+    public override int GetCount<UComponent>()
+    {
+        var substorage = FindSubstorage<UComponent>();
+        return substorage != null ? substorage.GetCount() : 0;
+    }
+
     public override IEnumerable<Guid> Query()
         => EntityUtil.Union(_substorages.Values.Select(s => s.Query()), _substorages.Count);
 

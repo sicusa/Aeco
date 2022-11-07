@@ -90,6 +90,8 @@ public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
         => Convert<UComponent>().Clear();
     public sealed override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
         => ref Convert<UComponent>().Set(entityId, component);
+    public sealed override int GetCount<UComponent>()
+        => Convert<UComponent>().GetCount();
     public sealed override IEnumerable<Guid> Query<UComponent>()
         => Convert<UComponent>().Query();
 }

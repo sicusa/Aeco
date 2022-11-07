@@ -142,6 +142,9 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     public override IEnumerable<Guid> Query()
         => _entityIds;
 
+    public override int GetCount()
+        => _entityIds.Count;
+
     public override IEnumerable<object> GetAll(Guid entityId)
     {
         int index = GetIndex(entityId);
