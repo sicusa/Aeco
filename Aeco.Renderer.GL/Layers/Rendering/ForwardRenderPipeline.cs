@@ -36,7 +36,7 @@ public class ForwardRenderPipeline : VirtualLayer, IGLUpdateLayer, IGLLoadLayer,
         GL.ActiveTexture(TextureUnit.Texture1 + (int)TextureType.Unknown);
         GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
 
-        var lightBufferHandle = context.AcquireAny<LightUniformBuffer>().LightsTexHandle;
+        var lightBufferHandle = context.AcquireAny<LightingEnvUniformBuffer>().LightsTexHandle;
         GL.ActiveTexture(TextureUnit.Texture1 + (int)TextureType.Unknown + 1);
         GL.BindTexture(TextureTarget.TextureBuffer, lightBufferHandle);
 

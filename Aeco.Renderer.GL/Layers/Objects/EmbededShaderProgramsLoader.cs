@@ -8,7 +8,6 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
         var simpleVertShader = InternalAssets.Load<TextResource>("Shaders.simple.vert.glsl").Content;
         var whiteFragShader = InternalAssets.Load<TextResource>("Shaders.white.frag.glsl").Content;
         var quadGeoShader = InternalAssets.Load<TextResource>("Shaders.quad.geo.glsl").Content;
-        var tilesGeoShader = InternalAssets.Load<TextResource>("Shaders.tiles.geo.glsl").Content;
 
         // load default shader program
 
@@ -29,7 +28,7 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
 
         resource.Shaders[ShaderType.Vertex] = blinnPhongVert;
         resource.Shaders[ShaderType.Fragment] =
-            InternalAssets.Load<TextResource>("Shaders.transparent_blinn_phong.frag.glsl").Content;
+            InternalAssets.Load<TextResource>("Shaders.blinn_phong_transparent.frag.glsl").Content;
 
         program = ref context.Acquire<ShaderProgram>(GLRenderer.DefaultTransparentShaderProgramId);
         program.Resource = resource;

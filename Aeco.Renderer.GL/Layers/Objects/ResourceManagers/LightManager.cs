@@ -37,12 +37,12 @@ public class LightManager : ResourceManagerBase<Light, LightData, LightResourceB
                 break;
             case SpotLightResource spotLight:
                 data.Category = LightCategory.Spot;
-                pars.ConeAnglesOrAreaSize.X = spotLight.InnerConeAngle;
-                pars.ConeAnglesOrAreaSize.Y = spotLight.OuterConeAngle;
+                pars.ConeCutoffsOrAreaSize.X = MathF.Cos(spotLight.InnerConeAngle / 180f * MathF.PI);
+                pars.ConeCutoffsOrAreaSize.Y = MathF.Cos(spotLight.OuterConeAngle / 180f * MathF.PI);
                 break;
             case AreaLightResource areaLight:
                 data.Category = LightCategory.Area;
-                pars.ConeAnglesOrAreaSize = areaLight.AreaSize;
+                pars.ConeCutoffsOrAreaSize = areaLight.AreaSize;
                 break;
             }
         }

@@ -2,25 +2,25 @@ namespace Aeco.Renderer.GL;
 
 using OpenTK.Graphics.OpenGL4;
 
-public class LightUniformBufferUpdator : ReactiveObjectUpdatorBase<Light, TransformMatricesDirty>, IGLLoadLayer
+public class LightingEnvUniformBufferUpdator : ReactiveObjectUpdatorBase<Light, TransformMatricesDirty>, IGLLoadLayer
 {
     public unsafe void OnLoad(IDataLayer<IComponent> context)
-    {
-        ref var buffer = ref context.AcquireAny<LightUniformBuffer>(out bool exists);
+   {
+        ref var buffer = ref context.AcquireAny<LightingEnvUniformBuffer>(out bool exists);
 
         buffer.Handle = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.UniformBuffer, buffer.Handle);
         GL.BindBufferBase(BufferRangeTarget.UniformBuffer, (int)UniformBlockBinding.LightingEnv, buffer.Handle);
 
         buffer.Pointer = GLHelper.InitializeBuffer(
-            BufferTarget.UniformBuffer, 4 + 4 * LightUniformBuffer.TileTotalCount * LightUniformBuffer.TileMaximumLightCount);
+            BufferTarget.UniformBuffer, 8 + 4 * LightingEnvUniformBuffer.MaximumActiveLightCount);
 
         // initialize texture buffer of lights
 
         buffer.LightsHandle = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.TextureBuffer, buffer.LightsHandle);
 
-        buffer.Capacity = LightUniformBuffer.InitialCapacity;
+        buffer.Capacity = LightingEnvUniformBuffer.InitialCapacity;
         buffer.LightsPointer = GLHelper.InitializeBuffer(BufferTarget.TextureBuffer, buffer.Capacity * LightParameters.MemorySize);
         buffer.LightsTexHandle = GL.GenTexture();
 
@@ -31,9 +31,14 @@ public class LightUniformBufferUpdator : ReactiveObjectUpdatorBase<Light, Transf
         GL.BindTexture(TextureTarget.TextureBuffer, 0);
     }
 
+    public override void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
+    {
+        base.OnUpdate(context, deltaTime);
+    }
+
     protected unsafe override void UpdateObject(IDataLayer<IComponent> context, Guid id, bool dirty)
     {
-        ref var buffer = ref context.AcquireAny<LightUniformBuffer>();
+        ref var buffer = ref context.AcquireAny<LightingEnvUniformBuffer>();
         ref var lightData = ref context.Require<LightData>(id);
         int lightId = lightData.Id;
 
@@ -75,7 +80,6 @@ public class LightUniformBufferUpdator : ReactiveObjectUpdatorBase<Light, Transf
         }
 
         *((LightParameters*)lightsPointer + lightId) = lightData.Parameters;
-        *((int*)buffer.Pointer) = context.GetCount<Light>();
     }
 
     private void UpdateLightTransform(IDataLayer<IComponent> context, Guid id, ref LightParameters pars)
@@ -88,7 +92,7 @@ public class LightUniformBufferUpdator : ReactiveObjectUpdatorBase<Light, Transf
 
     protected unsafe override void ReleaseObject(IDataLayer<IComponent> context, Guid id)
     {
-        ref var buffer = ref context.AcquireAny<LightUniformBuffer>(out bool exists);
+        ref var buffer = ref context.AcquireAny<LightingEnvUniformBuffer>(out bool exists);
         ref readonly var lightData = ref context.Inspect<LightData>(id);
         ((LightParameters*)buffer.LightsPointer + lightData.Id)->Category = 0f;
     }

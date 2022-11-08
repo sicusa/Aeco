@@ -1,6 +1,6 @@
 #version 410 core
 
-#include <nagule/common.glsl>
+#include <aeco/common.glsl>
 
 layout(location = 0) in mat4 ObjectToWorld;
 

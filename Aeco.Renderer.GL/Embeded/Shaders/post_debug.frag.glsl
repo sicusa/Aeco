@@ -1,6 +1,6 @@
 #version 410 core
 
-#include <nagule/lighting.glsl>
+#include <aeco/lighting.glsl>
 
 uniform sampler2D ColorBuffer;
 uniform sampler2D TransparencyAccumBuffer;
@@ -30,11 +30,6 @@ subroutine(PostFunc) vec3 ShowTransparencyAccum() {
 
 subroutine(PostFunc) vec3 ShowTransparencyAlpha() {
     return vec3(texture(TransparencyAlphaBuffer, TexCoord).r);
-}
-
-subroutine(PostFunc) vec3 ShowTiles() {
-    float portion = float(GetTileIndex(gl_FragCoord.xy)) / TILE_TOTAL_COUNT;
-    return vec3(portion * 0.01);
 }
 
 vec3 ACESToneMapping(vec3 color)

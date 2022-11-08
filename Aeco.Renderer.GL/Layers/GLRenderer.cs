@@ -206,7 +206,7 @@ public class GLRenderer : CompositeLayer
                 new CameraMatricesUpdator(),
 
                 new MeshUniformBufferUpdator(),
-                new LightUniformBufferUpdator(),
+                new LightingEnvUniformBufferUpdator(),
                 new CameraUniformBufferUpdator(),
 
                 new MeshRenderableUpdator(),

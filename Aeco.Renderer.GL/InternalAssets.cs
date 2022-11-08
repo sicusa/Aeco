@@ -25,6 +25,9 @@ public static class InternalAssets
         return (TResource)loader(stream, name.Substring(name.LastIndexOf('.')));
     }
 
+    public static string LoadText(string name)
+        => Load<TextResource>(name).Content;
+
     private static Stream? LoadRaw(string name)
         => Assembly.GetExecutingAssembly().GetManifestResourceStream("Aeco.Renderer.GL.Embeded." + name);
 }

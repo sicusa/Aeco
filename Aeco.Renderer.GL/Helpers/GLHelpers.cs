@@ -9,7 +9,7 @@ public static class GLHelper
     public static IntPtr InitializeBuffer(BufferTarget target, int length)
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
-            GL.BufferData(target, length, IntPtr.Zero, BufferUsageHint.StaticDraw);
+            GL.BufferData(target, length, IntPtr.Zero, BufferUsageHint.DynamicDraw);
         }
         else {
             GL.BufferStorage(target, length, IntPtr.Zero,

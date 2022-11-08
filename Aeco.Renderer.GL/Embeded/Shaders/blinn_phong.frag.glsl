@@ -1,6 +1,6 @@
 #version 410 core
 
-#include <nagule/blinn_phong.glsl>
+#include <aeco/blinn_phong.glsl>
 
 in VertexOutput {
     vec3 Position;

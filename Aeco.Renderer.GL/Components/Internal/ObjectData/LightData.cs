@@ -29,7 +29,7 @@ public struct LightParameters
     public float AttenuationLinear;
     public float AttenuationQuadratic;
 
-    public Vector2 ConeAnglesOrAreaSize;
+    public Vector2 ConeCutoffsOrAreaSize;
 }
 
 public struct LightData : IGLObject

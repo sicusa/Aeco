@@ -23,7 +23,9 @@ public static class GLTests
         game.Initialize(new RendererSpec {
             Width = 800,
             Height = 600,
-            IsFullscreen = true,
+            UpdateFrequency = 50,
+            RenderFrequency = 50,
+            //IsFullscreen = true,
             Title = "RPG Game"
             //IsDebugEnabled = true
         });
@@ -49,12 +51,34 @@ public static class GLTests
 
     private static void Launch(GLRenderer game, DebugLayer debugLayer)
     {
-        var light = game.CreateEntity();
-        light.Acquire<Position>().Value = new Vector3(0, 1, 0);
-        light.Acquire<Rotation>().Value = Quaternion.CreateFromYawPitchRoll(-90, -45, 0);
-        light.Acquire<Light>().Resource = new PointLightResource {
-            Color = new Vector4(1, 1, 1, 5),
+        var sunLight = game.CreateEntity();
+        sunLight.Acquire<Position>().Value = new Vector3(0, 1, 5);
+        sunLight.Acquire<Rotation>().Value = Quaternion.CreateFromYawPitchRoll(-90, -45, 0);
+        sunLight.Acquire<Light>().Resource = new DirectionalLightResource {
+            Color = new Vector4(1, 1, 1, 0.1f)
+        };
+
+        var spotLight = game.CreateEntity();
+        spotLight.Acquire<Position>().Value = new Vector3(0, 1, 0);
+        spotLight.Acquire<Light>().Resource = new SpotLightResource {
+            Color = new Vector4(0.5f, 1, 0.5f, 20),
+            InnerConeAngle = 25,
+            OuterConeAngle = 40,
             AttenuationQuadratic = 1
+        };
+
+        var pointLight = game.CreateEntity();
+        pointLight.Acquire<Position>().Value = new Vector3(0, 1, 0);
+        pointLight.Acquire<Light>().Resource = new PointLightResource {
+            Color = new Vector4(1, 1, 1, 5),
+            AttenuationQuadratic = 0.7f
+        };
+
+        var pointLight2 = game.CreateEntity();
+        pointLight2.Acquire<Position>().Value = new Vector3(0, 1, 0);
+        pointLight2.Acquire<Light>().Resource = new PointLightResource {
+            Color = new Vector4(1, 0.5f, 1, 2),
+            AttenuationQuadratic = 3f
         };
 
         var cameraId = Guid.Parse("c2003019-0b2a-4f4c-ba31-9930c958ff83");
@@ -81,7 +105,7 @@ public static class GLTests
                 IsTransparent = true,
                 Parameters = new() {
                     AmbientColor = new Vector4(1),
-                    DiffuseColor = new Vector4(1, 1, 1, 0.2f),
+                    DiffuseColor = new Vector4(1, 1, 1, 0.3f),
                     SpecularColor = new Vector4(0.3f),
                     Shininess = 32
                 }
@@ -96,6 +120,7 @@ public static class GLTests
                 AmbientColor = new Vector4(0.2f),
                 DiffuseColor = new Vector4(1, 1, 1, 1),
                 SpecularColor = new Vector4(0.3f),
+                EmissiveColor = new Vector4(0.8f, 1f, 0.8f, 2f),
                 Shininess = 32
             }
         };
@@ -113,6 +138,8 @@ public static class GLTests
         }
 
         Guid prevId = CreateObject(Vector3.Zero, GLRenderer.RootId, sphereMesh);
+        pointLight2.Acquire<Parent>().Id = prevId;
+
         Guid firstId = prevId;
         game.Acquire<Scale>(prevId).Value = new Vector3(0.3f);
 
@@ -124,7 +151,8 @@ public static class GLTests
 
         Guid rotatorId = CreateObject(Vector3.Zero, GLRenderer.RootId, sphereMesh);
         game.Acquire<Scale>(rotatorId).Value = new Vector3(0.3f);
-        light.Acquire<Parent>().Id = rotatorId;
+        spotLight.Acquire<Parent>().Id = rotatorId;
+        pointLight.Acquire<Parent>().Id = rotatorId;
 
         float Lerp(float firstFloat, float secondFloat, float by)
             => firstFloat * (1 - by) + secondFloat * by;
