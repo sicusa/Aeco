@@ -111,13 +111,10 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
     public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
         => ref AcquireSubstorage<UComponent>().Set(entityId, component);
 
-    public override Guid Singleton<UComponent>()
+    public override Guid? Singleton<UComponent>()
     {
         var substorage = FindSubstorage<UComponent>();
-        if (substorage == null) {
-            throw new KeyNotFoundException("Singleton not found: " + typeof(UComponent));
-        }
-        return substorage.Singleton<UComponent>();
+        return substorage?.Singleton<UComponent>();
     }
 
     public override IEnumerable<Guid> Query<UComponent>()

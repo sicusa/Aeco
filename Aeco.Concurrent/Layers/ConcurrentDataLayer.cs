@@ -314,7 +314,7 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
         }
     }
 
-    public Guid Singleton<UComponent>()
+    public Guid? Singleton<UComponent>()
         where UComponent : TComponent
     {
         _lockSlim.EnterReadLock();

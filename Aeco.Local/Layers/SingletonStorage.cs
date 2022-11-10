@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayerBase<TComponent, TStoredComponent>
     where TStoredComponent : TComponent, IDisposable, new()
 {
-    private Guid _id;
+    private Guid? _id;
     private TStoredComponent _data = new();
 
     public SingletonStorage()
@@ -38,7 +38,7 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
 
     public override ref TStoredComponent Acquire(Guid entityId)
     {
-        if (_id == Guid.Empty) {
+        if (_id == null) {
             _id = entityId;
             return ref _data;
         }
@@ -50,7 +50,7 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
 
     public override ref TStoredComponent Acquire(Guid entityId, out bool exists)
     {
-        if (_id == Guid.Empty) {
+        if (_id == null) {
             _id = entityId;
             exists = false;
             return ref _data;
@@ -66,14 +66,14 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
         => _id == entityId;
 
     public override bool ContainsAny()
-        => _id != Guid.Empty;
+        => _id != null;
 
     public override bool Remove(Guid entityId)
     {
         if (_id != entityId) {
             return false;
         }
-        _id = Guid.Empty;
+        _id = null;
         _data.Dispose();
         return true;
     }
@@ -86,14 +86,14 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
         }
         component = _data;
 
-        _id = Guid.Empty;
+        _id = null;
         _data.Dispose();
         return true;
     }
 
     public override ref TStoredComponent Set(Guid entityId, in TStoredComponent component)
     {
-        if (_id == Guid.Empty) {
+        if (_id == null) {
             _id = entityId;
             _data = component;
         }
@@ -106,19 +106,14 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
         return ref _data;
     }
 
-    public override Guid Singleton()
-    {
-        if (_id == Guid.Empty) {
-            throw new KeyNotFoundException("Singleton not found");
-        }
-        return _id;
-    }
+    public override Guid? Singleton()
+        => _id;
 
     public override int GetCount()
-        => _id == Guid.Empty ? 0 : 1;
+        => _id == null ? 0 : 1;
 
     public override IEnumerable<Guid> Query()
-        => _id == Guid.Empty ? Enumerable.Empty<Guid>() : Enumerable.Repeat<Guid>(_id, 1);
+        => _id == null ? Enumerable.Empty<Guid>() : Enumerable.Repeat<Guid>(_id.Value, 1);
 
     public override IEnumerable<object> GetAll(Guid entityId)
         => _id == entityId ? Enumerable.Repeat<object>(_data, 1) : Enumerable.Empty<object>();
@@ -126,14 +121,14 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
     public override void Clear(Guid entityId)
     {
         if (_id == entityId) {
-            _id = Guid.Empty;
+            _id = null;
             _data.Dispose();
         }
     }
 
     public override void Clear()
     {
-        _id = Guid.Empty;
+        _id = null;
         _data.Dispose();
     }
 }

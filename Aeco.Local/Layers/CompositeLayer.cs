@@ -276,13 +276,10 @@ public class CompositeLayer<TComponent, TSublayer>
     public override IEnumerable<object> GetAll(Guid entityId)
         => _sublayerList.OfType<IDataLayer<TComponent>>().SelectMany(s => s.GetAll(entityId));
 
-    public override Guid Singleton<UComponent>()
+    public override Guid? Singleton<UComponent>()
     {
         var dataLayer = FindTerminalDataLayer<UComponent>();
-        if (dataLayer == null) {
-            throw new KeyNotFoundException("Singleton not found: " + typeof(UComponent));
-        }
-        return dataLayer.Singleton<UComponent>();
+        return dataLayer?.Singleton<UComponent>();
     }
 
     public override int GetCount()

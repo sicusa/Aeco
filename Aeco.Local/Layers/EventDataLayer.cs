@@ -49,8 +49,8 @@ public class EventDataLayer<TComponent, TSelectedComponent>
     {
     }
 
-    public override Guid Singleton<UComponent>()
-        => throw new KeyNotFoundException("Singleton not found");
+    public override Guid? Singleton<UComponent>()
+        => null;
 
     public override bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
     {

@@ -12,7 +12,7 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     private Dictionary<Guid, TStoredComponent> _dict = new();
     private SortedSet<Guid> _entityIds = new();
 
-    private Guid _singleton;
+    private Guid? _singleton;
     private bool _existsTemp;
 
     public override bool TryGet(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
@@ -37,7 +37,7 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
             comp = new TStoredComponent();
             lock (_entityIds) {
                 _entityIds.Add(entityId);
-                if (_singleton == Guid.Empty) {
+                if (_singleton == null) {
                     _singleton = entityId;
                 }
             }
@@ -49,15 +49,14 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         => _entityIds.Contains(entityId);
 
     public override bool ContainsAny()
-        => _singleton != Guid.Empty;
+        => _singleton != null;
 
-    private bool ResetSingleton()
+    private Guid? ResetSingleton()
     {
         if (_entityIds.Count != 0) {
             _singleton = _entityIds.First();
-            return true;
         }
-        return false;
+        return _singleton;
     }
 
     private bool RawRemove(Guid entityId)
@@ -68,7 +67,7 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
             }
             _dict.Remove(entityId);
             if (_singleton == entityId) {
-                ResetSingleton();
+                _singleton = null;
             }
             return true;
         }
@@ -88,7 +87,7 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
                 throw new KeyNotFoundException("Internal error");
             }
             if (_singleton == entityId) {
-                _singleton = Guid.Empty;
+                _singleton = null;
             }
             return true;
         }
@@ -98,19 +97,14 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     {
         ref TStoredComponent? value = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, entityId, out _existsTemp);
         value = component;
-        if (_singleton == Guid.Empty) {
+        if (_singleton == null) {
             _singleton = entityId;
         }
         return ref value!;
     }
 
-    public override Guid Singleton()
-    {
-        if (_singleton == Guid.Empty && !ResetSingleton()) {
-            throw new KeyNotFoundException("Singleton not found");
-        }
-        return _singleton;
-    }
+    public override Guid? Singleton()
+        => _singleton == null ? ResetSingleton() : _singleton;
 
     public override IEnumerable<Guid> Query()
         => _entityIds;
@@ -135,7 +129,7 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         lock (_entityIds) {
             _dict.Clear();
             _entityIds.Clear();
-            _singleton = Guid.Empty;
+            _singleton = null;
         }
     }
 }

@@ -9,36 +9,39 @@ public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
 {
     public override bool CheckSupported(Type componentType)
         => typeof(TStoredComponent) == componentType;
+    
+    protected Guid RequireSingleton()
+        => Singleton() ?? throw new KeyNotFoundException("Singleton not found: " + typeof(TStoredComponent));
 
     public IReadOnlyEntity<TStoredComponent> GetReadOnlyEntity()
-        => (IReadOnlyEntity<TStoredComponent>)GetReadOnlyEntity(Singleton());
+        => (IReadOnlyEntity<TStoredComponent>)GetReadOnlyEntity(RequireSingleton());
     public IEntity<TStoredComponent> GetEntity()
-        => (IEntity<TStoredComponent>)GetEntity(Singleton());
+        => (IEntity<TStoredComponent>)GetEntity(RequireSingleton());
 
     public abstract bool TryGet(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component);
     public virtual ref readonly TStoredComponent Inspect(Guid entityId)
         => ref Require(entityId);
     public ref readonly TStoredComponent InspectAny()
-        => ref Inspect(Singleton());
+        => ref Inspect(RequireSingleton());
     public virtual ref TStoredComponent UnsafeInspect(Guid entityId)
         => ref Require(entityId);
     public ref TStoredComponent UnsafeInspectAny()
-        => ref UnsafeInspect(Singleton());
+        => ref UnsafeInspect(RequireSingleton());
     public abstract bool Contains(Guid entityId);
     public abstract bool ContainsAny();
 
-    public abstract Guid Singleton();
+    public abstract Guid? Singleton();
 
     public abstract ref TStoredComponent Require(Guid entityId);
     public ref TStoredComponent RequireAny()
-        => ref Require(Singleton());
+        => ref Require(RequireSingleton());
 
     public abstract ref TStoredComponent Acquire(Guid entityId);
     public abstract ref TStoredComponent Acquire(Guid entityId, out bool exists);
     public ref TStoredComponent AcquireAny()
-        => ref Acquire(ContainsAny() ? Singleton() : Guid.NewGuid());
+        => ref Acquire(Singleton() ?? Guid.NewGuid());
     public ref TStoredComponent AcquireAny(out bool exists)
-        => ref Acquire(ContainsAny() ? Singleton() : Guid.NewGuid(), out exists);
+        => ref Acquire(Singleton() ?? Guid.NewGuid(), out exists);
     public virtual ref TStoredComponent UnsafeAcquire(Guid entityId)
         => ref Acquire(entityId);
     public virtual ref TStoredComponent UnsafeAcquire(Guid entityId, out bool exists)
@@ -46,14 +49,14 @@ public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
 
     public abstract bool Remove(Guid entityId);
     public bool RemoveAny()
-        => Remove(Singleton());
+        => Remove(RequireSingleton());
     public abstract bool Remove(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component);
     public bool RemoveAny([MaybeNullWhen(false)] out TStoredComponent component)
-        => Remove(Singleton(), out component);
+        => Remove(RequireSingleton(), out component);
 
     public abstract ref TStoredComponent Set(Guid entityId, in TStoredComponent component);
     public ref TStoredComponent SetAny(in TStoredComponent component)
-        => ref Set(Singleton(), component);
+        => ref Set(RequireSingleton(), component);
     
     private IMonoDataLayer<TComponent, UComponent> Convert<UComponent>()
         where UComponent : TComponent
@@ -70,7 +73,7 @@ public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
         => Convert<UComponent>().Contains(entityId);
     public sealed override bool ContainsAny<UComponent>()
         => Convert<UComponent>().ContainsAny();
-    public sealed override Guid Singleton<UComponent>()
+    public sealed override Guid? Singleton<UComponent>()
         => Convert<UComponent>().Singleton();
     public sealed override ref UComponent Require<UComponent>(Guid entityId)
         => ref Convert<UComponent>().Require(entityId);

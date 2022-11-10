@@ -14,7 +14,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     private SortedSet<Guid> _entityIds = new();
 
     private int _cellarCapacity;
-    private Guid _singleton = Guid.Empty;
+    private Guid? _singleton;
     private bool _existsTemp;
 
     public MonoPoolStorage(int brickCapacity = MonoPoolStorage.DefaultBrickCapacity)
@@ -59,7 +59,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
             lock (_entityIds) {
                 block.Value = new();
                 _entityIds.Add(entityId);
-                if (_singleton == Guid.Empty) {
+                if (_singleton == null) {
                     _singleton = entityId;
                 }
             }
@@ -71,15 +71,14 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         => _entityIds.Contains(entityId);
 
     public override bool ContainsAny()
-        => _singleton != Guid.Empty;
+        => _singleton != null;
 
-    private bool ResetSingleton()
+    private Guid? ResetSingleton()
     {
         if (_entityIds.Count != 0) {
             _singleton = _entityIds.First();
-            return true;
         }
-        return false;
+        return _singleton;
     }
 
     private void ClearBlock(ref FastHashBrick<Guid, TStoredComponent>.Block block, in Guid entityId)
@@ -88,7 +87,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
             block.Value = default!;
             _entityIds.Remove(entityId);
             if (_singleton == entityId) {
-                _singleton = Guid.Empty;
+                _singleton = null;
             }
         }
     }
@@ -124,20 +123,14 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         if (!_existsTemp) {
             lock (_entityIds) {
                 _entityIds.Add(entityId);
-                ResetSingleton();
             }
         }
         block.Value = component;
         return ref block.Value;
     }
 
-    public override Guid Singleton()
-    {
-        if (_singleton == Guid.Empty && !ResetSingleton()) {
-            throw new KeyNotFoundException("Singleton not found");
-        }
-        return _singleton;
-    }
+    public override Guid? Singleton()
+        => _singleton == null ? ResetSingleton() : _singleton;
 
     public override IEnumerable<Guid> Query()
         => _entityIds;
@@ -162,7 +155,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     {
         _brick.Clear();
         _entityIds.Clear();
-        _singleton = Guid.Empty;
+        _singleton = null;
     }
 }
 

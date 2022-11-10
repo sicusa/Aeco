@@ -50,7 +50,8 @@ public interface IReadOnlyDataLayer<in TComponent> : IReadOnlyLayer<TComponent>
     IEnumerable<Guid> Query<UComponent>()
         where UComponent : TComponent;
     IEnumerable<Guid> Query();
-    Guid Singleton<UComponent>()
+
+    Guid? Singleton<UComponent>()
         where UComponent : TComponent;
 }
 
@@ -116,7 +117,7 @@ public interface IReadOnlyMonoDataLayer<in TComponent, TStoredComponent> : IRead
     bool Contains(Guid entityId);
     bool ContainsAny();
 
-    Guid Singleton();
+    Guid? Singleton();
 }
 
 public interface IMonoDataLayer<in TComponent, TStoredComponent>

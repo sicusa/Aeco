@@ -86,7 +86,7 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
     public override bool ContainsAny<UComponent>()
         => ChannelDataLayer.ContainsAny<Channel<UComponent>>();
 
-    public override Guid Singleton<UComponent>()
+    public override Guid? Singleton<UComponent>()
         => ChannelDataLayer.Singleton<Channel<UComponent>>();
 
     public override int GetCount()

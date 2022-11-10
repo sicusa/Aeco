@@ -8,13 +8,17 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
     where TSelectedComponent : TComponent
 {
     public IEntityFactory<TComponent, LocalDataLayerBase<TComponent, TSelectedComponent>>? EntityFactory { get; set; }
+
+    protected Guid RequireSingleton<UComponent>()
+        where UComponent : TComponent
+        => Singleton<UComponent>() ?? throw new KeyNotFoundException("Singleton not found: " + typeof(UComponent));
     
     public virtual IReadOnlyEntity<TComponent> GetReadOnlyEntity<UComponent>()
         where UComponent : TComponent
-        => GetReadOnlyEntity(Singleton<UComponent>());
+        => GetReadOnlyEntity(RequireSingleton<UComponent>());
     public virtual IEntity<TComponent> GetEntity<UComponent>()
         where UComponent : TComponent
-        => GetEntity(Singleton<UComponent>());
+        => GetEntity(RequireSingleton<UComponent>());
 
     public virtual bool CheckSupported(Type componentType)
         => typeof(TSelectedComponent).IsAssignableFrom(componentType);
@@ -30,13 +34,13 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
         => ref Require<UComponent>(entityId);
     public ref readonly UComponent InspectAny<UComponent>()
         where UComponent : TComponent
-        => ref Inspect<UComponent>(Singleton<UComponent>());
+        => ref Inspect<UComponent>(RequireSingleton<UComponent>());
     public virtual ref UComponent UnsafeInspect<UComponent>(Guid entityId)
         where UComponent : TComponent
         => ref Require<UComponent>(entityId);
     public ref UComponent UnsafeInspectAny<UComponent>()
         where UComponent : TComponent
-        => ref UnsafeInspect<UComponent>(Singleton<UComponent>());
+        => ref UnsafeInspect<UComponent>(RequireSingleton<UComponent>());
     public abstract bool Contains<UComponent>(Guid entityId)
         where UComponent : TComponent;
     public abstract bool ContainsAny<UComponent>()
@@ -46,7 +50,7 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
         where UComponent : TComponent;
     public ref UComponent RequireAny<UComponent>()
         where UComponent : TComponent
-        => ref Require<UComponent>(Singleton<UComponent>());
+        => ref Require<UComponent>(RequireSingleton<UComponent>());
 
     public abstract ref UComponent Acquire<UComponent>(Guid entityId)
         where UComponent : TComponent, new();
@@ -54,10 +58,10 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
         where UComponent : TComponent, new();
     public ref UComponent AcquireAny<UComponent>()
         where UComponent : TComponent, new()
-        => ref Acquire<UComponent>(ContainsAny<UComponent>() ? Singleton<UComponent>() : Guid.NewGuid());
+        => ref Acquire<UComponent>(Singleton<UComponent>() ?? Guid.NewGuid());
     public ref UComponent AcquireAny<UComponent>(out bool exists)
         where UComponent : TComponent, new()
-        => ref Acquire<UComponent>(ContainsAny<UComponent>() ? Singleton<UComponent>() : Guid.NewGuid(), out exists);
+        => ref Acquire<UComponent>(Singleton<UComponent>() ?? Guid.NewGuid(), out exists);
     public virtual ref UComponent UnsafeAcquire<UComponent>(Guid entityId)
         where UComponent : TComponent, new()
         => ref Acquire<UComponent>(entityId);
@@ -69,12 +73,12 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
         where UComponent : TComponent;
     public bool RemoveAny<UComponent>()
         where UComponent : TComponent
-        => Remove<UComponent>(Singleton<UComponent>());
+        => Remove<UComponent>(RequireSingleton<UComponent>());
     public abstract bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent;
     public bool RemoveAny<UComponent>([MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
-        => Remove<UComponent>(Singleton<UComponent>(), out component);
+        => Remove<UComponent>(RequireSingleton<UComponent>(), out component);
     public abstract void RemoveAll<UComponent>()
         where UComponent : TComponent;
 
@@ -82,13 +86,13 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
         where UComponent : TComponent;
     public ref UComponent SetAny<UComponent>(in UComponent component)
         where UComponent : TComponent
-        => ref Set<UComponent>(Singleton<UComponent>(), component);
+        => ref Set<UComponent>(RequireSingleton<UComponent>(), component);
 
     public abstract void Clear(Guid entityId);
     public abstract void Clear();
 
     public abstract IEnumerable<object> GetAll(Guid entityId);
-    public abstract Guid Singleton<UComponent>()
+    public abstract Guid? Singleton<UComponent>()
         where UComponent : TComponent;
 
     public abstract int GetCount();
