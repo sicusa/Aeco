@@ -7,7 +7,7 @@
 #define CLUSTER_COUNT_Y 9
 #define CLUSTER_COUNT_Z 24
 #define CLUSTER_COUNT CLUSTER_COUNT_X * CLUSTER_COUNT_Y * CLUSTER_COUNT_Z
-#define CLUSTER_MAXIMUM_LIGHT_COUNT 32
+#define CLUSTER_MAXIMUM_LIGHT_COUNT 1
 
 #define LIGHT_NONE          0
 #define LIGHT_AMBIENT       1
@@ -21,8 +21,6 @@
 layout(std140) uniform LightingEnv {
     float ClusterDepthSliceMultiplier;
     float ClusterDepthSliceSubstractor;
-
-    int LightClusters[CLUSTER_COUNT * CLUSTER_MAXIMUM_LIGHT_COUNT];
 };
 
 struct Light {
@@ -40,6 +38,7 @@ struct Light {
 };
 
 uniform samplerBuffer LightBuffer;
+uniform samplerBuffer LightClusters;
 
 int CalculateClusterDepthSlice(float z) {
     return int(floor(log(z) * ClusterDepthSliceMultiplier - ClusterDepthSliceSubstractor));
@@ -50,8 +49,8 @@ int GetClusterIndex(vec3 fragCoord)
     int depthSlice = CalculateClusterDepthSlice(fragCoord.z);
     float tileSize = ViewportWidth / CLUSTER_COUNT_X;
 
-    return fragCoord.x / tileSize
-        + CLUSTER_COUNT_X * fragCoord.y / tileSize
+    return int(fragCoord.x / tileSize)
+        + CLUSTER_COUNT_X * int(fragCoord.y / tileSize)
         + (CLUSTER_COUNT_X * CLUSTER_COUNT_Y) * depthSlice;
 }
 

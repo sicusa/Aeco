@@ -32,6 +32,12 @@ subroutine(PostFunc) vec3 ShowTransparencyAlpha() {
     return vec3(texture(TransparencyAlphaBuffer, TexCoord).r);
 }
 
+subroutine(PostFunc) vec3 ShowClusters()
+{
+    float depth = textureLod(DepthBuffer, TexCoord).r;
+    return vec3(depth, depth, depth);
+}
+
 vec3 ACESToneMapping(vec3 color)
 {
     const float A = 2.51f;

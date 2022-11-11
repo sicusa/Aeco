@@ -181,7 +181,7 @@ public class GLRenderer : CompositeLayer
                     new WorldAxesStorage(),
                     new PolyPoolStorage<IGLReactiveObject>()
                 ),
-                new SingletonStorage<Window>(),
+                new PolySingletonStorage<IGLSingleton>(),
                 new PolyPoolStorage<IGLObject>(),
 
                 new UnusedResourceDestroyer(),
@@ -252,7 +252,7 @@ public class GLRenderer : CompositeLayer
         }
         finally {
             if (ContainsAny<Window>()) {
-                Clear(Singleton<Window>());
+                Clear(Singleton<Window>()!.Value);
             }
         }
     }

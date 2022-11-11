@@ -2,11 +2,14 @@ namespace Aeco.Renderer.GL;
 
 using OpenTK.Graphics.OpenGL4;
 
+using Aeco.Reactive;  
+
 public class LightingEnvUniformBufferUpdator : ReactiveObjectUpdatorBase<Light, TransformMatricesDirty>, IGLLoadLayer
 {
     public unsafe void OnLoad(IDataLayer<IComponent> context)
-   {
+    {
         ref var buffer = ref context.AcquireAny<LightingEnvUniformBuffer>(out bool exists);
+        buffer.Capacity = LightingEnvUniformBuffer.InitialCapacity;
 
         buffer.Handle = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.UniformBuffer, buffer.Handle);
@@ -14,13 +17,26 @@ public class LightingEnvUniformBufferUpdator : ReactiveObjectUpdatorBase<Light, 
 
         buffer.Pointer = GLHelper.InitializeBuffer(
             BufferTarget.UniformBuffer, 8 + 4 * LightingEnvUniformBuffer.MaximumActiveLightCount);
+        
+        float* ptr = (float*)buffer.Pointer;
+        *ptr = LightingEnvUniformBuffer.ClusterCountZ / MathF.Log()
+        
+        // initialize texture buffer of clusters
+
+        buffer.ClustersHandle = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.TextureBuffer, buffer.ClustersHandle);
+
+        buffer.ClustersPointer = GLHelper.InitializeBuffer(BufferTarget.TextureBuffer, 4 * LightingEnvUniformBuffer.MaximumActiveLightCount);
+        buffer.ClustersTexHandle = GL.GenTexture();
+
+        GL.BindTexture(TextureTarget.TextureBuffer, buffer.ClustersTexHandle);
+        GL.TexBuffer(TextureBufferTarget.TextureBuffer, SizedInternalFormat.R32i, buffer.ClustersHandle);
 
         // initialize texture buffer of lights
 
         buffer.LightsHandle = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.TextureBuffer, buffer.LightsHandle);
 
-        buffer.Capacity = LightingEnvUniformBuffer.InitialCapacity;
         buffer.LightsPointer = GLHelper.InitializeBuffer(BufferTarget.TextureBuffer, buffer.Capacity * LightParameters.MemorySize);
         buffer.LightsTexHandle = GL.GenTexture();
 
@@ -34,6 +50,11 @@ public class LightingEnvUniformBufferUpdator : ReactiveObjectUpdatorBase<Light, 
     public override void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
         base.OnUpdate(context, deltaTime);
+
+        var mainCameraId = context.Singleton<MainCamera>();
+        if (mainCameraId != null) {
+            
+        }
     }
 
     protected unsafe override void UpdateObject(IDataLayer<IComponent> context, Guid id, bool dirty)

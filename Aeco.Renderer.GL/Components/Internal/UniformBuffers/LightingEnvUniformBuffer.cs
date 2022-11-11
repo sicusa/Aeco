@@ -1,6 +1,6 @@
 namespace Aeco.Renderer.GL;
 
-public struct LightingEnvUniformBuffer : IGLObject
+public struct LightingEnvUniformBuffer : IGLSingleton
 {
     public const int ClusterCountX = 16;
     public const int ClusterCountY = 9;
@@ -11,13 +11,20 @@ public struct LightingEnvUniformBuffer : IGLObject
 
     public const int InitialCapacity = 32;
 
+    public int Capacity;
+
     public int Handle;
     public IntPtr Pointer;
+
+    public int ClustersHandle;
+    public int ClustersTexHandle;
+    public IntPtr ClustersPointer;
 
     public int LightsHandle;
     public int LightsTexHandle;
     public IntPtr LightsPointer;
-    public int Capacity;
+
+    public Rectangle[] ClusterBoundingBoxes;
 
     public void Dispose() => this = new();
 }
