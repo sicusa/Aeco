@@ -2,8 +2,6 @@ namespace Aeco.Renderer.GL;
 
 using OpenTK.Graphics.OpenGL4;
 
-using Aeco.Reactive;
-
 public class MeshUniformBufferUpdator : ReactiveObjectUpdatorBase<Mesh>
 {
     protected override void UpdateObject(IDataLayer<IComponent> context, Guid id)

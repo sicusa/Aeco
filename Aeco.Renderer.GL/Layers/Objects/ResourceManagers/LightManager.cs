@@ -1,16 +1,19 @@
 namespace Aeco.Renderer.GL;
 
+using System.Runtime.InteropServices;
+
 using OpenTK.Graphics.OpenGL4;
 
 public class LightManager : ResourceManagerBase<Light, LightData, LightResourceBase>, IGLLoadLayer, IGLLateUpdateLayer
 {
     private Stack<int> _lightIndeces = new();
-    private int _maxIndex;
+    private int _maxIndex = 0;
 
     public void OnLoad(IDataLayer<IComponent> context)
     {
         ref var buffer = ref context.AcquireAny<LightsBuffer>();
         buffer.Capacity = LightsBuffer.InitialCapacity;
+        buffer.Parameters = new LightParameters[buffer.Capacity];
 
         buffer.Handle = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.TextureBuffer, buffer.Handle);
@@ -35,15 +38,15 @@ public class LightManager : ResourceManagerBase<Light, LightData, LightResourceB
                 lightIndex = _maxIndex++;
             }
             data.Index = lightIndex;
-            if (buffer.Capacity < lightIndex) {
-                var lightCount = context.GetCount<Light>();
-                ResizeLightsBuffer(ref buffer, lightCount);
+            if (buffer.Capacity <= lightIndex) {
+                ResizeLightsBuffer(ref buffer);
             }
         }
 
-        var parsPtr = (LightParameters*)buffer.Pointer + data.Index;
+        ref var pars = ref buffer.Parameters[data.Index];
+
         var lightRes = light.Resource;
-        parsPtr->Color = lightRes.Color;
+        pars.Color = lightRes.Color;
 
         if (lightRes is AmbientLightResource) {
             data.Category = LightCategory.Ambient;
@@ -58,9 +61,9 @@ public class LightManager : ResourceManagerBase<Light, LightData, LightResourceB
 
             data.Range = (-l + MathF.Sqrt(l * l - 4 * q * (c - 255 * attLight.Color.W))) / (2 * q);
 
-            parsPtr->AttenuationConstant = c;
-            parsPtr->AttenuationLinear = l;
-            parsPtr->AttenuationQuadratic = q;
+            pars.AttenuationConstant = c;
+            pars.AttenuationLinear = l;
+            pars.AttenuationQuadratic = q;
 
             switch (attLight) {
             case PointLightResource:
@@ -68,31 +71,36 @@ public class LightManager : ResourceManagerBase<Light, LightData, LightResourceB
                 break;
             case SpotLightResource spotLight:
                 data.Category = LightCategory.Spot;
-                parsPtr->ConeCutoffsOrAreaSize.X = MathF.Cos(spotLight.InnerConeAngle / 180f * MathF.PI);
-                parsPtr->ConeCutoffsOrAreaSize.Y = MathF.Cos(spotLight.OuterConeAngle / 180f * MathF.PI);
+                pars.ConeCutoffsOrAreaSize.X = MathF.Cos(spotLight.InnerConeAngle / 180f * MathF.PI);
+                pars.ConeCutoffsOrAreaSize.Y = MathF.Cos(spotLight.OuterConeAngle / 180f * MathF.PI);
                 break;
             case AreaLightResource areaLight:
                 data.Category = LightCategory.Area;
-                parsPtr->ConeCutoffsOrAreaSize = areaLight.AreaSize;
+                pars.ConeCutoffsOrAreaSize = areaLight.AreaSize;
                 break;
             }
         }
 
-        parsPtr->Category = (float)data.Category;
+        pars.Category = (float)data.Category;
+        *((LightParameters*)buffer.Pointer + data.Index) = pars;
     }
 
-    private void ResizeLightsBuffer(ref LightsBuffer buffer, int lightCount)
+    private unsafe void ResizeLightsBuffer(ref LightsBuffer buffer)
     {
         int requiredCapacity = buffer.Capacity;
-        while (requiredCapacity < lightCount) requiredCapacity *= 2;
+        while (requiredCapacity < _maxIndex) requiredCapacity *= 2;
+
+        var prevPars = buffer.Parameters;
+        buffer.Parameters = new LightParameters[requiredCapacity];
+        prevPars.CopyTo(buffer.Parameters, 0);
 
         var newBuffer = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.TextureBuffer, newBuffer);
         var pointer = GLHelper.InitializeBuffer(BufferTarget.TextureBuffer, requiredCapacity * LightParameters.MemorySize);
 
-        GL.BindBuffer(BufferTarget.CopyReadBuffer, buffer.Handle);
-        GL.CopyBufferSubData(BufferTarget.CopyReadBuffer, BufferTarget.TextureBuffer,
-            IntPtr.Zero, IntPtr.Zero, buffer.Capacity * LightParameters.MemorySize);
+        var srcSpan = new Span<LightParameters>((void*)buffer.Pointer, _maxIndex);
+        var dstSpan = new Span<LightParameters>((void*)pointer, requiredCapacity);
+        srcSpan.CopyTo(dstSpan);
 
         GL.DeleteTexture(buffer.TexHandle);
         GL.DeleteBuffer(buffer.Handle);

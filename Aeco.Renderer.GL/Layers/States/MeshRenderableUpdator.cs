@@ -2,6 +2,7 @@ namespace Aeco.Renderer.GL;
 
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Collections.Concurrent;
 
 using OpenTK.Graphics.OpenGL4;
 
@@ -12,6 +13,7 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
     private Query<MeshRenderable, TransformMatricesDirty> _q = new();
 
     private List<Guid> _dirtyList = new();
+    private ConcurrentDictionary<Guid, (int, int)> _dirtyMeshes = new();
     private Action[] _actions = new Action[ParallelCount];
     private int _bundleSize;
 
@@ -63,6 +65,15 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
             DoUpdate(0, count, context);
         }
 
+        foreach (var (meshId, range) in _dirtyMeshes) {
+            var meshData = context.Require<MeshData>(meshId);
+            var meshState = context.Require<MeshRenderingState>(meshId);
+            var src = CollectionsMarshal.AsSpan(meshState.Instances).Slice(range.Item1, range.Item2 - range.Item1 + 1);
+            var dst = new Span<MeshInstance>((void*)meshData.InstanceBufferPointer, meshState.Instances.Count);
+            src.CopyTo(dst);
+        }
+
+        _dirtyMeshes.Clear();
         _dirtyList.Clear();
     }
 
@@ -81,17 +92,13 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
             var meshState = context.Require<MeshRenderingState>(data.MeshId);
             ref var matrices = ref context.UnsafeInspect<TransformMatrices>(id);
 
-            var instance = new MeshInstance {
+            meshState.Instances[index] = new MeshInstance {
                 ObjectToWorld = Matrix4x4.Transpose(matrices.World)
             };
-            meshState.Instances[index] = instance;
 
-            var meshData = context.Require<MeshData>(data.MeshId);
-            var span = CollectionsMarshal.AsSpan(meshState.Instances);
-
-            fixed (MeshInstance* arr = span) {
-                *((MeshInstance*)meshData.InstanceBufferPointer + index) = instance;
-            }
+            _dirtyMeshes.AddOrUpdate(data.MeshId,
+                id => (index, index),
+                (id, range) => (Math.Min(index, range.Item1), Math.Max(index, range.Item2)));
         }
     }
 

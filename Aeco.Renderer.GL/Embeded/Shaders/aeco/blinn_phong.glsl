@@ -22,11 +22,8 @@ vec4 CalculateBlinnPhongLighting(vec3 position, vec2 texCoord, vec3 normal)
     vec3 diffuse = vec3(0);
     vec3 specular = vec3(0);
 
-    int clusterIndex = GetClusterIndex(gl_FragCoord.xyz);
-    int lightCount = FetchLightCount(clusterIndex);
-
-    for (int i = 0; i < lightCount; i++) {
-        Light light = FetchLightFromCluster(clusterIndex, i);
+    for (int i = 0; i < GlobalLightCount; i++) {
+        Light light = FetchGlobalLight(GlobalLightIndeces[i]);
         int category = light.Category;
         vec3 lightColor = light.Color.rgb * light.Color.a;
 
@@ -43,31 +40,39 @@ vec4 CalculateBlinnPhongLighting(vec3 position, vec2 texCoord, vec3 normal)
             float spec = pow(max(dot(divisor, normal), 0.0), Shininess);
             specular += spec * lightColor;
         }
-        else {
-            vec3 lightDir = light.Position - position;
-            float distance = length(lightDir);
-            lightDir /= distance;
+    }
 
-            vec3 viewDir = normalize(CameraPosition - position);
-            vec3 divisor = normalize(viewDir + lightDir);
-            float diff = max(0.8 * dot(normal, lightDir) + 0.2, 0.0);
-            float spec = pow(max(dot(divisor, normal), 0.0), Shininess);
+    int clusterIndex = GetClusterIndex(gl_FragCoord.xyz);
+    int lightCount = FetchLightCount(clusterIndex);
 
-            if (category == LIGHT_SPOT) {
-                vec2 coneCutoffs = light.ConeCutoffsOrAreaSize;
+    for (int i = 0; i < lightCount; i++) {
+        Light light = FetchLightFromCluster(clusterIndex, i);
+        int category = light.Category;
+        vec3 lightColor = light.Color.rgb * light.Color.a;
 
-                float theta = dot(lightDir, normalize(-light.Direction));
-                float epsilon = coneCutoffs.x - coneCutoffs.y;
-                float intensity = clamp((theta - coneCutoffs.y) / epsilon, 0.0, 1.0);
+        vec3 lightDir = light.Position - position;
+        float distance = length(lightDir);
+        lightDir /= distance;
 
-                diff *= intensity;
-                spec *= intensity;
-            }
+        vec3 viewDir = normalize(CameraPosition - position);
+        vec3 divisor = normalize(viewDir + lightDir);
+        float diff = max(0.8 * dot(normal, lightDir) + 0.2, 0.0);
+        float spec = pow(max(dot(divisor, normal), 0.0), Shininess);
 
-            float attenuation = CalculateLightAttenuation(light, distance);
-            diffuse += diff * attenuation * lightColor;
-            specular += spec * attenuation * lightColor;
+        if (category == LIGHT_SPOT) {
+            vec2 coneCutoffs = light.ConeCutoffsOrAreaSize;
+
+            float theta = dot(lightDir, normalize(-light.Direction));
+            float epsilon = coneCutoffs.x - coneCutoffs.y;
+            float intensity = clamp((theta - coneCutoffs.y) / epsilon, 0.0, 1.0);
+
+            diff *= intensity;
+            spec *= intensity;
         }
+
+        float attenuation = CalculateLightAttenuation(light, distance);
+        diffuse += diff * attenuation * lightColor;
+        specular += spec * attenuation * lightColor;
     }
 
     vec4 emissionColor = Emission * texture(EmissionTex, tiledCoord);

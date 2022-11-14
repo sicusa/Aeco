@@ -28,8 +28,8 @@ public static class GLTests
         game.Initialize(new RendererSpec {
             Width = 1920 / 2,
             Height = 1080 /2,
-            UpdateFrequency = 55,
-            RenderFrequency = 55,
+            UpdateFrequency = 60,
+            RenderFrequency = 60,
             //IsFullscreen = true,
             Title = "RPG Game"
             //IsDebugEnabled = true
@@ -56,18 +56,17 @@ public static class GLTests
 
     private static void Launch(GLRenderer game, DebugLayer debugLayer)
     {
-        /*
         var sunLight = game.CreateEntity();
         sunLight.Acquire<Position>().Value = new Vector3(0, 1, 5);
         sunLight.Acquire<Rotation>().Value = Quaternion.CreateFromYawPitchRoll(-90, -45, 0);
         sunLight.Acquire<Light>().Resource = new DirectionalLightResource {
             Color = new Vector4(1, 1, 1, 0.1f)
-        };*/
+        };
 
         var spotLight = game.CreateEntity();
         spotLight.Acquire<Position>().Value = new Vector3(0, 1, 0);
         spotLight.Acquire<Light>().Resource = new SpotLightResource {
-            Color = new Vector4(0.5f, 1, 0.5f, 1),
+            Color = new Vector4(0.5f, 1, 0.5f, 5),
             InnerConeAngle = 25,
             OuterConeAngle = 40,
             AttenuationQuadratic = 1
@@ -167,13 +166,14 @@ public static class GLTests
             game.Acquire<Scale>(prevId).Value = new Vector3(0.99f);
         }
 
-        for (int i = 50; i < 150; i += 2) {
+        for (int i = 50; i < 300; i += 2) {
             var id = CreateLight(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), GLRenderer.RootId);
             game.Acquire<Rotator>(id);
         }
 
         Guid rotatorId = CreateObject(Vector3.Zero, GLRenderer.RootId, sphereMesh);
         game.Acquire<Scale>(rotatorId).Value = new Vector3(0.3f);
+        game.Acquire<Rotator>(rotatorId);
         spotLight.Acquire<Parent>().Id = rotatorId;
         pointLight.Acquire<Parent>().Id = rotatorId;
 

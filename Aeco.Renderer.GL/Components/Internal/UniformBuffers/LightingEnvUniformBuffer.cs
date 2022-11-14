@@ -1,7 +1,12 @@
 namespace Aeco.Renderer.GL;
 
-public struct LightingEnvUniformBuffer : IGLObject
+using System.Numerics;
+using System.Runtime.InteropServices;
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct LightingEnvParameters
 {
+    public const int MaximumGlobalLightCount = 64;
     public const int ClusterCountX = 16;
     public const int ClusterCountY = 9;
     public const int ClusterCountZ = 24;
@@ -9,6 +14,15 @@ public struct LightingEnvUniformBuffer : IGLObject
     public const int MaximumClusterLightCount = 64;
     public const int MaximumActiveLightCount = ClusterCount * MaximumClusterLightCount;
 
+    public float ClusterDepthSliceMultiplier;
+    public float ClusterDepthSliceSubstractor;
+
+    public int GlobalLightCount;
+    public int[] GlobalLightIndeces;
+}
+
+public struct LightingEnvUniformBuffer : IGLObject
+{
     public int Handle;
     public IntPtr Pointer;
 
@@ -20,11 +34,10 @@ public struct LightingEnvUniformBuffer : IGLObject
     public int ClusterLightCountsTexHandle;
     public IntPtr ClusterLightCountsPointer;
 
-    public float ClusterDepthSliceMultiplier;
-    public float ClusterDepthSliceSubstractor;
-
     public int[] ClusterLightCounts;
     public Rectangle[] ClusterBoundingBoxes;
+
+    public LightingEnvParameters Parameters;
 
     public void Dispose() => this = new();
 }

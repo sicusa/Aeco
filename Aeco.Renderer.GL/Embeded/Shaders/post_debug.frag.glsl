@@ -33,9 +33,9 @@ subroutine(PostFunc) vec3 ShowTransparencyAlpha() {
 }
 
 subroutine(PostFunc) vec3 ShowClusters() {
-    float depth = texture(DepthBuffer, TexCoord).r;
+    float depth = textureLod(DepthBuffer, TexCoord, 0).r;
     int index = GetClusterIndex(vec3(gl_FragCoord.xy, depth));
-    float c = float(FetchLightCount(index)) / 3;
+    float c = float(FetchLightCount(index)) / MAXIMUM_CLUSTER_LIGHT_COUNT;
     return depth * vec3(c);
 }
 

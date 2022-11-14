@@ -23,7 +23,6 @@ public struct LightParameters
     public Vector4 Color;
     public Vector3 Position;
     public Vector3 Direction;
-    public Vector3 Up;
 
     public float AttenuationConstant;
     public float AttenuationLinear;

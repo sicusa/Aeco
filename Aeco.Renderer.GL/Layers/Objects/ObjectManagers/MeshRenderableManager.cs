@@ -36,10 +36,7 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
         if (context.Contains<MeshData>(meshId)) {
             ref var meshData = ref context.Require<MeshData>(meshId);
             if (instances.Count <= meshData.InstanceCapacity) {
-                var span = CollectionsMarshal.AsSpan(instances);
-                fixed (MeshInstance* arr = span) {
-                    *((MeshInstance*)meshData.InstanceBufferPointer + index) = *(arr + index);
-                }
+                *((MeshInstance*)meshData.InstanceBufferPointer + index) = instances[index];
             }
             else {
                 meshData.InstanceCapacity *= 4;

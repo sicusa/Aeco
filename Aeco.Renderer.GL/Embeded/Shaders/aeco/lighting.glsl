@@ -8,6 +8,7 @@
 #define CLUSTER_COUNT_Z 24
 #define CLUSTER_COUNT (CLUSTER_COUNT_X * CLUSTER_COUNT_Y * CLUSTER_COUNT_Z)
 #define MAXIMUM_CLUSTER_LIGHT_COUNT 64
+#define MAXIMUM_GLOBAL_LIGHT_COUNT 64
 
 #define LIGHT_NONE          0
 #define LIGHT_AMBIENT       1
@@ -16,11 +17,14 @@
 #define LIGHT_SPOT          4
 #define LIGHT_AREA          5
 
-#define LIGHT_COMPONENT_COUNT 19
+#define LIGHT_COMPONENT_COUNT 16
 
 layout(std140) uniform LightingEnv {
     float ClusterDepthSliceMultiplier;
     float ClusterDepthSliceSubstractor;
+
+    int GlobalLightCount;
+    int GlobalLightIndeces[MAXIMUM_GLOBAL_LIGHT_COUNT];
 };
 
 struct Light {
@@ -28,7 +32,6 @@ struct Light {
     vec4 Color;
     vec3 Position;
     vec3 Direction;
-    vec3 Up;
 
     float AttenuationConstant;
     float AttenuationLinear;
@@ -64,6 +67,27 @@ int FetchLightCount(int index) {
     return texelFetch(ClusterLightCountsBuffer, index).r;
 }
 
+Light FetchGlobalLight(int index)
+{
+    int offset = index * LIGHT_COMPONENT_COUNT;
+    Light light;
+
+    int category = int(texelFetch(LightsBuffer, offset).r);
+    light.Category = category;
+
+    light.Color = vec4(
+        texelFetch(LightsBuffer, offset + 1).r,
+        texelFetch(LightsBuffer, offset + 2).r,
+        texelFetch(LightsBuffer, offset + 3).r,
+        texelFetch(LightsBuffer, offset + 4).r);
+    light.Direction = vec3(
+        texelFetch(LightsBuffer, offset + 8).r,
+        texelFetch(LightsBuffer, offset + 9).r,
+        texelFetch(LightsBuffer, offset + 10).r);
+
+    return light;
+}
+
 Light FetchLight(int index)
 {
     int offset = index * LIGHT_COMPONENT_COUNT;
@@ -86,18 +110,14 @@ Light FetchLight(int index)
         texelFetch(LightsBuffer, offset + 8).r,
         texelFetch(LightsBuffer, offset + 9).r,
         texelFetch(LightsBuffer, offset + 10).r);
-    light.Up = vec3(
-        texelFetch(LightsBuffer, offset + 11).r,
-        texelFetch(LightsBuffer, offset + 12).r,
-        texelFetch(LightsBuffer, offset + 13).r);
 
-    light.AttenuationConstant = texelFetch(LightsBuffer, offset + 14).r;
-    light.AttenuationLinear = texelFetch(LightsBuffer, offset + 15).r;
-    light.AttenuationQuadratic = texelFetch(LightsBuffer, offset + 16).r;
+    light.AttenuationConstant = texelFetch(LightsBuffer, offset + 11).r;
+    light.AttenuationLinear = texelFetch(LightsBuffer, offset + 12).r;
+    light.AttenuationQuadratic = texelFetch(LightsBuffer, offset + 13).r;
 
     light.ConeCutoffsOrAreaSize = vec2(
-        texelFetch(LightsBuffer, offset + 17).r,
-        texelFetch(LightsBuffer, offset + 18).r);
+        texelFetch(LightsBuffer, offset + 14).r,
+        texelFetch(LightsBuffer, offset + 15).r);
 
     return light;
 }
