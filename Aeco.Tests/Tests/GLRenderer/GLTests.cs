@@ -166,7 +166,7 @@ public static class GLTests
             game.Acquire<Scale>(prevId).Value = new Vector3(0.99f);
         }
 
-        for (int i = 50; i < 300; i += 2) {
+        for (int i = 50; i < 250; i += 2) {
             var id = CreateLight(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), GLRenderer.RootId);
             game.Acquire<Rotator>(id);
         }
@@ -199,20 +199,12 @@ public static class GLTests
             time += deltaTime;
             x = Lerp(x, (window.MousePosition.X - window.Size.X / 2) * sensitivity, scaledRate);
             y = Lerp(y, (window.MousePosition.Y - window.Size.Y / 2) * sensitivity, scaledRate);
-            
-            /*
-            foreach (var id in game.Query<MeshRenderable>()) {
-                if (id == rotatorId) { continue; }
-                if (id == firstId) { continue; }
-                game.Acquire<Rotation>(id).Value = Quaternion.CreateFromYawPitchRoll(time, 0, 0);
-            }*/
 
             foreach (var rotatorId in game.Query<Rotator>()) {
                 ref readonly var rotatorAxes = ref game.Inspect<WorldAxes>(rotatorId);
                 ref var rotatorPos = ref game.Acquire<Position>(rotatorId).Value;
                 rotatorPos += rotatorAxes.Forward * deltaTime * 2;
                 game.Acquire<Rotation>(rotatorId).Value = Quaternion.CreateFromAxisAngle(Vector3.UnitY, time);
-                //game.Acquire<WorldAxes>(firstId).Forward = rotatorPos;
             }
 
             if (window.KeyboardState.IsKeyPressed(Keys.F1)) {
