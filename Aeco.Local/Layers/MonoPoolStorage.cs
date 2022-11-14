@@ -56,12 +56,10 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     {
         ref var block = ref _brick.AcquireBlock(GetIndex(entityId), entityId, out exists);
         if (!exists) {
-            lock (_entityIds) {
-                block.Value = new();
-                _entityIds.Add(entityId);
-                if (_singleton == null) {
-                    _singleton = entityId;
-                }
+            block.Value = new();
+            _entityIds.Add(entityId);
+            if (_singleton == null) {
+                _singleton = entityId;
             }
         }
         return ref block.Value;
@@ -83,12 +81,10 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     private void ClearBlock(ref FastHashBrick<Guid, TStoredComponent>.Block block, in Guid entityId)
     {
-        lock (_entityIds) {
-            block.Value = default!;
-            _entityIds.Remove(entityId);
-            if (_singleton == entityId) {
-                _singleton = null;
-            }
+        block.Value = default!;
+        _entityIds.Remove(entityId);
+        if (_singleton == entityId) {
+            _singleton = null;
         }
     }
 
@@ -121,9 +117,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         int index = GetIndex(entityId);
         ref var block = ref _brick.AcquireBlock(index, entityId, out _existsTemp);
         if (!_existsTemp) {
-            lock (_entityIds) {
-                _entityIds.Add(entityId);
-            }
+            _entityIds.Add(entityId);
         }
         block.Value = component;
         return ref block.Value;
