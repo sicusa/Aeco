@@ -14,6 +14,8 @@ public abstract class GroupBase : IGroup
 
     public int Count => _l.Count;
 
+    private bool _initialized = false;
+
     public IEnumerator<Guid> GetEnumerator()
         => _l.GetEnumerator();
 
@@ -31,8 +33,9 @@ public abstract class GroupBase : IGroup
 
     public IEnumerable<Guid> Query(IDataLayer<IComponent> dataLayer)
     {
-        if (ShouldRefresh(dataLayer)) {
+        if (!_initialized || ShouldRefresh(dataLayer)) {
             Refresh(dataLayer);
+            _initialized = true;
         }
         return _l;
     }
