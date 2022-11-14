@@ -71,14 +71,26 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
 
     public abstract bool Remove<UComponent>(Guid entityId)
         where UComponent : TComponent;
+
     public bool RemoveAny<UComponent>()
         where UComponent : TComponent
-        => Remove<UComponent>(RequireSingleton<UComponent>());
+    {
+        var singleton = Singleton<UComponent>();
+        return singleton != null ? Remove<UComponent>(singleton.Value) : false;
+    }
+
     public abstract bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent;
     public bool RemoveAny<UComponent>([MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
-        => Remove<UComponent>(RequireSingleton<UComponent>(), out component);
+    {
+        var singleton = Singleton<UComponent>();
+        if (singleton == null) {
+            component = default;
+            return false;
+        }
+        return Remove(singleton.Value, out component);
+    }
     public abstract void RemoveAll<UComponent>()
         where UComponent : TComponent;
 

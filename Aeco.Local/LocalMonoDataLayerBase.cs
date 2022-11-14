@@ -49,10 +49,20 @@ public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
 
     public abstract bool Remove(Guid entityId);
     public bool RemoveAny()
-        => Remove(RequireSingleton());
+    {
+        var singleton = Singleton();
+        return singleton != null ? Remove(singleton.Value) : false;
+    }
     public abstract bool Remove(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component);
     public bool RemoveAny([MaybeNullWhen(false)] out TStoredComponent component)
-        => Remove(RequireSingleton(), out component);
+    {
+        var singleton = Singleton();
+        if (singleton == null) {
+            component = default;
+            return false;
+        }
+        return Remove(singleton.Value, out component);
+    }
 
     public abstract ref TStoredComponent Set(Guid entityId, in TStoredComponent component);
     public ref TStoredComponent SetAny(in TStoredComponent component)
