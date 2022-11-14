@@ -112,7 +112,7 @@ public class EmbededShaderProgramsLoader : VirtualLayer, IGLLoadLayer
                     "ShowTransparencyAccum",
                     "ShowTransparencyAlpha",
                     "ShowDepth",
-                    "ShowTiles"
+                    "ShowClusters"
                 }
             }
         };

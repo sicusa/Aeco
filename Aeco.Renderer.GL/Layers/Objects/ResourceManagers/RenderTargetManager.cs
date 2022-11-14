@@ -2,14 +2,24 @@ namespace Aeco.Renderer.GL;
 
 using OpenTK.Graphics.OpenGL4;
 
-public class RenderTargetManager : ResourceManagerBase<RenderTarget, RenderTargetData, RenderTargetResource>, IGLResizeLayer
+public class RenderTargetManager : ResourceManagerBase<RenderTarget, RenderTargetData, RenderTargetResource>, IGLLoadLayer, IGLResizeLayer
 {
     private int _windowWidth;
     private int _windowHeight;
     private DrawBuffersEnum[] _transparentDraw = { DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1 };
 
+    public void OnLoad(IDataLayer<IComponent> context)
+    {
+        var window = context.RequireAny<Window>().Current!;
+        _windowWidth = window.Size.X;
+        _windowHeight = window.Size.Y;
+    }
+
     public void OnResize(IDataLayer<IComponent> context, int width, int height)
     {
+        if (_windowWidth == width && _windowHeight == height) {
+            return;
+        }
         foreach (var id in context.Query<RenderTargetAutoResizeByWindow>()) {
             ref var framebuffer = ref context.UnsafeInspect<RenderTarget>(id);
             ref var data = ref context.Require<RenderTargetData>(id);
@@ -69,7 +79,7 @@ public class RenderTargetManager : ResourceManagerBase<RenderTarget, RenderTarge
 
         data.DepthTextureHandle = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, data.DepthTextureHandle);
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent24, width, height, 0, PixelFormat.DepthComponent, PixelType.UnsignedInt, IntPtr.Zero);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent32, width, height, 0, PixelFormat.DepthComponent, PixelType.UnsignedInt, IntPtr.Zero);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);

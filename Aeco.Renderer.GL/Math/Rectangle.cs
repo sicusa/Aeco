@@ -17,4 +17,16 @@ public struct Rectangle : IEquatable<Rectangle>
 
     public bool Equals(Rectangle other)
         => Min == other.Min && Max == other.Max;
+
+    public override string ToString()
+        => $"[{Min}, {Max}]";
+    
+    public Vector3 ClosetPoint(Vector3 point)
+        => Vector3.Clamp(point, Min, Max);
+    
+    public float DistanceToPoint(Vector3 point)
+        => Vector3.Distance(point, ClosetPoint(point));
+
+    public float DistanceToPointSquared(Vector3 point)
+        => Vector3.DistanceSquared(point, ClosetPoint(point));
 }

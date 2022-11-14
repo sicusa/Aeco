@@ -20,7 +20,7 @@ subroutine(PostFunc) vec3 ShowColor()
 
 subroutine(PostFunc) vec3 ShowDepth()
 {
-    float depth = LinearizeDepth(textureLod(DepthBuffer, TexCoord, 3).r);
+    float depth = LinearizeDepth(texture(DepthBuffer, TexCoord).r) / 5;
     return vec3(depth, depth, depth);
 }
 
@@ -32,10 +32,11 @@ subroutine(PostFunc) vec3 ShowTransparencyAlpha() {
     return vec3(texture(TransparencyAlphaBuffer, TexCoord).r);
 }
 
-subroutine(PostFunc) vec3 ShowClusters()
-{
-    float depth = textureLod(DepthBuffer, TexCoord).r;
-    return vec3(depth, depth, depth);
+subroutine(PostFunc) vec3 ShowClusters() {
+    float depth = texture(DepthBuffer, TexCoord).r;
+    int index = GetClusterIndex(vec3(gl_FragCoord.xy, depth));
+    float c = float(FetchLightCount(index)) / 3;
+    return depth * vec3(c);
 }
 
 vec3 ACESToneMapping(vec3 color)

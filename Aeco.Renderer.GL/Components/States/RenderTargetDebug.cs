@@ -6,7 +6,7 @@ public enum DisplayMode
     TransparencyAccum,
     TransparencyAlpha,
     Depth,
-    Tiles
+    Clusters
 }
 
 public struct RenderTargetDebug : IGLObject

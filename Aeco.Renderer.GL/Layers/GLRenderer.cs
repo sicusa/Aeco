@@ -209,6 +209,7 @@ public class GLRenderer : CompositeLayer
                 new LightingEnvUniformBufferUpdator(),
                 new CameraUniformBufferUpdator(),
 
+                new LightsBufferUpdator(),
                 new MeshRenderableUpdator(),
 
                 new ForwardRenderPipeline()

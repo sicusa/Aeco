@@ -30,8 +30,10 @@ public struct ShaderProgramData : IGLObject
     public EnumArray<ShaderType, ImmutableDictionary<string, int>>? SubroutineIndeces;
     public ImmutableDictionary<string, int> CustomLocations;
 
-    public int LightBufferLocation;
     public int DepthBufferLocation;
+    public int LightsBufferLocation;
+    public int ClustersBufferLocation;
+    public int ClusterLightCountsBufferLocation;
 
     public void Dispose() => this = new();
 }

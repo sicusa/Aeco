@@ -22,8 +22,11 @@ vec4 CalculateBlinnPhongLighting(vec3 position, vec2 texCoord, vec3 normal)
     vec3 diffuse = vec3(0);
     vec3 specular = vec3(0);
 
-    for (int i = 0; i < LightCount; i++) {
-        Light light = FetchLight(i);
+    int clusterIndex = GetClusterIndex(gl_FragCoord.xyz);
+    int lightCount = FetchLightCount(clusterIndex);
+
+    for (int i = 0; i < lightCount; i++) {
+        Light light = FetchLightFromCluster(clusterIndex, i);
         int category = light.Category;
         vec3 lightColor = light.Color.rgb * light.Color.a;
 

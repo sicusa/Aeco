@@ -34,9 +34,9 @@ public struct LightParameters
 
 public struct LightData : IGLObject
 {
-    public int Id = -1;
+    public int Index = -1;
     public LightCategory Category = LightCategory.None;
-    public LightParameters Parameters = new();
+    public float Range = float.PositiveInfinity;
 
     public LightData() {}
 

@@ -10,6 +10,11 @@ using Aeco.Renderer.GL;
 
 public static class GLTests
 {
+    public struct Rotator : IGLObject
+    {
+        public void Dispose() => this = new();
+    }
+
     public static void Run()
     {
         var debugLayer = new DebugLayer();
@@ -21,10 +26,10 @@ public static class GLTests
 
         game.IsProfileEnabled = true;
         game.Initialize(new RendererSpec {
-            Width = 800,
-            Height = 600,
-            UpdateFrequency = 50,
-            RenderFrequency = 50,
+            Width = 1920 / 2,
+            Height = 1080 /2,
+            UpdateFrequency = 55,
+            RenderFrequency = 55,
             //IsFullscreen = true,
             Title = "RPG Game"
             //IsDebugEnabled = true
@@ -51,17 +56,18 @@ public static class GLTests
 
     private static void Launch(GLRenderer game, DebugLayer debugLayer)
     {
+        /*
         var sunLight = game.CreateEntity();
         sunLight.Acquire<Position>().Value = new Vector3(0, 1, 5);
         sunLight.Acquire<Rotation>().Value = Quaternion.CreateFromYawPitchRoll(-90, -45, 0);
         sunLight.Acquire<Light>().Resource = new DirectionalLightResource {
             Color = new Vector4(1, 1, 1, 0.1f)
-        };
+        };*/
 
         var spotLight = game.CreateEntity();
         spotLight.Acquire<Position>().Value = new Vector3(0, 1, 0);
         spotLight.Acquire<Light>().Resource = new SpotLightResource {
-            Color = new Vector4(0.5f, 1, 0.5f, 20),
+            Color = new Vector4(0.5f, 1, 0.5f, 1),
             InnerConeAngle = 25,
             OuterConeAngle = 40,
             AttenuationQuadratic = 1
@@ -70,7 +76,7 @@ public static class GLTests
         var pointLight = game.CreateEntity();
         pointLight.Acquire<Position>().Value = new Vector3(0, 1, 0);
         pointLight.Acquire<Light>().Resource = new PointLightResource {
-            Color = new Vector4(1, 1, 1, 5),
+            Color = new Vector4(1, 1, 1, 1),
             AttenuationQuadratic = 0.7f
         };
 
@@ -137,6 +143,18 @@ public static class GLTests
             return id;
         }
 
+        Guid CreateLight(in Vector3 pos, Guid parentId)
+        {
+            var id = Guid.NewGuid();
+            game.Acquire<Light>(id).Resource = new PointLightResource {
+                Color = new Vector4(1, 1, 1, 5),
+                AttenuationQuadratic = 25f
+            };
+            game.Acquire<Parent>(id).Id = parentId;
+            game.Acquire<Position>(id).Value = pos;
+            return id;
+        }
+
         Guid prevId = CreateObject(Vector3.Zero, GLRenderer.RootId, sphereMesh);
         pointLight2.Acquire<Parent>().Id = prevId;
 
@@ -147,6 +165,11 @@ public static class GLTests
             prevId = CreateObject(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), firstId,
                 i % 2 == 0 ? torusMesh : torusMeshTransparent);
             game.Acquire<Scale>(prevId).Value = new Vector3(0.99f);
+        }
+
+        for (int i = 50; i < 150; i += 2) {
+            var id = CreateLight(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), GLRenderer.RootId);
+            game.Acquire<Rotator>(id);
         }
 
         Guid rotatorId = CreateObject(Vector3.Zero, GLRenderer.RootId, sphereMesh);
@@ -184,11 +207,13 @@ public static class GLTests
                 game.Acquire<Rotation>(id).Value = Quaternion.CreateFromYawPitchRoll(time, 0, 0);
             }*/
 
-            ref readonly var rotatorAxes = ref game.Inspect<WorldAxes>(rotatorId);
-            ref var rotatorPos = ref game.Acquire<Position>(rotatorId).Value;
-            rotatorPos += rotatorAxes.Forward * deltaTime * 2;
-            game.Acquire<Rotation>(rotatorId).Value = Quaternion.CreateFromAxisAngle(Vector3.UnitY, time);
-            //game.Acquire<WorldAxes>(firstId).Forward = rotatorPos;
+            foreach (var rotatorId in game.Query<Rotator>()) {
+                ref readonly var rotatorAxes = ref game.Inspect<WorldAxes>(rotatorId);
+                ref var rotatorPos = ref game.Acquire<Position>(rotatorId).Value;
+                rotatorPos += rotatorAxes.Forward * deltaTime * 2;
+                game.Acquire<Rotation>(rotatorId).Value = Quaternion.CreateFromAxisAngle(Vector3.UnitY, time);
+                //game.Acquire<WorldAxes>(firstId).Forward = rotatorPos;
+            }
 
             if (window.KeyboardState.IsKeyPressed(Keys.F1)) {
                 game.RemoveAny<RenderTargetDebug>();
@@ -203,7 +228,7 @@ public static class GLTests
                 GetDebug().DisplayMode = DisplayMode.Depth;
             }
             if (window.KeyboardState.IsKeyPressed(Keys.F5)) {
-                GetDebug().DisplayMode = DisplayMode.Tiles;
+                GetDebug().DisplayMode = DisplayMode.Clusters;
             }
 
             game.Acquire<Rotation>(cameraId).Value = Quaternion.CreateFromYawPitchRoll(-x, -y, 0);

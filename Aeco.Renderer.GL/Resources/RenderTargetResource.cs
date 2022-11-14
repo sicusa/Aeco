@@ -2,7 +2,7 @@ namespace Aeco.Renderer.GL;
 
 public record RenderTargetResource : IGLResource
 {
-    public static readonly RenderTargetResource Default = new() {
+    public static readonly RenderTargetResource AutoResized = new() {
         AutoResizeByWindow = true
     };
 

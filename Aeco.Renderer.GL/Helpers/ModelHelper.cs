@@ -132,13 +132,13 @@ public static class ModelHelper
         var max = new Vector3();
 
         foreach (var vertex in vertices) {
-            min.X = MathF.Min(min.X, vertex.X);
-            min.Y = MathF.Min(min.Y, vertex.Y);
-            min.Z = MathF.Min(min.Z, vertex.Z);
+            min.X = Math.Min(min.X, vertex.X);
+            min.Y = Math.Min(min.Y, vertex.Y);
+            min.Z = Math.Min(min.Z, vertex.Z);
 
-            max.X = MathF.Max(max.X, vertex.X);
-            max.Y = MathF.Max(max.Y, vertex.Y);
-            max.Z = MathF.Max(max.Z, vertex.Z);
+            max.X = Math.Max(max.X, vertex.X);
+            max.Y = Math.Max(max.Y, vertex.Y);
+            max.Z = Math.Max(max.Z, vertex.Z);
         }
 
         return new Rectangle(min, max);

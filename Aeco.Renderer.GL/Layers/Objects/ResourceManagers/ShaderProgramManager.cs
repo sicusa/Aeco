@@ -19,7 +19,6 @@ public class ShaderProgramManager : ResourceManagerBase<ShaderProgram, ShaderPro
         ["aeco/blinn_phong.glsl"] = InternalAssets.LoadText("Shaders.aeco.blinn_phong.glsl")
     };
 
-
     private static readonly Dictionary<Type, Action<int, object>> s_uniformSetters = new() {
         [typeof(int)] = (location, value) => GL.Uniform1(location, (int)value),
         [typeof(int[])] = (location, value) => {
@@ -150,8 +149,10 @@ public class ShaderProgramManager : ResourceManagerBase<ShaderProgram, ShaderPro
 
         // initialize uniform locations
 
-        data.LightBufferLocation = GL.GetUniformLocation(program, "LightBuffer");
         data.DepthBufferLocation = GL.GetUniformLocation(program, "DepthBuffer");
+        data.LightsBufferLocation = GL.GetUniformLocation(program, "LightsBuffer");
+        data.ClustersBufferLocation = GL.GetUniformLocation(program, "ClustersBuffer");
+        data.ClusterLightCountsBufferLocation = GL.GetUniformLocation(program, "ClusterLightCountsBuffer");
 
         EnumArray<TextureType, int>? textureLocations = null;
         if (resource.IsMaterialTexturesEnabled) {

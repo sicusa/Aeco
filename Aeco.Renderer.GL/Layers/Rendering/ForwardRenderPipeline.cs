@@ -18,7 +18,6 @@ public class ForwardRenderPipeline : VirtualLayer, IGLUpdateLayer, IGLLoadLayer,
 
     public void OnLoad(IDataLayer<IComponent> context)
     {
-        _g.Refresh(context);
         _defaultVertexArray = GL.GenVertexArray();
     }
 
@@ -36,9 +35,15 @@ public class ForwardRenderPipeline : VirtualLayer, IGLUpdateLayer, IGLLoadLayer,
         GL.ActiveTexture(TextureUnit.Texture1 + (int)TextureType.Unknown);
         GL.BindTexture(TextureTarget.Texture2D, renderTarget.DepthTextureHandle);
 
-        var lightBufferHandle = context.AcquireAny<LightingEnvUniformBuffer>().LightsTexHandle;
+        var lightBufferHandle = context.RequireAny<LightsBuffer>().TexHandle;
         GL.ActiveTexture(TextureUnit.Texture1 + (int)TextureType.Unknown + 1);
         GL.BindTexture(TextureTarget.TextureBuffer, lightBufferHandle);
+
+        ref readonly var lightingEnv = ref context.InspectAny<LightingEnvUniformBuffer>();
+        GL.ActiveTexture(TextureUnit.Texture1 + (int)TextureType.Unknown + 2);
+        GL.BindTexture(TextureTarget.TextureBuffer, lightingEnv.ClustersTexHandle);
+        GL.ActiveTexture(TextureUnit.Texture1 + (int)TextureType.Unknown + 3);
+        GL.BindTexture(TextureTarget.TextureBuffer, lightingEnv.ClusterLightCountsTexHandle);
 
         // generate hierarchical-Z buffer
 
@@ -163,6 +168,10 @@ public class ForwardRenderPipeline : VirtualLayer, IGLUpdateLayer, IGLLoadLayer,
             var customLocations = postProgram.CustomLocations;
             GL.UseProgram(postProgram.Handle);
 
+            GL.Uniform1(postProgram.LightsBufferLocation, (int)TextureType.Unknown + 2);
+            GL.Uniform1(postProgram.ClustersBufferLocation, (int)TextureType.Unknown + 3);
+            GL.Uniform1(postProgram.ClusterLightCountsBufferLocation, (int)TextureType.Unknown + 4);
+
             GL.ActiveTexture(TextureUnit.Texture1);
             GL.BindTexture(TextureTarget.Texture2D, renderTarget.TransparencyAccumTextureHandle);
             GL.Uniform1(customLocations["TransparencyAccumBuffer"], 1);
@@ -180,7 +189,7 @@ public class ForwardRenderPipeline : VirtualLayer, IGLUpdateLayer, IGLLoadLayer,
                 DisplayMode.TransparencyAccum => "ShowTransparencyAccum",
                 DisplayMode.TransparencyAlpha => "ShowTransparencyAlpha",
                 DisplayMode.Depth => "ShowDepth",
-                DisplayMode.Tiles => "ShowTiles",
+                DisplayMode.Clusters => "ShowClusters",
                 _ => "ShowColor"
             };
             int index = subroutines[subroutineName];
@@ -273,8 +282,14 @@ public class ForwardRenderPipeline : VirtualLayer, IGLUpdateLayer, IGLLoadLayer,
         if (shaderProgramData.DepthBufferLocation != -1) {
             GL.Uniform1(shaderProgramData.DepthBufferLocation, texCount + 1);
         }
-        if (shaderProgramData.LightBufferLocation != -1) {
-            GL.Uniform1(shaderProgramData.LightBufferLocation, texCount + 2);
+        if (shaderProgramData.LightsBufferLocation != -1) {
+            GL.Uniform1(shaderProgramData.LightsBufferLocation, texCount + 2);
+        }
+        if (shaderProgramData.ClustersBufferLocation != -1) {
+            GL.Uniform1(shaderProgramData.ClustersBufferLocation, texCount + 3);
+        }
+        if (shaderProgramData.ClusterLightCountsBufferLocation != -1) {
+            GL.Uniform1(shaderProgramData.ClusterLightCountsBufferLocation, texCount + 4);
         }
     }
 }

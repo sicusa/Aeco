@@ -6,8 +6,8 @@
 #define CLUSTER_COUNT_X 16
 #define CLUSTER_COUNT_Y 9
 #define CLUSTER_COUNT_Z 24
-#define CLUSTER_COUNT CLUSTER_COUNT_X * CLUSTER_COUNT_Y * CLUSTER_COUNT_Z
-#define CLUSTER_MAXIMUM_LIGHT_COUNT 1
+#define CLUSTER_COUNT (CLUSTER_COUNT_X * CLUSTER_COUNT_Y * CLUSTER_COUNT_Z)
+#define MAXIMUM_CLUSTER_LIGHT_COUNT 64
 
 #define LIGHT_NONE          0
 #define LIGHT_AMBIENT       1
@@ -24,34 +24,44 @@ layout(std140) uniform LightingEnv {
 };
 
 struct Light {
-    int Category;       // 4    1
-    vec4 Color;         // 16   5
-    vec3 Position;      // 12   8
-    vec3 Direction;     // 12   11
-    vec3 Up;            // 12   14
+    int Category;
+    vec4 Color;
+    vec3 Position;
+    vec3 Direction;
+    vec3 Up;
 
-    float AttenuationConstant;  // 4    15
-    float AttenuationLinear;    // 4    16
-    float AttenuationQuadratic; // 4    17
+    float AttenuationConstant;
+    float AttenuationLinear;
+    float AttenuationQuadratic;
 
-    vec2 ConeCutoffsOrAreaSize; // 8 19
+    vec2 ConeCutoffsOrAreaSize;
 };
 
-uniform samplerBuffer LightBuffer;
-uniform samplerBuffer LightClusters;
+uniform samplerBuffer LightsBuffer;
+uniform isamplerBuffer ClustersBuffer;
+uniform isamplerBuffer ClusterLightCountsBuffer;
 
 int CalculateClusterDepthSlice(float z) {
-    return int(floor(log(z) * ClusterDepthSliceMultiplier - ClusterDepthSliceSubstractor));
+    return max(int(floor(log2(z) * ClusterDepthSliceMultiplier - ClusterDepthSliceSubstractor)), 0);
 }
 
 int GetClusterIndex(vec3 fragCoord)
 {
-    int depthSlice = CalculateClusterDepthSlice(fragCoord.z);
-    float tileSize = ViewportWidth / CLUSTER_COUNT_X;
+    int depthSlice = CalculateClusterDepthSlice(LinearizeDepth(fragCoord.z)) - 1;
+    float tileSizeX = ViewportWidth / CLUSTER_COUNT_X;
+    float tileSizeY = ViewportHeight / CLUSTER_COUNT_Y;
 
-    return int(fragCoord.x / tileSize)
-        + CLUSTER_COUNT_X * int(fragCoord.y / tileSize)
+    return int(fragCoord.x / tileSizeX)
+        + CLUSTER_COUNT_X * int(fragCoord.y / tileSizeY)
         + (CLUSTER_COUNT_X * CLUSTER_COUNT_Y) * depthSlice;
+}
+
+int FetchLightIndex(int cluster, int offset) {
+    return texelFetch(ClustersBuffer, cluster * MAXIMUM_CLUSTER_LIGHT_COUNT + offset).r;
+}
+
+int FetchLightCount(int index) {
+    return texelFetch(ClusterLightCountsBuffer, index).r;
 }
 
 Light FetchLight(int index)
@@ -59,37 +69,41 @@ Light FetchLight(int index)
     int offset = index * LIGHT_COMPONENT_COUNT;
     Light light;
 
-    int category = int(texelFetch(LightBuffer, offset).r);
+    int category = int(texelFetch(LightsBuffer, offset).r);
     light.Category = category;
 
     light.Color = vec4(
-        texelFetch(LightBuffer, offset + 1).r,
-        texelFetch(LightBuffer, offset + 2).r,
-        texelFetch(LightBuffer, offset + 3).r,
-        texelFetch(LightBuffer, offset + 4).r);
+        texelFetch(LightsBuffer, offset + 1).r,
+        texelFetch(LightsBuffer, offset + 2).r,
+        texelFetch(LightsBuffer, offset + 3).r,
+        texelFetch(LightsBuffer, offset + 4).r);
 
     light.Position = vec3(
-        texelFetch(LightBuffer, offset + 5).r,
-        texelFetch(LightBuffer, offset + 6).r,
-        texelFetch(LightBuffer, offset + 7).r);
+        texelFetch(LightsBuffer, offset + 5).r,
+        texelFetch(LightsBuffer, offset + 6).r,
+        texelFetch(LightsBuffer, offset + 7).r);
     light.Direction = vec3(
-        texelFetch(LightBuffer, offset + 8).r,
-        texelFetch(LightBuffer, offset + 9).r,
-        texelFetch(LightBuffer, offset + 10).r);
+        texelFetch(LightsBuffer, offset + 8).r,
+        texelFetch(LightsBuffer, offset + 9).r,
+        texelFetch(LightsBuffer, offset + 10).r);
     light.Up = vec3(
-        texelFetch(LightBuffer, offset + 11).r,
-        texelFetch(LightBuffer, offset + 12).r,
-        texelFetch(LightBuffer, offset + 13).r);
+        texelFetch(LightsBuffer, offset + 11).r,
+        texelFetch(LightsBuffer, offset + 12).r,
+        texelFetch(LightsBuffer, offset + 13).r);
 
-    light.AttenuationConstant = texelFetch(LightBuffer, offset + 14).r;
-    light.AttenuationLinear = texelFetch(LightBuffer, offset + 15).r;
-    light.AttenuationQuadratic = texelFetch(LightBuffer, offset + 16).r;
+    light.AttenuationConstant = texelFetch(LightsBuffer, offset + 14).r;
+    light.AttenuationLinear = texelFetch(LightsBuffer, offset + 15).r;
+    light.AttenuationQuadratic = texelFetch(LightsBuffer, offset + 16).r;
 
     light.ConeCutoffsOrAreaSize = vec2(
-        texelFetch(LightBuffer, offset + 17).r,
-        texelFetch(LightBuffer, offset + 18).r);
+        texelFetch(LightsBuffer, offset + 17).r,
+        texelFetch(LightsBuffer, offset + 18).r);
 
     return light;
+}
+
+Light FetchLightFromCluster(int cluster, int offset) {
+    return FetchLight(FetchLightIndex(cluster, offset));
 }
 
 float CalculateLightAttenuation(Light light, float distance)

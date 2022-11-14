@@ -37,7 +37,8 @@ float LinearizeDepth(float depth)
 {
     float n = CameraNearPlaneDistance;
     float f = CameraFarPlaneDistance;
-    return (2.0 * n) / (f + n - depth * (f - n));
+    float depthRange = 2.0 * depth - 1.0;
+    return 2.0 * n * f / (f + n - depthRange * (f - n));
 }
 
 vec3 GetClipSpacePositionFromDepth(float depth, vec2 uv)
