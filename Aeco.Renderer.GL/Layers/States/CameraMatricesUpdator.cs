@@ -29,8 +29,14 @@ public class CameraMatricesUpdator : VirtualLayer, IGLUpdateLayer, IGLResizeLaye
         ref var matrices = ref context.Acquire<CameraMatrices>(cameraId);
         float aspectRatio = (float)width / (float)height;
 
-        matrices.ProjectionRaw = Matrix4x4.CreatePerspectiveFieldOfView(
+        var proj = OpenTK.Mathematics.Matrix4.CreatePerspectiveFieldOfView(
             OpenTK.Mathematics.MathHelper.DegreesToRadians(camera.FieldOfView),
             aspectRatio, camera.NearPlaneDistance, camera.FarPlaneDistance);
+
+        matrices.ProjectionRaw = new Matrix4x4(
+            proj.M11, proj.M12, proj.M13, proj.M14,
+            proj.M21, proj.M22, proj.M23, proj.M24,
+            proj.M31, proj.M32, proj.M33, proj.M34,
+            proj.M41, proj.M42, proj.M43, proj.M44);
     }
 }

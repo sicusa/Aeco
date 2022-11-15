@@ -36,7 +36,7 @@ public struct LightingEnvUniformBuffer : IGLObject
 
     public int[] Clusters;
     public int[] ClusterLightCounts;
-    public Rectangle[] ClusterBoundingBoxes;
+    public ExtendedRectangle[] ClusterBoundingBoxes;
 
     public LightingEnvParameters Parameters;
 

@@ -54,7 +54,7 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
 
         buffer.Clusters = new int[LightingEnvParameters.MaximumActiveLightCount];
         buffer.ClusterLightCounts = new int[LightingEnvParameters.ClusterCount];
-        buffer.ClusterBoundingBoxes = new Rectangle[LightingEnvParameters.ClusterCount];
+        buffer.ClusterBoundingBoxes = new ExtendedRectangle[LightingEnvParameters.ClusterCount];
         UpdateClusterBoundingBoxes(context, ref buffer, in camera, in cameraMat);
 
         buffer.Handle = GL.GenBuffer();
@@ -131,6 +131,7 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
                     ref var rect = ref boundingBoxes[x + countX * y + (countX * countY) * z];
                     rect.Min = Vector3.Min(Vector3.Min(minPointNear, minPointFar), Vector3.Min(maxPointNear, maxPointFar));
                     rect.Max = Vector3.Max(Vector3.Max(minPointNear, minPointFar), Vector3.Max(maxPointNear, maxPointFar));
+                    rect.UpdateExtents();
                 }
             }
         }
@@ -159,6 +160,8 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
         const int maxClusterLightCount = LightingEnvParameters.MaximumClusterLightCount;
         const int maxGlobalLightCount = LightingEnvParameters.MaximumGlobalLightCount;
 
+        var lightPars = context.InspectAny<LightsBuffer>().Parameters;
+
         var nearPlaneDistance = camera.NearPlaneDistance;
         var farPlaneDistance = camera.FarPlaneDistance;
         var projectionMat = cameraMat.ProjectionRaw;
@@ -172,12 +175,12 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
         Array.Clear(lightCounts);
 
         pars.GlobalLightCount = 0;
-
         foreach (var lightId in _lights) {
             context.Acquire<WorldPosition>(lightId);
         }
 
         _lightsParallel.ForAll(lightId => {
+            var lightRes = context.Inspect<Light>(lightId).Resource;
             ref readonly var lightData = ref context.Inspect<LightData>(lightId);
             var lightIndex = lightData.Index;
 
@@ -193,7 +196,7 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
                 return;
             }
 
-            var worldPos = new Vector4(context.Require<WorldPosition>(lightId).Value, 1);
+            var worldPos = new Vector4(context.Inspect<WorldPosition>(lightId).Value, 1);
             var viewPos = Vector4.Transform(worldPos, viewMat);
 
             // culled by depth
@@ -202,8 +205,8 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
             }
 
             var rangeVec = new Vector4(range, range, 0, 0);
-            var bottomLeft = Transform(viewPos - rangeVec, in projectionMat);
-            var topRight = Transform(viewPos + rangeVec, in projectionMat);
+            var bottomLeft = TransformScreen(viewPos - rangeVec, in projectionMat);
+            var topRight = TransformScreen(viewPos + rangeVec, in projectionMat);
 
             var screenMin = Vector2.Min(bottomLeft, topRight);
             var screenMax = Vector2.Max(bottomLeft, topRight);
@@ -223,11 +226,39 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
             var centerPoint = new Vector3(viewPos.X, viewPos.Y, viewPos.Z);
             float rangeSq = range * range;
 
-            for (int z = minZ; z <= maxZ; ++z) {
-                for (int y = minY; y < maxY; ++y) {
-                    for (int x = minX; x < maxX; ++x) {
-                        int index = x + countX * y + (countX * countY) * z;
-                        if (rangeSq >= boundingBoxes[index].DistanceToPointSquared(centerPoint)) {
+            var category = lightData.Category;
+            if (category == LightCategory.Spot) {
+                ref var spotPars = ref lightPars[lightData.Index];
+                var spotViewPos = Vector3.Transform(spotPars.Position, viewMat);
+                var spotViewDir = Vector3.TransformNormal(spotPars.Direction, viewMat);
+
+                for (int z = minZ; z <= maxZ; ++z) {
+                    for (int y = minY; y < maxY; ++y) {
+                        for (int x = minX; x < maxX; ++x) {
+                            int index = x + countX * y + (countX * countY) * z;
+                            if (!IntersectConeWithSphere(
+                                    spotViewPos, spotViewDir, range, spotPars.ConeCutoffsOrAreaSize.Y,
+                                    boundingBoxes[index].Middle, boundingBoxes[index].Radius)) {
+                                continue;
+                            }
+                            var lightCount = Interlocked.Increment(ref lightCounts[index]) - 1;
+                            if (lightCount >= maxClusterLightCount) {
+                                lightCounts[index] = maxClusterLightCount;
+                                continue;
+                            }
+                            clusters[index * maxClusterLightCount + lightCount] = lightIndex;
+                        }
+                    }
+                }
+            }
+            else {
+                for (int z = minZ; z <= maxZ; ++z) {
+                    for (int y = minY; y < maxY; ++y) {
+                        for (int x = minX; x < maxX; ++x) {
+                            int index = x + countX * y + (countX * countY) * z;
+                            if (rangeSq < boundingBoxes[index].DistanceToPointSquared(centerPoint)) {
+                                continue;
+                            }
                             var lightCount = Interlocked.Increment(ref lightCounts[index]) - 1;
                             if (lightCount >= maxClusterLightCount) {
                                 lightCounts[index] = maxClusterLightCount;
@@ -250,9 +281,30 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
         => (int)Math.Clamp(MathF.Log2(z) * pars.ClusterDepthSliceMultiplier - pars.ClusterDepthSliceSubstractor,
                 0, LightingEnvParameters.ClusterCountZ - 1);
 
-    private static Vector2 Transform(Vector4 vec, in Matrix4x4 mat)
+    private static Vector2 TransformScreen(Vector4 vec, in Matrix4x4 mat)
     {
         var res = Vector4.Transform(vec, mat);
         return new Vector2(res.X, res.Y) / res.W;
+    }
+
+    public bool IntersectConeWithPlane(Vector3 origin, Vector3 forward, float size, float angle, Vector3 plane, float planeOffset)
+    {
+        var v1 = Vector3.Cross(plane, forward);
+        var v2 = Vector3.Cross(v1, forward);
+        var capRimPoint = origin + size * MathF.Cos(angle) * forward + size * MathF.Sin(angle) * v2;
+        return Vector3.Dot(capRimPoint, plane) + planeOffset >= 0.0f || Vector3.Dot(origin, plane) + planeOffset >= 0.0f;
+    }
+
+    public bool IntersectConeWithSphere(Vector3 origin, Vector3 forward, float size, float angle, Vector3 sphereOrigin, float sphereRadius)
+    {
+        Vector3 v = sphereOrigin - origin;
+        float vlenSq = Vector3.Dot(v, v);
+        float v1len = Vector3.Dot(v, forward);
+        float distanceClosestPoint = MathF.Cos(angle) * MathF.Sqrt(vlenSq - v1len * v1len) - v1len * MathF.Sin(angle);
+    
+        bool angleCull = distanceClosestPoint > sphereRadius;
+        bool frontCull = v1len > sphereRadius + size;
+        bool backCull = v1len < -sphereRadius;
+        return !(angleCull || frontCull || backCull);
     }
 }

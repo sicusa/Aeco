@@ -98,9 +98,9 @@ public class LightManager : ResourceManagerBase<Light, LightData, LightResourceB
         GL.BindBuffer(BufferTarget.TextureBuffer, newBuffer);
         var pointer = GLHelper.InitializeBuffer(BufferTarget.TextureBuffer, requiredCapacity * LightParameters.MemorySize);
 
-        var srcSpan = new Span<LightParameters>((void*)buffer.Pointer, _maxIndex);
-        var dstSpan = new Span<LightParameters>((void*)pointer, requiredCapacity);
-        srcSpan.CopyTo(dstSpan);
+        GL.BindBuffer(BufferTarget.CopyReadBuffer, buffer.Handle);
+        GL.CopyBufferSubData(BufferTarget.CopyReadBuffer, BufferTarget.TextureBuffer,
+            IntPtr.Zero, IntPtr.Zero, _maxIndex * LightParameters.MemorySize);
 
         GL.DeleteTexture(buffer.TexHandle);
         GL.DeleteBuffer(buffer.Handle);

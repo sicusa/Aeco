@@ -13,7 +13,7 @@ struct LightingResult {
     vec3 Specular;
 };
 
-vec4 CalculateBlinnPhongLighting(vec3 position, vec2 texCoord, vec3 normal)
+vec4 CalculateBlinnPhongLighting(vec3 position, vec2 texCoord, vec3 normal, float depth)
 {
     vec2 tiledCoord = texCoord * Tiling;
     vec4 diffuseColor = Diffuse * texture(DiffuseTex, tiledCoord);
@@ -42,7 +42,7 @@ vec4 CalculateBlinnPhongLighting(vec3 position, vec2 texCoord, vec3 normal)
         }
     }
 
-    int clusterIndex = GetClusterIndex(gl_FragCoord.xyz);
+    int clusterIndex = GetClusterIndex(gl_FragCoord.xy, depth);
     int lightCount = FetchLightCount(clusterIndex);
 
     for (int i = 0; i < lightCount; i++) {

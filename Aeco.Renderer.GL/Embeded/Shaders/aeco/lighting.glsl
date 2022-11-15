@@ -48,9 +48,9 @@ int CalculateClusterDepthSlice(float z) {
     return max(int(floor(log2(z) * ClusterDepthSliceMultiplier - ClusterDepthSliceSubstractor)), 0);
 }
 
-int GetClusterIndex(vec3 fragCoord)
+int GetClusterIndex(vec2 fragCoord, float depth)
 {
-    int depthSlice = CalculateClusterDepthSlice(LinearizeDepth(fragCoord.z)) - 1;
+    int depthSlice = CalculateClusterDepthSlice(depth);
     float tileSizeX = ViewportWidth / CLUSTER_COUNT_X;
     float tileSizeY = ViewportHeight / CLUSTER_COUNT_Y;
 
@@ -63,8 +63,8 @@ int FetchLightIndex(int cluster, int offset) {
     return texelFetch(ClustersBuffer, cluster * MAXIMUM_CLUSTER_LIGHT_COUNT + offset).r;
 }
 
-int FetchLightCount(int index) {
-    return texelFetch(ClusterLightCountsBuffer, index).r;
+int FetchLightCount(int cluster) {
+    return texelFetch(ClusterLightCountsBuffer, cluster).r;
 }
 
 Light FetchGlobalLight(int index)
