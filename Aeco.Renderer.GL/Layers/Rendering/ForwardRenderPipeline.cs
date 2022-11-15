@@ -219,7 +219,7 @@ public class ForwardRenderPipeline : VirtualLayer, IGLUpdateLayer, IGLLoadLayer,
 
         GL.BeginTransformFeedback(TransformFeedbackPrimitiveType.Points);
         GL.BeginQuery(QueryTarget.PrimitivesGenerated, meshData.CulledQueryHandle);
-        GL.DrawArrays(PrimitiveType.Points, 0, state.Instances.Count);
+        GL.DrawArrays(PrimitiveType.Points, 0, state.InstanceCount);
         GL.EndQuery(QueryTarget.PrimitivesGenerated);
         GL.EndTransformFeedback();
     }

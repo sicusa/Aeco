@@ -1,14 +1,14 @@
 namespace Aeco.Renderer.GL;
 
-using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 
 public class LightsBufferUpdator : VirtualLayer, IGLUpdateLayer
 {
-    private Query<Light, LightData, TransformMatricesDirty> _q = new();
+    private Query<Light, LightData> _q = new();
 
     public unsafe void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
+        HashSet<Guid>? dirtyIds = null;
         bool bufferGot = false;
         ref var buffer = ref Unsafe.NullRef<LightsBuffer>();
 
@@ -16,8 +16,12 @@ public class LightsBufferUpdator : VirtualLayer, IGLUpdateLayer
         int maxIndex = 0;
 
         foreach (var id in _q.Query(context)) {
+            dirtyIds ??= context.AcquireAny<DirtyTransforms>().Ids;
+            if (!dirtyIds.Contains(id)) {
+                continue;
+            }
+
             ref var data = ref context.Require<LightData>(id);
-            ref var worldAxes = ref context.Acquire<WorldAxes>(id);
 
             if (!bufferGot) {
                 bufferGot = true;
@@ -31,14 +35,16 @@ public class LightsBufferUpdator : VirtualLayer, IGLUpdateLayer
                 maxIndex = Math.Max(maxIndex, data.Index);
             }
 
+            ref readonly var transform = ref context.Inspect<Transform>(id);
             ref var pars = ref buffer.Parameters[data.Index];
-            pars.Position = context.Acquire<WorldPosition>(id).Value;
-            pars.Direction = worldAxes.Forward;
+
+            pars.Position = transform.Position;
+            pars.Direction = transform.Forward;
         }
 
         if (bufferGot) {
             var src = new Span<LightParameters>(buffer.Parameters, minIndex, maxIndex - minIndex + 1);
-            var dst = new Span<LightParameters>((void*)buffer.Pointer, buffer.Capacity);
+            var dst = new Span<LightParameters>((LightParameters*)buffer.Pointer + minIndex, buffer.Capacity);
             src.CopyTo(dst);
         }
     }

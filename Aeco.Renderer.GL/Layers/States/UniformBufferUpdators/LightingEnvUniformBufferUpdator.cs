@@ -1,7 +1,7 @@
 namespace Aeco.Renderer.GL;
 
 using System.Numerics;
-using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 
 using OpenTK.Graphics.OpenGL4;
@@ -10,24 +10,23 @@ using Aeco.Reactive;
 
 public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
 {
-    private Group<Light> _lights = new();
-    private ParallelQuery<Guid> _lightsParallel;
+    private Group<Light> _lightIds = new();
+    private ParallelQuery<Guid> _lightIdsParallel;
 
     private readonly Vector3 TwoVec = new Vector3(2);
     private readonly Vector3 ClusterCounts = new Vector3(
         LightingEnvParameters.ClusterCountX,
         LightingEnvParameters.ClusterCountY,
         LightingEnvParameters.ClusterCountZ);
-    
+
     public LightingEnvUniformBufferUpdator()
     {
-        _lightsParallel = _lights.AsParallel();
-
+        _lightIdsParallel = _lightIds.AsParallel();
     }
 
     public void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
     {
-        _lights.Query(context);
+        _lightIds.Query(context);
 
         foreach (var id in context.Query<Camera>()) {
             ref readonly var camera = ref context.Inspect<Camera>(id);
@@ -41,8 +40,8 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
                 UpdateClusterBoundingBoxes(context, ref buffer, in camera, in cameraMat);
                 UpdateClusterParameters(ref buffer, in camera);
             }
-            if (_lights.Count != 0) {
-                ref readonly var cameraTransformMat = ref context.Inspect<TransformMatrices>(id);
+            if (_lightIds.Count != 0) {
+                ref readonly var cameraTransformMat = ref context.Inspect<Transform>(id);
                 CullLights(context, ref buffer, in camera, in cameraMat, in cameraTransformMat);
             }
         }
@@ -153,7 +152,7 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
 
     private unsafe void CullLights(
         IDataLayer<IComponent> context, ref LightingEnvUniformBuffer buffer,
-        in Camera camera, in CameraMatrices cameraMat, in TransformMatrices cameraTransformMat)
+        in Camera camera, in CameraMatrices cameraMat, in Transform cameraTransformMat)
     {
         const int countX = LightingEnvParameters.ClusterCountX;
         const int countY = LightingEnvParameters.ClusterCountY;
@@ -175,12 +174,10 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
         Array.Clear(lightCounts);
 
         pars.GlobalLightCount = 0;
-        foreach (var lightId in _lights) {
-            context.Acquire<WorldPosition>(lightId);
-        }
 
-        _lightsParallel.ForAll(lightId => {
+        _lightIdsParallel.ForAll(lightId => {
             var lightRes = context.Inspect<Light>(lightId).Resource;
+
             ref readonly var lightData = ref context.Inspect<LightData>(lightId);
             var lightIndex = lightData.Index;
 
@@ -196,7 +193,7 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
                 return;
             }
 
-            var worldPos = new Vector4(context.Inspect<WorldPosition>(lightId).Value, 1);
+            var worldPos = new Vector4(context.Inspect<Transform>(lightId).Position, 1);
             var viewPos = Vector4.Transform(worldPos, viewMat);
 
             // culled by depth
@@ -227,10 +224,10 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
             float rangeSq = range * range;
 
             var category = lightData.Category;
-            if (category == LightCategory.Spot) {
+            if (category == LightCategory.None) {
                 ref var spotPars = ref lightPars[lightData.Index];
                 var spotViewPos = Vector3.Transform(spotPars.Position, viewMat);
-                var spotViewDir = Vector3.TransformNormal(spotPars.Direction, viewMat);
+                var spotViewDir = Vector3.Normalize(Vector3.TransformNormal(spotPars.Direction, viewMat));
 
                 for (int z = minZ; z <= maxZ; ++z) {
                     for (int y = minY; y < maxY; ++y) {

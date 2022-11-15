@@ -1,36 +1,21 @@
 namespace Aeco.Renderer.GL;
 
 using System.Numerics;
-using System.Runtime.InteropServices;
 using System.Collections.Concurrent;
 
 using OpenTK.Graphics.OpenGL4;
 
 using Aeco.Reactive;
 
-public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
+public class MeshRenderableUpdator : VirtualLayer, IGLUpdateLayer
 {
-    private Query<MeshRenderable, TransformMatricesDirty> _q = new();
-
-    private List<Guid> _dirtyList = new();
+    private Group<MeshRenderable> _renderables = new();
+    private ParallelQuery<Guid> _renderablesParallel;
     private ConcurrentDictionary<Guid, (int, int)> _dirtyMeshes = new();
-    private Action[] _actions = new Action[ParallelCount];
-    private int _bundleSize;
 
-    private const int ParallelCount = 8;
-
-    public void OnLoad(IDataLayer<IComponent> context)
+    public MeshRenderableUpdator()
     {
-        for (int i = 0; i != _actions.Length; ++i) {
-            int offset = i * _bundleSize;
-            if (i == _actions.Length - 1) {
-                _actions[i] = () => DoUpdate(offset, _dirtyList.Count, context);
-            }
-            else {
-                _actions[i] = () => DoUpdate(offset, offset + _bundleSize, context);
-            }
-        }
-        OnUpdate(context, 0);
+        _renderablesParallel = _renderables.AsParallel();
     }
 
     public unsafe void OnUpdate(IDataLayer<IComponent> context, float deltaTime)
@@ -53,53 +38,51 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
             }
         }
 
-        _dirtyList.AddRange(_q.Query(context));
+        var dirtyIds = context.AcquireAny<DirtyTransforms>().Ids;
+        _renderables.Query(context);
 
-        int count = _dirtyList.Count;
-        if (count == 0) { return; }
+        int count = _renderables.Count;
         if (count > 64) {
-            _bundleSize = count / _actions.Length;
-            Parallel.Invoke(_actions);
+            _renderablesParallel.ForAll(id => DoUpdate(context, id, dirtyIds));
         }
         else {
-            DoUpdate(0, count, context);
+            foreach (var id in _renderables) {
+                DoUpdate(context, id, dirtyIds);
+            }
         }
 
         foreach (var (meshId, range) in _dirtyMeshes) {
-            var meshData = context.Require<MeshData>(meshId);
-            var meshState = context.Require<MeshRenderingState>(meshId);
-            var src = CollectionsMarshal.AsSpan(meshState.Instances).Slice(range.Item1, range.Item2 - range.Item1 + 1);
-            var dst = new Span<MeshInstance>((void*)meshData.InstanceBufferPointer, meshState.Instances.Count);
+            ref readonly var meshData = ref context.Inspect<MeshData>(meshId);
+            ref readonly var meshState = ref context.Inspect<MeshRenderingState>(meshId);
+            var src = new Span<MeshInstance>(meshState.Instances, range.Item1, range.Item2 - range.Item1 + 1);
+            var dst = new Span<MeshInstance>((void*)meshData.InstanceBufferPointer, meshState.InstanceCount);
             src.CopyTo(dst);
         }
 
         _dirtyMeshes.Clear();
-        _dirtyList.Clear();
     }
 
-    private unsafe void DoUpdate(int start, int end, IDataLayer<IComponent> context)
+    private unsafe void DoUpdate(IDataLayer<IComponent> context, Guid id, HashSet<Guid> dirtyIds)
     {
-        for (int i = start; i != end; ++i) {
-            var id = _dirtyList[i];
-            var data = context.Inspect<MeshRenderableData>(id);
-            int index = data.InstanceIndex;
-
-            if (index == -1) {
-                UpdateVariantUniform(context, id);
-                continue;
-            }
-
-            var meshState = context.Require<MeshRenderingState>(data.MeshId);
-            ref var matrices = ref context.UnsafeInspect<TransformMatrices>(id);
-
-            meshState.Instances[index] = new MeshInstance {
-                ObjectToWorld = Matrix4x4.Transpose(matrices.World)
-            };
-
-            _dirtyMeshes.AddOrUpdate(data.MeshId,
-                id => (index, index),
-                (id, range) => (Math.Min(index, range.Item1), Math.Max(index, range.Item2)));
+        if (!dirtyIds.Contains(id)) {
+            return;
         }
+
+        ref readonly var data = ref context.Inspect<MeshRenderableData>(id);
+        int index = data.InstanceIndex;
+
+        if (index == -1) {
+            UpdateVariantUniform(context, id);
+            return;
+        }
+
+        ref readonly var meshState = ref context.Inspect<MeshRenderingState>(data.MeshId);
+        ref readonly var transform = ref context.Inspect<Transform>(id);
+        meshState.Instances[index].ObjectToWorld = Matrix4x4.Transpose(transform.World);
+
+        _dirtyMeshes.AddOrUpdate(data.MeshId,
+            id => (index, index),
+            (id, range) => (Math.Min(index, range.Item1), Math.Max(index, range.Item2)));
     }
 
     private unsafe void UpdateVariantUniform(IDataLayer<IComponent> context, Guid id)
@@ -116,7 +99,7 @@ public class MeshRenderableUpdator : VirtualLayer, IGLLoadLayer, IGLUpdateLayer
             pointer = buffer.Pointer;
         }
 
-        ref var matrices = ref context.UnsafeInspect<TransformMatrices>(id);
+        ref var matrices = ref context.UnsafeInspect<Transform>(id);
         var world = Matrix4x4.Transpose(matrices.World);
 
         var ptr = (Matrix4x4*)pointer;

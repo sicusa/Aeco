@@ -1,7 +1,5 @@
 namespace Aeco.Renderer.GL;
 
-using System.Runtime.InteropServices;
-
 using OpenTK.Graphics.OpenGL4;
 
 public class LightManager : ResourceManagerBase<Light, LightData, LightResourceBase>, IGLLoadLayer, IGLLateUpdateLayer
@@ -36,11 +34,11 @@ public class LightManager : ResourceManagerBase<Light, LightData, LightResourceB
         if (!updating) {
             if (!_lightIndeces.TryPop(out var lightIndex)) {
                 lightIndex = _maxIndex++;
+                if (buffer.Capacity <= lightIndex) {
+                    ResizeLightsBuffer(ref buffer);
+                }
             }
             data.Index = lightIndex;
-            if (buffer.Capacity <= lightIndex) {
-                ResizeLightsBuffer(ref buffer);
-            }
         }
 
         ref var pars = ref buffer.Parameters[data.Index];
@@ -92,7 +90,7 @@ public class LightManager : ResourceManagerBase<Light, LightData, LightResourceB
 
         var prevPars = buffer.Parameters;
         buffer.Parameters = new LightParameters[requiredCapacity];
-        prevPars.CopyTo(buffer.Parameters, 0);
+        Array.Copy(prevPars, buffer.Parameters, buffer.Capacity);
 
         var newBuffer = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.TextureBuffer, newBuffer);
@@ -100,7 +98,7 @@ public class LightManager : ResourceManagerBase<Light, LightData, LightResourceB
 
         GL.BindBuffer(BufferTarget.CopyReadBuffer, buffer.Handle);
         GL.CopyBufferSubData(BufferTarget.CopyReadBuffer, BufferTarget.TextureBuffer,
-            IntPtr.Zero, IntPtr.Zero, _maxIndex * LightParameters.MemorySize);
+            IntPtr.Zero, IntPtr.Zero, buffer.Capacity * LightParameters.MemorySize);
 
         GL.DeleteTexture(buffer.TexHandle);
         GL.DeleteBuffer(buffer.Handle);

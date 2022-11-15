@@ -60,13 +60,12 @@ public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
 
         // instancing
 
-        if (context.TryGet<MeshRenderingState>(id, out var state) && state.Instances.Count != 0) {
-            data.InstanceCapacity = Math.Max(data.InstanceCapacity, state.Instances.Count);
+        if (context.TryGet<MeshRenderingState>(id, out var state) && state.InstanceCount != 0) {
+            data.InstanceCapacity = state.Instances.Length;
             InitializeInstanceBuffer(ref data);
 
-            var span = CollectionsMarshal.AsSpan(state.Instances);
-            fixed (MeshInstance* ptr = span) {
-                var length = span.Length * MeshInstance.MemorySize;
+            fixed (MeshInstance* ptr = state.Instances) {
+                var length = state.InstanceCount * MeshInstance.MemorySize;
                 System.Buffer.MemoryCopy(ptr, (void*)data.InstanceBufferPointer, length, length);
             }
         }

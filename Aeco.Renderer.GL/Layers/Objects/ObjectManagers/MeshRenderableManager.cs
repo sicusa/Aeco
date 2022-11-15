@@ -1,7 +1,6 @@
 namespace Aeco.Renderer.GL;
 
 using System.Numerics;
-using System.Runtime.InteropServices;
 
 using OpenTK.Graphics.OpenGL4;
 
@@ -14,7 +13,8 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
         }
 
         var meshId = ResourceLibrary<MeshResource>.Reference<Mesh>(context, renderable.Mesh, id);
-        ref var state = ref context.Acquire<MeshRenderingState>(meshId);
+        ref var state = ref context.Acquire<MeshRenderingState>(meshId, out bool exists);
+
         data.MeshId = meshId;
 
         if (renderable.IsVariant) {
@@ -23,23 +23,40 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
             return;
         }
 
+        if (!exists) {
+            state.Instances = new MeshInstance[MeshRenderingState.InitialCapacity];
+            state.InstanceIds = new Guid[MeshRenderingState.InitialCapacity];
+            state.InstanceCount = 0;
+        }
+        else {
+            var capacity = state.Instances.Length;
+
+            if (state.InstanceCount >= capacity) {
+                var newInstances = new MeshInstance[capacity * 2];
+                Array.Copy(state.Instances, newInstances, capacity);
+                state.Instances = newInstances;
+
+                var newInstanceIds = new Guid[capacity * 2];
+                Array.Copy(state.InstanceIds, newInstanceIds, capacity);
+                state.InstanceIds = newInstanceIds;
+            }
+        }
+
         var instances = state.Instances;
-        int index = instances.Count;
+        int index = state.InstanceCount++;
         data.InstanceIndex = index;
 
-        ref var matrices = ref context.Acquire<TransformMatrices>(id);
-        instances.Add(new MeshInstance {
-            ObjectToWorld = Matrix4x4.Transpose(matrices.World)
-        });
-        state.InstanceIds.Add(id);
+        ref var transform = ref context.Acquire<Transform>(id);
+        instances[index].ObjectToWorld = Matrix4x4.Transpose(transform.World);
+        state.InstanceIds[index] = id;
 
         if (context.Contains<MeshData>(meshId)) {
             ref var meshData = ref context.Require<MeshData>(meshId);
-            if (instances.Count <= meshData.InstanceCapacity) {
+            if (state.InstanceCount <= meshData.InstanceCapacity) {
                 *((MeshInstance*)meshData.InstanceBufferPointer + index) = instances[index];
             }
             else {
-                meshData.InstanceCapacity *= 4;
+                meshData.InstanceCapacity *= 2;
 
                 var newBuffer = GL.GenBuffer();
                 MeshManager.InitializeInstanceBuffer(BufferTarget.ArrayBuffer, newBuffer, ref meshData);
@@ -47,7 +64,7 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
                 int instanceBufferHandle = meshData.BufferHandles[MeshBufferType.Instance];
                 GL.BindBuffer(BufferTarget.CopyReadBuffer, instanceBufferHandle);
                 GL.CopyBufferSubData(BufferTarget.CopyReadBuffer, BufferTarget.ArrayBuffer,
-                    IntPtr.Zero, IntPtr.Zero, instances.Count * MeshInstance.MemorySize);
+                    IntPtr.Zero, IntPtr.Zero, state.InstanceCount * MeshInstance.MemorySize);
 
                 GL.BindBuffer(BufferTarget.CopyReadBuffer, 0);
                 GL.DeleteBuffer(instanceBufferHandle);
@@ -74,23 +91,22 @@ public class MeshRenderableManager : ObjectManagerBase<MeshRenderable, MeshRende
         }
 
         var instances = state.Instances;
+        for (int i = index + 1; i < state.InstanceCount; ++i) {
+            instances[i - 1] = instances[i];
+        }
         var instanceIds = state.InstanceIds;
+        for (int i = index + 1; i < state.InstanceCount; ++i) {
+            var otherId = instanceIds[i];
+            instanceIds[i - 1] = otherId;
+            --context.Require<MeshRenderableData>(otherId).InstanceIndex;
+        }
 
-        instances.RemoveAt(index);
-        instanceIds.RemoveAt(index);
-
-        if (index != instanceIds.Count) {
-            for (int i = index; i != instanceIds.Count; i++) {
-                var instanceId = instanceIds[i];
-                context.Require<MeshRenderableData>(instanceId).InstanceIndex--;
-            }
-            if (context.TryGet<MeshData>(data.MeshId, out var meshData)) {
-                var span = CollectionsMarshal.AsSpan(instances);
-                fixed (MeshInstance* ptr = span) {
-                    int offset = index * MeshInstance.MemorySize;
-                    int length = (instanceIds.Count - index) * MeshInstance.MemorySize;
-                    System.Buffer.MemoryCopy(ptr + index, (void*)(meshData.InstanceBufferPointer + offset), length, length);
-                }
+        --state.InstanceCount;
+        if (index != state.InstanceCount && context.TryGet<MeshData>(data.MeshId, out var meshData)) {
+            fixed (MeshInstance* ptr = instances) {
+                int offset = index * MeshInstance.MemorySize;
+                int length = (state.InstanceCount - index) * MeshInstance.MemorySize;
+                System.Buffer.MemoryCopy(ptr + index, (void*)(meshData.InstanceBufferPointer + offset), length, length);
             }
         }
     }

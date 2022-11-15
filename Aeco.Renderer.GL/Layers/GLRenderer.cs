@@ -176,9 +176,6 @@ public class GLRenderer : CompositeLayer
             sublayers.Concat(new ILayer<IComponent>[] {
                 new ReactiveCompositeLayer(
                     eventDataLayer: eventDataLayer,
-                    new WorldPositionStorage(),
-                    new WorldRotationStorage(),
-                    new WorldAxesStorage(),
                     new PolyPoolStorage<IGLReactiveObject>()
                 ),
                 new PolySingletonStorage<IGLSingleton>(),
@@ -197,12 +194,7 @@ public class GLRenderer : CompositeLayer
                 new TextureManager(),
                 new ShaderProgramManager(),
 
-                new TranslationMatrixUpdator(),
-                new RotationMatrixUpdator(),
-                new ScaleMatrixUpdator(),
-                new ParentNodeUpdator(),
-
-                new TransformMatricesUpdator(),
+                new TransformUpdator(),
                 new CameraMatricesUpdator(),
 
                 new MeshUniformBufferUpdator(),

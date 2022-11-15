@@ -2,7 +2,7 @@ namespace Aeco.Renderer.GL;
 
 public struct LightsBuffer : IGLSingleton
 {
-    public const int InitialCapacity = 32;
+    public const int InitialCapacity = 512;
 
     public int Capacity;
 

@@ -27,10 +27,10 @@ public static class GLTests
         game.IsProfileEnabled = true;
         game.Initialize(new RendererSpec {
             Width = 1920 / 2,
-            Height = 1080 /2,
+            Height = 1080 / 2,
             UpdateFrequency = 60,
             RenderFrequency = 60,
-            //IsFullscreen = true,
+            IsFullscreen = true,
             Title = "RPG Game"
             //IsDebugEnabled = true
         });
@@ -57,14 +57,15 @@ public static class GLTests
     private static void Launch(GLRenderer game, DebugLayer debugLayer)
     {
         var sunLight = game.CreateEntity();
-        sunLight.Acquire<Position>().Value = new Vector3(0, 1, 5);
-        sunLight.Acquire<Rotation>().Value = Quaternion.CreateFromYawPitchRoll(-90, -45, 0);
+        var sunTrans = sunLight.Acquire<Transform>();
+        sunTrans.Position = new Vector3(0, 1, 5);
+        sunTrans.Rotation = Quaternion.CreateFromYawPitchRoll(-90, -45, 0);
         sunLight.Acquire<Light>().Resource = new DirectionalLightResource {
             Color = new Vector4(1, 1, 1, 0.1f)
         };
 
         var spotLight = game.CreateEntity();
-        spotLight.Acquire<Position>().Value = new Vector3(0, 1, 0);
+        spotLight.Acquire<Transform>().Position = new Vector3(0, 1, 0);
         spotLight.Acquire<Light>().Resource = new SpotLightResource {
             Color = new Vector4(0.5f, 1, 0.5f, 5),
             InnerConeAngle = 25,
@@ -73,14 +74,14 @@ public static class GLTests
         };
 
         var pointLight = game.CreateEntity();
-        pointLight.Acquire<Position>().Value = new Vector3(0, 1, 0);
+        pointLight.Acquire<Transform>().Position = new Vector3(0, 1, 0);
         pointLight.Acquire<Light>().Resource = new PointLightResource {
             Color = new Vector4(1, 1, 1, 1),
             AttenuationQuadratic = 0.7f
         };
 
         var pointLight2 = game.CreateEntity();
-        pointLight2.Acquire<Position>().Value = new Vector3(0, 1, 0);
+        pointLight2.Acquire<Transform>().Position = new Vector3(0, 1, 0);
         pointLight2.Acquire<Light>().Resource = new PointLightResource {
             Color = new Vector4(1, 0.5f, 1, 2),
             AttenuationQuadratic = 3f
@@ -88,7 +89,7 @@ public static class GLTests
 
         var cameraId = Guid.Parse("c2003019-0b2a-4f4c-ba31-9930c958ff83");
         game.Acquire<Camera>(cameraId);
-        game.Acquire<Position>(cameraId).Value = new Vector3(0, 0, 4f);
+        game.Acquire<Transform>(cameraId).Position = new Vector3(0, 0, 4f);
         game.Acquire<Parent>(cameraId).Id = GLRenderer.RootId;
 
         var wallTex = new TextureResource(InternalAssets.Load<ImageResource>("Textures.wall.jpg"));
@@ -138,7 +139,7 @@ public static class GLTests
             ref var renderable = ref game.Acquire<MeshRenderable>(id);
             renderable.Mesh = mesh;
             game.Acquire<Parent>(id).Id = parentId;
-            game.Acquire<Position>(id).Value = pos;
+            game.Acquire<Transform>(id).Position = pos;
             return id;
         }
 
@@ -150,7 +151,7 @@ public static class GLTests
                 AttenuationQuadratic = 25f
             };
             game.Acquire<Parent>(id).Id = parentId;
-            game.Acquire<Position>(id).Value = pos;
+            game.Acquire<Transform>(id).Position = pos;
             return id;
         }
 
@@ -158,22 +159,25 @@ public static class GLTests
         pointLight2.Acquire<Parent>().Id = prevId;
 
         Guid firstId = prevId;
-        game.Acquire<Scale>(prevId).Value = new Vector3(0.3f);
+        game.Acquire<Transform>(prevId).LocalScale = new Vector3(0.3f);
 
         for (int i = 0; i < 5000; ++i) {
             prevId = CreateObject(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), firstId,
                 i % 2 == 0 ? torusMesh : torusMeshTransparent);
-            game.Acquire<Scale>(prevId).Value = new Vector3(0.99f);
+            game.Acquire<Transform>(prevId).LocalScale = new Vector3(0.99f);
         }
 
-        for (int i = 50; i < 250; i += 2) {
-            var id = CreateLight(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), GLRenderer.RootId);
-            game.Acquire<Rotator>(id);
+        Guid lightsId = Guid.NewGuid();
+        game.Acquire<Rotator>(lightsId);
+
+        for (int i = 50; i < 5000; i += 2) {
+            var id = CreateLight(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), lightsId);
         }
 
         Guid rotatorId = CreateObject(Vector3.Zero, GLRenderer.RootId, sphereMesh);
-        game.Acquire<Scale>(rotatorId).Value = new Vector3(0.3f);
+        game.Acquire<Transform>(rotatorId).LocalScale = new Vector3(0.3f);
         game.Acquire<Rotator>(rotatorId);
+
         spotLight.Acquire<Parent>().Id = rotatorId;
         pointLight.Acquire<Parent>().Id = rotatorId;
 
@@ -201,10 +205,9 @@ public static class GLTests
             y = Lerp(y, (window.MousePosition.Y - window.Size.Y / 2) * sensitivity, scaledRate);
 
             foreach (var rotatorId in game.Query<Rotator>()) {
-                ref readonly var rotatorAxes = ref game.Inspect<WorldAxes>(rotatorId);
-                ref var rotatorPos = ref game.Acquire<Position>(rotatorId).Value;
-                rotatorPos += rotatorAxes.Forward * deltaTime * 2;
-                game.Acquire<Rotation>(rotatorId).Value = Quaternion.CreateFromAxisAngle(Vector3.UnitY, time);
+                ref var transform = ref game.Acquire<Transform>(rotatorId);
+                transform.Position += transform.Forward * deltaTime * 2;
+                transform.Rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, time);
             }
 
             if (window.KeyboardState.IsKeyPressed(Keys.F1)) {
@@ -223,27 +226,28 @@ public static class GLTests
                 GetDebug().DisplayMode = DisplayMode.Clusters;
             }
 
-            game.Acquire<Rotation>(cameraId).Value = Quaternion.CreateFromYawPitchRoll(-x, -y, 0);
+            ref var cameraTrans = ref game.Acquire<Transform>(cameraId);
+            cameraTrans.Rotation = Quaternion.CreateFromYawPitchRoll(-x, -y, 0);
 
             var deltaPos = Vector3.Zero;
             bool modified = false;
             if (window.KeyboardState.IsKeyDown(Keys.W)) {
-                deltaPos += game.Inspect<WorldAxes>(cameraId).Forward;
+                deltaPos += cameraTrans.Forward;
                 moving = true;
                 modified = true;
             }
             if (window.KeyboardState.IsKeyDown(Keys.S)) {
-                deltaPos -= game.Inspect<WorldAxes>(cameraId).Forward;
+                deltaPos -= cameraTrans.Forward;
                 moving = true;
                 modified = true;
             }
             if (window.KeyboardState.IsKeyDown(Keys.A)) {
-                deltaPos -= game.Inspect<WorldAxes>(cameraId).Right;
+                deltaPos -= cameraTrans.Right;
                 moving = true;
                 modified = true;
             }
             if (window.KeyboardState.IsKeyDown(Keys.D)) {
-                deltaPos += game.Inspect<WorldAxes>(cameraId).Right;
+                deltaPos += cameraTrans.Right;
                 moving = true;
                 modified = true;
             }
@@ -254,8 +258,7 @@ public static class GLTests
                     currDeltaPos = Vector3.Zero;
                 }
                 else {
-                    ref var pos = ref game.Acquire<Position>(cameraId).Value;
-                    pos += currDeltaPos * deltaTime * 5;
+                    cameraTrans.Position += currDeltaPos * deltaTime * 5;
                 }
             }
         };

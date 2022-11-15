@@ -29,7 +29,7 @@ public abstract class ReactiveObjectUpdatorBase<TObject> : VirtualLayer, IGLUpda
 
 public abstract class ReactiveObjectUpdatorBase<TObject, TDirtyTag> : VirtualLayer, IGLUpdateLayer, IGLLateUpdateLayer
     where TObject : IGLReactiveObject
-    where TDirtyTag : IGLObject
+    where TDirtyTag : IComponent
 {
     private Query<TObject, Destroy> _destroy_q = new();
 

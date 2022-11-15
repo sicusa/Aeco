@@ -1,13 +1,10 @@
 namespace Aeco.Renderer.GL;
 
-using System.Numerics;
-using System.Diagnostics.CodeAnalysis;
-
 using Aeco.Reactive;
 
 public abstract class DelayedReactiveStorageBase<TComponent>
     : DelayedStorageBase<TComponent>, IGLUpdateLayer
-    where TComponent : IComponent, IDisposable, new()
+    where TComponent : IGLReactiveObject, IGLDelayedObject, new()
 {
     private Query<Modified<TComponent>, TComponent> _q = new();
 
