@@ -42,8 +42,8 @@ public class LightManager : ResourceManagerBase<Light, LightData, LightResourceB
         }
 
         ref var pars = ref buffer.Parameters[data.Index];
-
         var lightRes = light.Resource;
+
         pars.Color = lightRes.Color;
 
         if (lightRes is AmbientLightResource) {

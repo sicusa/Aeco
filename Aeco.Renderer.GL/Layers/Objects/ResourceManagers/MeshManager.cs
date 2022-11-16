@@ -2,8 +2,6 @@ namespace Aeco.Renderer.GL;
 
 using OpenTK.Graphics.OpenGL4;
 
-using System.Runtime.InteropServices;
-
 public class MeshManager : ResourceManagerBase<Mesh, MeshData, MeshResource>
 {
     protected unsafe override void Initialize(

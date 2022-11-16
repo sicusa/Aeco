@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 
 public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayerBase<TComponent, TStoredComponent>
-    where TStoredComponent : TComponent, IDisposable, new()
+    where TStoredComponent : TComponent, new()
 {
     private Guid? _id;
     private TStoredComponent _data = new();
@@ -74,7 +74,7 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
             return false;
         }
         _id = null;
-        _data.Dispose();
+        _data = new();
         return true;
     }
 
@@ -87,7 +87,7 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
         component = _data;
 
         _id = null;
-        _data.Dispose();
+        _data = new();
         return true;
     }
 
@@ -122,14 +122,14 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
     {
         if (_id == entityId) {
             _id = null;
-            _data.Dispose();
+            _data = new();
         }
     }
 
     public override void Clear()
     {
         _id = null;
-        _data.Dispose();
+        _data = new();
     }
 }
 

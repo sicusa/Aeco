@@ -32,7 +32,7 @@ vec4 CalculateBlinnPhongLighting(vec3 position, vec2 texCoord, vec3 normal, floa
         }
         else if (category == LIGHT_DIRECTIONAL) {
             vec3 lightDir = -light.Direction;
-            float diff = max(0.5 * dot(normal, lightDir) + 0.5, 0.0);
+            float diff = max(0.8 * dot(normal, lightDir) + 0.2, 0.0);
             diffuse += diff * lightColor;
 
             vec3 viewDir = normalize(CameraPosition - position);
