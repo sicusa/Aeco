@@ -214,6 +214,8 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
                 return;
             }
 
+            Interlocked.Increment(ref localLightCount);
+
             int minX = (int)(Math.Clamp((screenMin.X + 1) / 2, 0, 1) * countX);
             int maxX = (int)MathF.Ceiling(Math.Clamp((screenMax.X + 1) / 2, 0, 1) * countX);
             int minY = (int)(Math.Clamp((screenMin.Y + 1) / 2, 0, 1) * countY);
@@ -245,7 +247,6 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
                                 continue;
                             }
                             clusters[index * maxClusterLightCount + lightCount] = lightIndex;
-                            Interlocked.Increment(ref localLightCount);
                         }
                     }
                 }
@@ -264,7 +265,6 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
                                 continue;
                             }
                             clusters[index * maxClusterLightCount + lightCount] = lightIndex;
-                            Interlocked.Increment(ref localLightCount);
                         }
                     }
                 }
