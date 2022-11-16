@@ -174,6 +174,7 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
         Array.Clear(lightCounts);
 
         pars.GlobalLightCount = 0;
+        int localLightCount = 0;
 
         _lightIdsParallel.ForAll(lightId => {
             var lightRes = context.Inspect<Light>(lightId).Resource;
@@ -224,7 +225,7 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
             float rangeSq = range * range;
 
             var category = lightData.Category;
-            if (category == LightCategory.None) {
+            if (category == LightCategory.Spot) {
                 ref var spotPars = ref lightPars[lightData.Index];
                 var spotViewPos = Vector3.Transform(spotPars.Position, viewMat);
                 var spotViewDir = Vector3.Normalize(Vector3.TransformNormal(spotPars.Direction, viewMat));
@@ -244,6 +245,7 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
                                 continue;
                             }
                             clusters[index * maxClusterLightCount + lightCount] = lightIndex;
+                            Interlocked.Increment(ref localLightCount);
                         }
                     }
                 }
@@ -262,6 +264,7 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
                                 continue;
                             }
                             clusters[index * maxClusterLightCount + lightCount] = lightIndex;
+                            Interlocked.Increment(ref localLightCount);
                         }
                     }
                 }
@@ -270,8 +273,12 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
 
         *((int*)(buffer.Pointer + 8)) = pars.GlobalLightCount;
         Marshal.Copy(pars.GlobalLightIndeces, 0, buffer.Pointer + 16, 4 * pars.GlobalLightCount);
-        Marshal.Copy(clusters, 0, buffer.ClustersPointer, LightingEnvParameters.MaximumActiveLightCount);
-        Marshal.Copy(lightCounts, 0, buffer.ClusterLightCountsPointer, LightingEnvParameters.ClusterCount);
+
+        if (localLightCount != 0 || buffer.LastActiveLocalLightCount != 0) {
+            Marshal.Copy(clusters, 0, buffer.ClustersPointer, LightingEnvParameters.MaximumActiveLightCount);
+            Marshal.Copy(lightCounts, 0, buffer.ClusterLightCountsPointer, LightingEnvParameters.ClusterCount);
+        }
+        buffer.LastActiveLocalLightCount = localLightCount;
     }
     
     private static int CalculateClusterDepthSlice(float z, in LightingEnvParameters pars)
