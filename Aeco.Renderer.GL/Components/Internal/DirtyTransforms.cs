@@ -1,6 +1,6 @@
 namespace Aeco.Renderer.GL;
 
-public struct DirtyTransforms : IGLObject
+public struct DirtyTransforms : IGLSingleton
 {
     public readonly HashSet<Guid> Ids = new();
 

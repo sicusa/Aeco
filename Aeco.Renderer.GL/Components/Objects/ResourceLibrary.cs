@@ -3,10 +3,10 @@ namespace Aeco.Renderer.GL;
 using System.Diagnostics.CodeAnalysis;
 using System.Collections.Immutable;
 
-public struct ResourceLibrary<TResource> : IGLObject
+public struct ResourceLibrary<TResource> : IGLSingleton
     where TResource : IGLResource
 {
-    public static Guid Ensure<TObject>(IDataLayer<IGLObject> context, in TResource resource)
+    public static Guid Ensure<TObject>(IDataLayer<IComponent> context, in TResource resource)
         where TObject : IGLResourceObject<TResource>, new()
     {
         ref var lib = ref context.AcquireAny<ResourceLibrary<TResource>>();
@@ -23,7 +23,7 @@ public struct ResourceLibrary<TResource> : IGLObject
         return objects[0];
     }
 
-    public static Guid Reference<TObject>(IDataLayer<IGLObject> context, in TResource resource, Guid referencerId)
+    public static Guid Reference<TObject>(IDataLayer<IComponent> context, in TResource resource, Guid referencerId)
         where TObject : IGLResourceObject<TResource>, new()
     {
         var id = Ensure<TObject>(context, resource);
@@ -32,7 +32,7 @@ public struct ResourceLibrary<TResource> : IGLObject
         return id;
     }
 
-    public static bool Unreference(IDataLayer<IGLObject> context, Guid resourceId, Guid referencerId, out int newRefCount)
+    public static bool Unreference(IDataLayer<IComponent> context, Guid resourceId, Guid referencerId, out int newRefCount)
     {
         ref var referencers = ref context.Acquire<ResourceReferencers>(resourceId);
         var newIds = referencers.Ids.Remove(referencerId);
@@ -44,7 +44,7 @@ public struct ResourceLibrary<TResource> : IGLObject
         return false;
     }
 
-    public static bool Unreference(IDataLayer<IGLObject> context, Guid resourceId, Guid referencerId)
+    public static bool Unreference(IDataLayer<IComponent> context, Guid resourceId, Guid referencerId)
     {
         ref var referencers = ref context.Acquire<ResourceReferencers>(resourceId);
         var newIds = referencers.Ids.Remove(referencerId);
@@ -55,7 +55,7 @@ public struct ResourceLibrary<TResource> : IGLObject
         return false;
     }
 
-    public static bool Unreference(IDataLayer<IGLObject> context, in TResource resource, Guid referencerId)
+    public static bool Unreference(IDataLayer<IComponent> context, in TResource resource, Guid referencerId)
     {
         ref var lib = ref context.AcquireAny<ResourceLibrary<TResource>>();
         if (!lib.Dictionary.TryGetValue(resource, out var objects)) {
@@ -70,7 +70,7 @@ public struct ResourceLibrary<TResource> : IGLObject
     }
 
     public static bool TryGet(
-        IDataLayer<IGLObject> context, in TResource resource, [MaybeNullWhen(false)] out Guid id)
+        IDataLayer<IComponent> context, in TResource resource, [MaybeNullWhen(false)] out Guid id)
     {
         if (!context.AcquireAny<ResourceLibrary<TResource>>()
                 .Dictionary.TryGetValue(resource, out var objects)
@@ -82,7 +82,7 @@ public struct ResourceLibrary<TResource> : IGLObject
         return true;
     }
 
-    public static IEnumerable<Guid> GetAll(IDataLayer<IGLObject> context, in TResource resource)
+    public static IEnumerable<Guid> GetAll(IDataLayer<IComponent> context, in TResource resource)
     {
         if (!context.AcquireAny<ResourceLibrary<TResource>>()
                 .Dictionary.TryGetValue(resource, out var objects)) {
@@ -92,7 +92,7 @@ public struct ResourceLibrary<TResource> : IGLObject
     }
     
     public static void Register(
-        IDataLayer<IGLObject> context, in TResource resource, Guid id)
+        IDataLayer<IComponent> context, in TResource resource, Guid id)
     {
         ref var lib = ref context.AcquireAny<ResourceLibrary<TResource>>();
         if (!lib.Dictionary.TryGetValue(resource, out var objects)) {
@@ -103,7 +103,7 @@ public struct ResourceLibrary<TResource> : IGLObject
     }
 
     public static bool Unregister(
-        IDataLayer<IGLObject> context, in TResource resource, Guid id)
+        IDataLayer<IComponent> context, in TResource resource, Guid id)
     {
         ref var lib = ref context.AcquireAny<ResourceLibrary<TResource>>();
         if (!lib.Dictionary.TryGetValue(resource, out var objects)
