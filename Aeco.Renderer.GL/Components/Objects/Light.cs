@@ -6,6 +6,4 @@ using System.Runtime.Serialization;
 public struct Light : IGLResourceObject<LightResourceBase>
 {
     public LightResourceBase Resource { get; set; }
-
-    public void Dispose() => this = new();
 }

@@ -21,6 +21,4 @@ public struct CameraUniformBuffer : IGLObject
     public int Handle;
     public IntPtr Pointer;
     public CameraParameters Parameters;
-
-    public void Dispose() => this = new();
 }

@@ -13,6 +13,4 @@ public struct RenderTargetData : IGLObject
     public int TransparencyFramebufferHandle;
     public int TransparencyAccumTextureHandle;
     public int TransparencyAlphaTextureHandle;
-
-    public void Dispose() => this = new();
 }

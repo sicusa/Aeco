@@ -8,6 +8,4 @@ public struct Parent : IGLReactiveObject
     [DataMember] public Guid Id = GLRenderer.RootId;
 
     public Parent() {}
-
-    public void Dispose() => this = new();
 }

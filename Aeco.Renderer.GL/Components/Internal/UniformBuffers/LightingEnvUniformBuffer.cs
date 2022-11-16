@@ -39,6 +39,4 @@ public struct LightingEnvUniformBuffer : IGLObject
     public ExtendedRectangle[] ClusterBoundingBoxes;
 
     public LightingEnvParameters Parameters;
-
-    public void Dispose() => this = new();
 }

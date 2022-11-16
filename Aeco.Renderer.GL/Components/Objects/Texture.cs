@@ -6,6 +6,4 @@ using System.Runtime.Serialization;
 public struct Texture : IGLResourceObject<TextureResource>
 {
     public TextureResource Resource { get; set; }
-
-    public void Dispose() => this = new();
 }

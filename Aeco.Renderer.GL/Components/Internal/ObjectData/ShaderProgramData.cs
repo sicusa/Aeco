@@ -34,6 +34,4 @@ public struct ShaderProgramData : IGLObject
     public int LightsBufferLocation;
     public int ClustersBufferLocation;
     public int ClusterLightCountsBufferLocation;
-
-    public void Dispose() => this = new();
 }

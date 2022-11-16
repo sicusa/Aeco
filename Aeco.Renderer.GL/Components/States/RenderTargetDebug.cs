@@ -12,6 +12,4 @@ public enum DisplayMode
 public struct RenderTargetDebug : IGLObject
 {
     public DisplayMode DisplayMode;
-
-    public void Dispose() => this = new();
 }

@@ -117,6 +117,4 @@ public struct ResourceLibrary<TResource> : IGLObject
         ImmutableDictionary<TResource, List<Guid>>.Empty;
 
     public ResourceLibrary() {}
-
-    public void Dispose() => this = new();
 }

@@ -1,7 +1,7 @@
 namespace Aeco.Local;
 
 public class PolyPoolStorage<TComponent, TSelectedComponent> : CompositeStorage<TComponent, TSelectedComponent>
-    where TSelectedComponent : TComponent, IDisposable
+    where TSelectedComponent : TComponent
 {
     public PolyPoolStorage()
         : this(MonoPoolStorage.DefaultBrickCapacity)
@@ -14,7 +14,7 @@ public class PolyPoolStorage<TComponent, TSelectedComponent> : CompositeStorage<
 }
 
 public class PolyPoolStorage<TSelectedComponent> : PolyPoolStorage<IComponent, TSelectedComponent>
-    where TSelectedComponent : IComponent, IDisposable
+    where TSelectedComponent : IComponent
 {
     public PolyPoolStorage()
         : this(MonoPoolStorage.DefaultBrickCapacity)

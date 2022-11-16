@@ -11,6 +11,4 @@ public struct LightsBuffer : IGLSingleton
     public IntPtr Pointer;
 
     public LightParameters[] Parameters;
-
-    public void Dispose() => this = new();
 }

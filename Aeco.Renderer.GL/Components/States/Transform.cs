@@ -178,8 +178,6 @@ public unsafe struct Transform : IGLReactiveObject
 
     public Transform() {}
 
-    public void Dispose() => this = new();
-
     public void TagDirty()
     {
         _worldDirty = 1;

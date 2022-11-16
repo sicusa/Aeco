@@ -1,5 +1,5 @@
 namespace Aeco.Renderer.GL;
 
-public interface IGLObject : IComponent, IDisposable
+public interface IGLObject : IComponent
 {
 }

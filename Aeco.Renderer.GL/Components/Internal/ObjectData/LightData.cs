@@ -38,6 +38,4 @@ public struct LightData : IGLObject
     public float Range = float.PositiveInfinity;
 
     public LightData() {}
-
-    public void Dispose() => this = new();
 }

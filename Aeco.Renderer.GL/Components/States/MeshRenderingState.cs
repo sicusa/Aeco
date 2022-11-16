@@ -23,6 +23,4 @@ public struct MeshRenderingState : IGLReactiveObject
     public readonly List<Guid> VariantIds = new();
 
     public MeshRenderingState() {}
-
-    public void Dispose() => this = new();
 }

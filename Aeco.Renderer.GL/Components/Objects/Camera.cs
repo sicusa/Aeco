@@ -10,6 +10,4 @@ public struct Camera : IGLReactiveObject
     [DataMember] public float FarPlaneDistance = 200f;
 
     public Camera() {}
-
-    public void Dispose() => this = new();
 }

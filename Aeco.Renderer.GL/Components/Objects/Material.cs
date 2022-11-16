@@ -10,6 +10,4 @@ public struct Material : IGLResourceObject<MaterialResource>
     public ShaderProgramResource? ShaderProgram = null;
 
     public Material() {}
-
-    public void Dispose() => this = new();
 }

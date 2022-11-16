@@ -154,7 +154,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 }
 
 public class MonoPoolStorage<TStoredComponent> : MonoPoolStorage<IComponent, TStoredComponent>
-    where TStoredComponent : IComponent, IDisposable, new()
+    where TStoredComponent : IComponent, new()
 {
 }
 

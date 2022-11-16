@@ -24,6 +24,4 @@ public struct MeshData : IGLObject
     public int InstanceCapacity = 1;
 
     public MeshData() {}
-
-    public void Dispose() => this = new();
 }

@@ -1,7 +1,7 @@
 namespace Aeco.Local;
 
 public class PolySingletonStorage<TComponent, TSelectedComponent> : CompositeStorage<TComponent, TSelectedComponent>
-    where TSelectedComponent : TComponent, IDisposable
+    where TSelectedComponent : TComponent
 {
     public PolySingletonStorage()
         : base(SingletonStorage.MakeUnsafeCreator<TComponent>())
@@ -10,6 +10,6 @@ public class PolySingletonStorage<TComponent, TSelectedComponent> : CompositeSto
 }
 
 public class PolySingletonStorage<TSelectedComponent> : PolySingletonStorage<IComponent, TSelectedComponent>
-    where TSelectedComponent : IComponent, IDisposable
+    where TSelectedComponent : IComponent
 {
 }

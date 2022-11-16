@@ -26,6 +26,4 @@ public struct RendererSpec : IGLObject
     [DataMember] public bool IsDebugEnabled = false;
     
     public RendererSpec() {}
-
-    public void Dispose() => this = new();
 }

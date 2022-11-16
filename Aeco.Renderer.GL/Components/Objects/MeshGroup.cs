@@ -10,6 +10,4 @@ public struct MeshGroup : IGLObject
         ImmutableArray<Guid>.Empty;
 
     public MeshGroup() {}
-
-    public void Dispose() => this = new();
 }

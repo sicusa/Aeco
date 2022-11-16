@@ -9,8 +9,6 @@ public struct Children : IGLObject
 
     public Children() {}
 
-    public void Dispose() => this = new();
-
     public static void Recurse(IDataLayer<IComponent> context, Guid id, Action<IDataLayer<IComponent>, Guid> action)
     {
         action(context, id);
