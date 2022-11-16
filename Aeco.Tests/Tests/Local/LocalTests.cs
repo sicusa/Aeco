@@ -10,18 +10,13 @@ using Aeco.Persistence.Local;
 public static class LocalTests
 {
     [DataContract]
-    public class TestComponent : IComponent, IDisposable
+    public class TestComponent : IComponent
     {
         [DataMember]
         public int A { get; set; } = 5;
-
-        public void Dispose()
-        {
-            A = 5;
-        }
     }
 
-    public interface ITestComponentB : IComponent, IDisposable
+    public interface ITestComponentB : IComponent
     {
     }
 
@@ -30,11 +25,6 @@ public static class LocalTests
     {
         [DataMember]
         public int A { get; set; } = 5;
-
-        public void Dispose()
-        {
-            A = 5;
-        }
     }
 
     [DataContract]
@@ -42,19 +32,10 @@ public static class LocalTests
     {
         [DataMember]
         public int A { get; set; } = 5;
-
-        public void Dispose()
-        {
-            A = 5;
-        }
     }
 
     public record struct TestCommand(string Name = "unknown") : ICommand
     {
-        public void Dispose()
-        {
-            Name = "unknown";
-        }
     }
 
     public static void Run()

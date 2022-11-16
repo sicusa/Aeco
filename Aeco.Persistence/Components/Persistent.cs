@@ -1,8 +1,5 @@
 namespace Aeco.Persistence;
 
-public class Persistent : IComponent, IDisposable
+public class Persistent : IComponent
 {
-    public void Dispose()
-    {
-    }
 }

@@ -3,7 +3,7 @@ namespace Aeco.Local;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 
-public interface IChannel : IComponent, IDisposable
+public interface IChannel : IComponent
 {
     Queue<Guid> Messages { get; set; }
 }
@@ -14,11 +14,6 @@ public class Channel<TMessage> : IChannel
     [DataMember]
     public Queue<Guid> Messages { get; set; } = new();
     public Channel() {}
-
-    public void Dispose()
-    {
-        Messages.Clear();
-    }
 }
 
 public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<TComponent, TSelectedComponent>

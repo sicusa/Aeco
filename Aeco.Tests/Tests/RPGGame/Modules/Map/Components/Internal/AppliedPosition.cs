@@ -11,12 +11,6 @@ public struct AppliedPosition : IPooledGameComponent
         Y = pos.Y;
     }
 
-    public void Dispose()
-    {
-        X = 0;
-        Y = 0;
-    }
-
     public static implicit operator (int X, int Y)(in AppliedPosition pos)
         => (pos.X, pos.Y);
 }

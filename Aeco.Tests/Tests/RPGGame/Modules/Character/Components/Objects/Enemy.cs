@@ -7,9 +7,6 @@ using Aeco.Tests.RPGGame.Map;
 [DataContract]
 public struct Enemy : IPooledGameComponent
 {
-    public void Dispose()
-    {
-    }
 }
 
 public static class EnemyExtensions

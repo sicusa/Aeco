@@ -8,9 +8,4 @@ public struct Rotation : IPooledGameComponent
     [DataMember] public Direction Value = Direction.Up;
 
     public Rotation() {}
-
-    public void Dispose()
-    {
-        Value = Direction.Up;
-    }
 }

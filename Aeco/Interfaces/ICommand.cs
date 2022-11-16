@@ -1,5 +1,5 @@
 namespace Aeco;
 
-public interface ICommand : IComponent, IDisposable
+public interface ICommand : IComponent
 {
 }

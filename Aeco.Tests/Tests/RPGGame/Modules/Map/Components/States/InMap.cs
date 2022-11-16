@@ -6,9 +6,4 @@ using System.Runtime.Serialization;
 public struct InMap : IPooledGameComponent
 {
     [DataMember] public Guid MapId;
-
-    public void Dispose()
-    {
-        MapId = Guid.Empty;
-    }
 }

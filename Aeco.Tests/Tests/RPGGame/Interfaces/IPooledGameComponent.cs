@@ -1,5 +1,5 @@
 namespace Aeco.Tests.RPGGame;
 
-public interface IPooledGameComponent : IGameComponent, IDisposable
+public interface IPooledGameComponent : IGameComponent
 {
 }

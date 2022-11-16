@@ -16,10 +16,6 @@ public static class ConcurrentTests
 
     public record struct EchoCmd(int Id) : ICommand
     {
-        public void Dispose()
-        {
-            Id = 0;
-        }
     }
 
     public class TestConcurrentLayer : VirtualLayer, ITestLayer

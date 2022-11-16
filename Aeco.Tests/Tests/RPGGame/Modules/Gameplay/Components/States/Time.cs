@@ -6,9 +6,4 @@ using System.Runtime.Serialization;
 public class Time : IPooledGameComponent
 {
     [DataMember] public float Value;
-
-    public void Dispose()
-    {
-        Value = 0;
-    }
 }
