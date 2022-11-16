@@ -116,7 +116,7 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
         => _id == null ? Enumerable.Empty<Guid>() : Enumerable.Repeat<Guid>(_id.Value, 1);
 
     public override IEnumerable<object> GetAll(Guid entityId)
-        => _id == entityId ? Enumerable.Repeat<object>(_data, 1) : Enumerable.Empty<object>();
+        => _id == entityId ? Enumerable.Repeat<object>(_data!, 1) : Enumerable.Empty<object>();
 
     public override void Clear(Guid entityId)
     {
