@@ -49,7 +49,7 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
     
     private void InitializeLightingEnv(IDataLayer<IComponent> context, ref LightingEnvUniformBuffer buffer, in Camera camera, in CameraMatrices cameraMat)
     {
-        buffer.Parameters.GlobalLightIndeces = new int[LightingEnvParameters.MaximumGlobalLightCount];
+        buffer.Parameters.GlobalLightIndeces = new int[4 * LightingEnvParameters.MaximumGlobalLightCount];
 
         buffer.Clusters = new int[LightingEnvParameters.MaximumActiveLightCount];
         buffer.ClusterLightCounts = new int[LightingEnvParameters.ClusterCount];
@@ -185,7 +185,7 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
             if (range == float.PositiveInfinity) {
                 var count = Interlocked.Increment(ref pars.GlobalLightCount) - 1;
                 if (count < maxGlobalLightCount) {
-                    pars.GlobalLightIndeces[count] = lightIndex;
+                    pars.GlobalLightIndeces[count * 4] = lightIndex;
                 }
                 else {
                     pars.GlobalLightCount = maxGlobalLightCount;
@@ -269,7 +269,7 @@ public class LightingEnvUniformBufferUpdator : VirtualLayer, IGLUpdateLayer
         });
 
         *((int*)(buffer.Pointer + 8)) = pars.GlobalLightCount;
-        Marshal.Copy(pars.GlobalLightIndeces, 0, buffer.Pointer + 16, pars.GlobalLightCount);
+        Marshal.Copy(pars.GlobalLightIndeces, 0, buffer.Pointer + 16, 4 * pars.GlobalLightCount);
         Marshal.Copy(clusters, 0, buffer.ClustersPointer, LightingEnvParameters.MaximumActiveLightCount);
         Marshal.Copy(lightCounts, 0, buffer.ClusterLightCountsPointer, LightingEnvParameters.ClusterCount);
     }
