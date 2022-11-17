@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>Aeco.Persistence.Local</PackageId>
+    <PackageDescription>A composable ECS framework for .NET</PackageDescription>
+    <Author>Phlam Sicusa</Author>
+    <Company>Gilatod.art</Company>
+    <RepositoryUrl>https://github.com/sicusa/Aeco</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Aeco\Aeco.csproj" />
+    <ProjectReference Include="..\Aeco.Local\Aeco.Local.csproj" />
+    <ProjectReference Include="..\Aeco.Serialization\Aeco.Serialization.csproj" />
+    <ProjectReference Include="..\Aeco.Persistence\Aeco.Persistence.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
+  </ItemGroup>
+
+</Project>
