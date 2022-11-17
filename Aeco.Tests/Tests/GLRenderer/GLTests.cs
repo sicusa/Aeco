@@ -12,7 +12,6 @@ public static class GLTests
 {
     public struct Rotator : IGLObject
     {
-        public void Dispose() => this = new();
     }
 
     public static void Run()
@@ -61,9 +60,15 @@ public static class GLTests
         sunTrans.Position = new Vector3(0, 1, 5);
         sunTrans.Rotation = Quaternion.CreateFromYawPitchRoll(-90, -45, 0);
         sunLight.Acquire<Light>().Resource = new DirectionalLightResource {
+            Color = new Vector4(1, 1, 1, 0.5f)
+        };
+
+        var ambientLight = game.CreateEntity();
+        ambientLight.Acquire<Light>().Resource = new AmbientLightResource {
             Color = new Vector4(1, 1, 1, 0.1f)
         };
 
+/*
         var spotLight = game.CreateEntity();
         spotLight.Acquire<Transform>().Position = new Vector3(0, 1, 0);
         spotLight.Acquire<Light>().Resource = new SpotLightResource {
@@ -85,7 +90,7 @@ public static class GLTests
         pointLight2.Acquire<Light>().Resource = new PointLightResource {
             Color = new Vector4(1, 0.5f, 1, 2),
             AttenuationQuadratic = 3f
-        };
+        };*/
 
         var cameraId = Guid.Parse("c2003019-0b2a-4f4c-ba31-9930c958ff83");
         game.Acquire<Camera>(cameraId);
@@ -156,7 +161,7 @@ public static class GLTests
         }
 
         Guid prevId = CreateObject(Vector3.Zero, GLRenderer.RootId, sphereMesh);
-        pointLight2.Acquire<Parent>().Id = prevId;
+        //pointLight2.Acquire<Parent>().Id = prevId;
 
         Guid firstId = prevId;
         game.Acquire<Transform>(prevId).LocalScale = new Vector3(0.3f);
@@ -168,18 +173,19 @@ public static class GLTests
         }
 
         Guid lightsId = Guid.NewGuid();
-        game.Acquire<Rotator>(lightsId);
 
-        for (int i = 50; i < 5000; i += 2) {
-            var id = CreateLight(new Vector3(MathF.Sin(i) * i * 0.1f, 0, MathF.Cos(i) * i * 0.1f), lightsId);
+        for (int i = 0; i < 250; ++i) {
+            int o = 100 + i * 2;
+            var id = CreateLight(new Vector3(MathF.Sin(o) * o * 0.1f, 0, MathF.Cos(o) * o * 0.1f), lightsId);
+            game.Acquire<Rotator>(id);
         }
 
         Guid rotatorId = CreateObject(Vector3.Zero, GLRenderer.RootId, sphereMesh);
         game.Acquire<Transform>(rotatorId).LocalScale = new Vector3(0.3f);
         game.Acquire<Rotator>(rotatorId);
 
-        spotLight.Acquire<Parent>().Id = rotatorId;
-        pointLight.Acquire<Parent>().Id = rotatorId;
+        //spotLight.Acquire<Parent>().Id = rotatorId;
+        //pointLight.Acquire<Parent>().Id = rotatorId;
 
         float Lerp(float firstFloat, float secondFloat, float by)
             => firstFloat * (1 - by) + secondFloat * by;

@@ -1,6 +1,5 @@
 namespace Aeco.Renderer.GL;
 
-using System.Numerics;
 using System.Runtime.Serialization;
 
 [DataContract]
