@@ -5,7 +5,6 @@ using Aeco.Reactive;
 using Aeco.Serialization.Json;
 using Aeco.Persistence.Local;
 
-using Aeco.Renderer.GL;
 using Aeco.Tests.RPGGame.Character;
 
 public class RPGGame : CompositeLayer
