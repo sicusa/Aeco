@@ -31,12 +31,12 @@ struct Light {
     int Category;
     vec4 Color;
     vec3 Position;
-    vec3 Direction;
 
     float AttenuationConstant;
     float AttenuationLinear;
     float AttenuationQuadratic;
 
+    vec3 Direction;
     vec2 ConeCutoffsOrAreaSize;
 };
 
@@ -80,10 +80,13 @@ Light FetchGlobalLight(int index)
         texelFetch(LightsBuffer, offset + 2).r,
         texelFetch(LightsBuffer, offset + 3).r,
         texelFetch(LightsBuffer, offset + 4).r);
-    light.Direction = vec3(
-        texelFetch(LightsBuffer, offset + 8).r,
-        texelFetch(LightsBuffer, offset + 9).r,
-        texelFetch(LightsBuffer, offset + 10).r);
+    
+    if (category == LIGHT_DIRECTIONAL) {
+        light.Direction = vec3(
+            texelFetch(LightsBuffer, offset + 11).r,
+            texelFetch(LightsBuffer, offset + 12).r,
+            texelFetch(LightsBuffer, offset + 13).r);
+    }
 
     return light;
 }
@@ -106,18 +109,21 @@ Light FetchLight(int index)
         texelFetch(LightsBuffer, offset + 5).r,
         texelFetch(LightsBuffer, offset + 6).r,
         texelFetch(LightsBuffer, offset + 7).r);
-    light.Direction = vec3(
-        texelFetch(LightsBuffer, offset + 8).r,
-        texelFetch(LightsBuffer, offset + 9).r,
-        texelFetch(LightsBuffer, offset + 10).r);
 
-    light.AttenuationConstant = texelFetch(LightsBuffer, offset + 11).r;
-    light.AttenuationLinear = texelFetch(LightsBuffer, offset + 12).r;
-    light.AttenuationQuadratic = texelFetch(LightsBuffer, offset + 13).r;
+    light.AttenuationConstant = texelFetch(LightsBuffer, offset + 8).r;
+    light.AttenuationLinear = texelFetch(LightsBuffer, offset + 9).r;
+    light.AttenuationQuadratic = texelFetch(LightsBuffer, offset + 10).r;
+    
+    if (category != LIGHT_POINT) {
+        light.Direction = vec3(
+            texelFetch(LightsBuffer, offset + 11).r,
+            texelFetch(LightsBuffer, offset + 12).r,
+            texelFetch(LightsBuffer, offset + 13).r);
 
-    light.ConeCutoffsOrAreaSize = vec2(
-        texelFetch(LightsBuffer, offset + 14).r,
-        texelFetch(LightsBuffer, offset + 15).r);
+        light.ConeCutoffsOrAreaSize = vec2(
+            texelFetch(LightsBuffer, offset + 14).r,
+            texelFetch(LightsBuffer, offset + 15).r);
+    }
 
     return light;
 }

@@ -22,12 +22,12 @@ public struct LightParameters
 
     public Vector4 Color;
     public Vector3 Position;
-    public Vector3 Direction;
 
     public float AttenuationConstant;
     public float AttenuationLinear;
     public float AttenuationQuadratic;
 
+    public Vector3 Direction;
     public Vector2 ConeCutoffsOrAreaSize;
 }
 

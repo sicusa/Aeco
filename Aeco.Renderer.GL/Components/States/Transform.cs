@@ -10,10 +10,10 @@ public unsafe struct Transform : IGLReactiveObject
 
     public Matrix4x4 World {
         get {
-            if (_worldDirty == 1) {
+            if (_worldDirty) {
                 _world = Parent != null ? Local * Parent->World : Local;
-                _worldDirty = 0;
-                _viewDirty = 1;
+                _worldDirty = false;
+                _viewDirty = true;
             }
             return _world;
         }
@@ -21,9 +21,9 @@ public unsafe struct Transform : IGLReactiveObject
 
     public Matrix4x4 View {
         get {
-            if (_viewDirty == 1) {
+            if (_viewDirty) {
                 Matrix4x4.Invert(World, out _view);
-                _viewDirty = 0;
+                _viewDirty = false;
             }
             return _view;
         }
@@ -31,19 +31,19 @@ public unsafe struct Transform : IGLReactiveObject
 
     public Matrix4x4 Local {
         get {
-            if (_translationMatDirty == 1) {
-                _translationMatDirty = 0;
+            if (_translationMatDirty) {
                 _translationMat = Matrix4x4.CreateTranslation(_localPosition);
+                _translationMatDirty = false;
                 _local = _scaleMat * _rotationMat * _translationMat;
             }
-            if (_rotationMatDirty == 1) {
-                _rotationMatDirty = 0;
+            if (_rotationMatDirty) {
                 _rotationMat = Matrix4x4.CreateFromQuaternion(_localRotation);
+                _rotationMatDirty = false;
                 _local = _scaleMat * _rotationMat * _translationMat;
             }
-            if (_scaleMatDirty == 1) {
-                _scaleMatDirty = 0;
+            if (_scaleMatDirty) {
                 _scaleMat = Matrix4x4.CreateScale(_localScale);
+                _scaleMatDirty = false;
                 _local = _scaleMat * _rotationMat * _translationMat;
             }
             return _local;
@@ -54,10 +54,10 @@ public unsafe struct Transform : IGLReactiveObject
         get => _localPosition;
         set {
             _localPosition = value;
-            _translationMatDirty = 1;
-            _positionDirty = 1;
-            _worldDirty = 1;
-            _viewDirty = 1;
+            _translationMatDirty = true;
+            _positionDirty = true;
+            _worldDirty = true;
+            _viewDirty = true;
             TagChildrenDirty();
         }
     }
@@ -66,11 +66,11 @@ public unsafe struct Transform : IGLReactiveObject
         get => _localRotation;
         set {
             _localRotation = value;
-            _rotationMatDirty = 1;
-            _rotationDirty = 1;
-            _worldDirty = 1;
-            _viewDirty = 1;
-            _axesDirty = 1;
+            _rotationMatDirty = true;
+            _rotationDirty = true;
+            _worldDirty = true;
+            _viewDirty = true;
+            _axesDirty = true;
             TagChildrenDirty();
         }
     }
@@ -79,19 +79,19 @@ public unsafe struct Transform : IGLReactiveObject
         get => _localScale;
         set {
             _localScale = value;
-            _scaleMatDirty = 1;
-            _worldDirty = 1;
-            _viewDirty = 1;
+            _scaleMatDirty = true;
+            _worldDirty = true;
+            _viewDirty = true;
             TagChildrenDirty();
         }
     }
 
     public Vector3 Position {
         get {
-            if (_positionDirty == 1) {
-                _positionDirty = 0;
+            if (_positionDirty) {
                 _position = Parent != null
                     ? Vector3.Transform(_localPosition, Parent->World) : _localPosition;
+                _positionDirty = false;
             }
             return _position;
         }
@@ -99,16 +99,16 @@ public unsafe struct Transform : IGLReactiveObject
             LocalPosition = Parent != null
                 ? Vector3.Transform(value, Parent->View) : value;
             _position = value;
-            _positionDirty = 0;
+            _positionDirty = false;
         }
     }
 
     public Quaternion Rotation {
         get {
-            if (_rotationDirty == 1) {
-                _rotationDirty = 0;
+            if (_rotationDirty) {
                 _rotation = Parent != null
                     ? Parent->Rotation * _localRotation : _localRotation;
+                _rotationDirty = false;
             }
             return _rotation;
         }
@@ -116,27 +116,27 @@ public unsafe struct Transform : IGLReactiveObject
             LocalRotation = Parent != null
                 ? Quaternion.Inverse(Parent->Rotation) * value : value;
             _rotation = value;
-            _rotationDirty = 0;
+            _rotationDirty = false;
         }
     }
 
     public Vector3 Right {
         get {
-            if (_axesDirty == 1) { UpdateWorldAxes(); }
+            if (_axesDirty) { UpdateWorldAxes(); }
             return _right;
         }
     }
 
     public Vector3 Up {
         get {
-            if (_axesDirty == 1) { UpdateWorldAxes(); }
+            if (_axesDirty) { UpdateWorldAxes(); }
             return _up;
         }
     }
 
     public Vector3 Forward {
         get {
-            if (_axesDirty == 1) { UpdateWorldAxes(); }
+            if (_axesDirty) { UpdateWorldAxes(); }
             return _forward;
         }
     }
@@ -167,24 +167,24 @@ public unsafe struct Transform : IGLReactiveObject
     private Vector3 _up = Vector3.UnitY;
     private Vector3 _forward = Vector3.UnitZ;
 
-    private byte _worldDirty = 0;
-    private byte _viewDirty = 0;
-    private byte _translationMatDirty = 0;
-    private byte _rotationMatDirty = 0;
-    private byte _scaleMatDirty = 0;
-    private byte _positionDirty = 0;
-    private byte _rotationDirty = 0;
-    private byte _axesDirty = 0;
+    private bool _worldDirty = false;
+    private bool _viewDirty = false;
+    private bool _translationMatDirty = false;
+    private bool _rotationMatDirty = false;
+    private bool _scaleMatDirty = false;
+    private bool _positionDirty = false;
+    private bool _rotationDirty = false;
+    private bool _axesDirty = false;
 
     public Transform() {}
 
     public void TagDirty()
     {
-        _worldDirty = 1;
-        _viewDirty = 1;
-        _positionDirty = 1;
-        _rotationDirty = 1;
-        _axesDirty = 1;
+        _worldDirty = true;
+        _viewDirty = true;
+        _positionDirty = true;
+        _rotationDirty = true;
+        _axesDirty = true;
         TagChildrenDirty();
     }
 
@@ -195,11 +195,11 @@ public unsafe struct Transform : IGLReactiveObject
         }
         for (int i = 0; i != ChildrenCount; ++i) {
             var child = *(Children + i);
-            child->_worldDirty = 1;
-            child->_viewDirty = 1;
-            child->_positionDirty = 1;
-            child->_rotationDirty = 1;
-            child->_axesDirty = 1;
+            child->_worldDirty = true;
+            child->_viewDirty = true;
+            child->_positionDirty = true;
+            child->_rotationDirty = true;
+            child->_axesDirty = true;
             child->TagChildrenDirty();
         }
     }
@@ -210,6 +210,6 @@ public unsafe struct Transform : IGLReactiveObject
         _right = Vector3.Normalize(Vector3.TransformNormal(Vector3.UnitX, worldRot));
         _up = Vector3.Normalize(Vector3.TransformNormal(Vector3.UnitY, worldRot));
         _forward = Vector3.Normalize(Vector3.TransformNormal(-Vector3.UnitZ, worldRot));
-        _axesDirty = 0;
+        _axesDirty = true;
     }
 }
