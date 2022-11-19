@@ -37,9 +37,7 @@ public class CompositeLayer<TComponent, TSublayer>
     
     public CompositeLayer(params TSublayer[] sublayers)
     {
-        foreach (var sublayer in sublayers) {
-            InternalAddSublayer(sublayer);
-        }
+        InternalAddSublayers(sublayers);
     }
 
     public override bool CheckSupported(Type componentType)
@@ -86,6 +84,13 @@ public class CompositeLayer<TComponent, TSublayer>
 
         (sublayer as IParentLayerListener<TComponent, CompositeLayer<TComponent, TSublayer>>)?.OnLayerAdded(this);
         return true;
+    }
+
+    protected void InternalAddSublayers(params TSublayer[] sublayers)
+    {
+        foreach (var sublayer in sublayers) {
+            InternalAddSublayer(sublayer);
+        }
     }
 
     protected bool InternalRemoveSublayer(TSublayer sublayer)
