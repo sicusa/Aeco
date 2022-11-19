@@ -46,7 +46,8 @@ public class DynamicCompositeLayer<TComponent, TSublayer>
     }
 }
 
-public class DynamicCompositeLayer<TComponent> : DynamicCompositeLayer<TComponent, ILayer<TComponent>>
+public class DynamicCompositeLayer<TComponent>
+    : DynamicCompositeLayer<TComponent, ILayer<TComponent>>, IDynamicCompositeLayer<TComponent>
 {
     public DynamicCompositeLayer(params ILayer<TComponent>[] sublayers)
         : base(sublayers)

@@ -45,7 +45,8 @@ public class ReactiveDynamicCompositeLayer<TComponent, TSublayer> : ReactiveComp
     }
 }
 
-public class ReactiveDynamicCompositeLayer<TComponent> : ReactiveDynamicCompositeLayer<TComponent, ILayer<TComponent>>
+public class ReactiveDynamicCompositeLayer<TComponent>
+    : ReactiveDynamicCompositeLayer<TComponent, ILayer<TComponent>>, IDynamicCompositeLayer<TComponent>
 {
     public ReactiveDynamicCompositeLayer(IDataLayer<IReactiveEvent> eventDataLayer, params ILayer<TComponent>[] sublayers)
         : base(eventDataLayer, sublayers)
