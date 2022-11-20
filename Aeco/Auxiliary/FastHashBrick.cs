@@ -1,5 +1,6 @@
 namespace Aeco;
 
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
 
@@ -13,12 +14,17 @@ public class FastHashBrick<TKey, TValue>
         public int NextBlockIndex;
     }
 
-    public volatile Block[] Blocks;
-    public volatile FastHashBrick<TKey, TValue>? NextBrick;
+    public Block[] Blocks;
+    public FastHashBrick<TKey, TValue>? NextBrick;
 
     public FastHashBrick(int capacity)
     {
-        Blocks = new Block[capacity];
+        Blocks = ArrayPool<Block>.Shared.Rent(capacity);
+    }
+
+    ~FastHashBrick()
+    {
+        ArrayPool<Block>.Shared.Return(Blocks);
     }
 
     public bool TryGetValue(int index, TKey key, [MaybeNullWhen(false)] out TValue value)
@@ -165,11 +171,8 @@ public class FastHashBrick<TKey, TValue>
 
     public void Clear()
     {
-        var brick = this;
-        while (brick != null) {
-            Array.Clear(brick.Blocks);
-            brick = brick.NextBrick;
-        }
+        Array.Clear(Blocks);
+        NextBrick = null;
     }
 }
 
