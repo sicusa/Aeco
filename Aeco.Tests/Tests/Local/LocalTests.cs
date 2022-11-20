@@ -47,7 +47,7 @@ public static class LocalTests
         var compositeLayer = new CompositeLayer(
             new MonoPoolStorage<TestComponent>(),
             new PolyPoolStorage<ITestComponentB>(),
-            new PooledChannelLayer<ICommand>(),
+            new ChannelLayer<ICommand>(),
             new PolyHashStorage(),
             new FileSystemPersistenceLayer(
                 "./Entities", new JsonEntitySerializer<IComponent>())

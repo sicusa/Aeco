@@ -35,7 +35,7 @@ public static class ConcurrentTests
         var channelId = Guid.NewGuid();
 
         var world = new CompositeLayer(
-            new PooledChannelLayer(),
+            new ChannelLayer(),
             new PolyHashStorage(),
             new TestConcurrentLayer { ChannelId = channelId });
         var worldConcurrent = new ConcurrentDataLayer(world);

@@ -41,7 +41,7 @@ public static class RPGTests
         // frame 2
 
         game.Update(0.5f);
-        player.Acquire<Attack>();
+        player.Set(new Attack());
 
         // frame 3
 
@@ -49,7 +49,7 @@ public static class RPGTests
         Console.WriteLine("Enemy HP: " + enemy.Require<Health>().Value);
 
         player.Acquire<Equipments>().Weapon = new PoisonousLongSword();
-        player.Acquire<Attack>();
+        player.Set(new Attack());
 
         // frame 4
 
@@ -65,7 +65,7 @@ public static class RPGTests
             Console.WriteLine("Enemy posioned: " + enemy.Contains<Posioned>());
         }
 
-        player.Acquire<Attack>();
+        player.Set(new Attack());
 
         // frame 7
 

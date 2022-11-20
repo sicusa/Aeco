@@ -1,48 +1,25 @@
 namespace Aeco.Local;
 
+using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.Serialization;
-
-public interface IChannel : IComponent
-{
-    Queue<Guid> Messages { get; set; }
-}
-
-[DataContract]
-public class Channel<TMessage> : IChannel
-{
-    [DataMember]
-    public Queue<Guid> Messages { get; set; } = new();
-    public Channel() {}
-}
 
 public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<TComponent, TSelectedComponent>
     where TSelectedComponent : TComponent
 {
-    public IDataLayer<IChannel> ChannelDataLayer { get; init; }
-    public IDataLayer<TComponent> MessageDataLayer { get; init; }
+    private Dictionary<Guid, LinkedList<object>> _channels = new();
+    private Stack<LinkedList<object>> _channelPool = new();
 
-    public ChannelLayer()
-        : this(new PolyHashStorage<TComponent, TSelectedComponent>())
-    {
-    }
-
-    public ChannelLayer(IDataLayer<TComponent> messageDataLayer)
-        : this(new PolyHashStorage<IChannel>(), messageDataLayer)
-    {
-    }
-
-    public ChannelLayer(IDataLayer<IChannel> channelDataLayer, IDataLayer<TComponent> messageDataLayer)
-    {
-        ChannelDataLayer = channelDataLayer;
-        MessageDataLayer = messageDataLayer;
-    }
+    private bool _tempExists;
 
     public override bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
     {
-        if (ChannelDataLayer.TryGet<Channel<UComponent>>(entityId, out var channel)
-                && channel.Messages.TryPeek(out var messageId)) {
-            return MessageDataLayer.TryGet<UComponent>(messageId, out component);
+        if (_channels.TryGetValue(entityId, out var channel)) {
+            for (var node = channel.First; node != channel.Last; node = node!.Next) {
+                if (node!.Value is UComponent foundComp) {
+                    component = foundComp;
+                    return true;
+                }
+            }
         }
         component = default;
         return false;
@@ -50,80 +27,131 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
 
     public override ref UComponent Require<UComponent>(Guid entityId)
     {
-        ref var channel = ref ChannelDataLayer.Require<Channel<UComponent>>(entityId);
-        var messageId = channel.Messages.Peek();
-        return ref MessageDataLayer.Require<UComponent>(messageId);
+        if (_channels.TryGetValue(entityId, out var channel)) {
+            for (var node = channel.First; node != channel.Last; node = node!.Next) {
+                if (node!.Value is UComponent) {
+                    return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
+                }
+            }
+        }
+        throw new KeyNotFoundException("Component not found");
     }
 
     public override ref UComponent Acquire<UComponent>(Guid entityId)
-    {
-        ref var channel = ref ChannelDataLayer.Acquire<Channel<UComponent>>(entityId);
-        if (!channel.Messages.TryPeek(out var messageId)) {
-            messageId = Guid.NewGuid();
-            channel.Messages.Enqueue(messageId);
-        }
-        return ref MessageDataLayer.Acquire<UComponent>(messageId);
-    }
+        => ref Acquire<UComponent>(entityId, out _tempExists);
 
     public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
     {
-        ref var channel = ref ChannelDataLayer.Acquire<Channel<UComponent>>(entityId);
-        if (!channel.Messages.TryPeek(out var messageId)) {
-            messageId = Guid.NewGuid();
-            channel.Messages.Enqueue(messageId);
+        LinkedListNode<object> node;
+
+        if (!_channels.TryGetValue(entityId, out var channel)) {
+            if (!_channelPool.TryPop(out channel)) {
+                channel = new LinkedList<object>();
+            }
+            _channels[entityId] = channel;
+            node = channel.AddFirst(new UComponent());
+            exists = false;
+            return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
         }
-        return ref MessageDataLayer.Acquire<UComponent>(messageId, out exists);
+
+        for (node = channel.First!; node != channel.Last; node = node.Next!) {
+            if (node!.Value is UComponent) {
+                exists = true;
+                return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
+            }
+        }
+
+        node = channel.AddFirst(new UComponent());
+        exists = false;
+        return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
     }
 
     public override bool Contains<UComponent>(Guid entityId)
-        => ChannelDataLayer.Contains<Channel<UComponent>>(entityId);
+    {
+        if (_channels.TryGetValue(entityId, out var channel)) {
+            for (var node = channel.First; node != channel.Last; node = node!.Next) {
+                if (node!.Value is UComponent) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     public override bool ContainsAny<UComponent>()
-        => ChannelDataLayer.ContainsAny<Channel<UComponent>>();
+    {
+        foreach (var (_, channel) in _channels) {
+            for (var node = channel.First; node != channel.Last; node = node!.Next) {
+                if (node!.Value is UComponent) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
     public override Guid? Singleton<UComponent>()
-        => ChannelDataLayer.Singleton<Channel<UComponent>>();
+    {
+        foreach (var (entityId, channel) in _channels) {
+            for (var node = channel.First; node != channel.Last; node = node!.Next) {
+                if (node!.Value is UComponent) {
+                    return entityId;
+                }
+            }
+        }
+        return null;
+    }
 
     public override int GetCount()
-        => MessageDataLayer.GetCount();
+        => _channels.Select(t => t.Value.Count).Sum();
 
     public override int GetCount<UComponent>()
-        => MessageDataLayer.GetCount<UComponent>();
+        => _channels.SelectMany(t => t.Value).OfType<UComponent>().Count();
 
     public override IEnumerable<Guid> Query<UComponent>()
-        => ChannelDataLayer.Query<Channel<UComponent>>();
+        => throw new NotSupportedException("Query not supported for channel component");
 
     public override IEnumerable<Guid> Query()
-        => ChannelDataLayer.Query();
+        => throw new NotSupportedException("Query not supported for channel component");
 
     public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
     {
-        ref var channel = ref ChannelDataLayer.Acquire<Channel<UComponent>>(entityId);
-        var messageId = Guid.NewGuid();
-        channel.Messages.Enqueue(messageId);
-        return ref MessageDataLayer.Set<UComponent>(messageId, component);
+        LinkedListNode<object> node;
+
+        if (!_channels.TryGetValue(entityId, out var channel)) {
+            channel = new LinkedList<object>();
+            _channels[entityId] = channel;
+            node = channel.AddFirst(component!);
+            return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
+        }
+
+        node = channel.AddFirst(component!);
+        return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
     }
 
     public override bool Remove<UComponent>(Guid entityId)
     {
-        if (ChannelDataLayer.TryGet<Channel<UComponent>>(entityId, out var channel)
-                && channel.Messages.TryDequeue(out var messageId)) {
-            if (channel.Messages.Count == 0) {
-                ChannelDataLayer.Remove<Channel<UComponent>>(entityId);
+        if (_channels.TryGetValue(entityId, out var channel)) {
+            for (var node = channel.First; node != channel.Last; node = node!.Next) {
+                if (node!.Value is UComponent) {
+                    channel.Remove(node);
+                    return true;
+                }
             }
-            return MessageDataLayer.Remove<UComponent>(messageId);
         }
         return false;
     }
 
     public override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
     {
-        if (ChannelDataLayer.TryGet<Channel<UComponent>>(entityId, out var channel)
-                && channel.Messages.TryDequeue(out var messageId)) {
-            if (channel.Messages.Count == 0) {
-                ChannelDataLayer.Remove<Channel<UComponent>>(entityId);
+        if (_channels.TryGetValue(entityId, out var channel)) {
+            for (var node = channel.First; node != channel.Last; node = node!.Next) {
+                if (node!.Value is UComponent foundComp) {
+                    channel.Remove(node);
+                    component = foundComp;
+                    return true;
+                }
             }
-            return MessageDataLayer.Remove<UComponent>(messageId, out component);
         }
         component = default;
         return false;
@@ -131,68 +159,43 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
 
     public override void RemoveAll<UComponent>()
     {
-        MessageDataLayer.RemoveAll<UComponent>();
-        ChannelDataLayer.RemoveAll<Channel<UComponent>>();
+        foreach (var (_, channel) in _channels) {
+            for (var node = channel.First; node != channel.Last;) {
+                var next = node!.Next;
+                if (node!.Value is UComponent) {
+                    channel.Remove(node);
+                }
+                node = next;
+            }
+        }
     }
 
     public override IEnumerable<object> GetAll(Guid entityId)
-        => ChannelDataLayer.GetAll(entityId)
-            .Select(comp => comp as IChannel)
-            .Where(channel => channel != null)
-            .SelectMany(channel => channel!.Messages)
-            .Select(messageId => MessageDataLayer.GetAll(messageId).First());
+        => _channels.TryGetValue(entityId, out var channel) ? channel : Enumerable.Empty<object>();
 
     public override void Clear(Guid entityId)
     {
-        foreach (var comp in ChannelDataLayer.GetAll(entityId)) {
-            if (comp is not IChannel channel) {
-                continue;
-            }
-            foreach (var messageId in channel.Messages) {
-                MessageDataLayer.Clear(messageId);
-            }
+        if (_channels.Remove(entityId, out var channel)) {
+            channel.Clear();
+            _channelPool.Push(channel);
         }
-        ChannelDataLayer.Clear(entityId);
     }
 
     public override void Clear()
     {
-        ChannelDataLayer.Clear();
-        MessageDataLayer.Clear();
+        foreach (var (_, channel) in _channels) {
+            channel.Clear();
+            _channelPool.Push(channel);
+        }
+        _channels.Clear();
     }
 }
 
 public class ChannelLayer<TSelectedComponent> : ChannelLayer<IComponent, TSelectedComponent>
     where TSelectedComponent : IComponent
 {
-    public ChannelLayer()
-    {
-    }
-
-    public ChannelLayer(IDataLayer<IComponent> messageDataLayer)
-        : base(messageDataLayer)
-    {
-    }
-
-    public ChannelLayer(IDataLayer<IChannel> channelDataLayer, IDataLayer<IComponent> messageDataLayer)
-        : base(channelDataLayer, messageDataLayer)
-    {
-    }
 }
 
 public class ChannelLayer : ChannelLayer<IComponent>
 {
-    public ChannelLayer()
-    {
-    }
-
-    public ChannelLayer(IDataLayer<IComponent> messageDataLayer)
-        : base(messageDataLayer)
-    {
-    }
-
-    public ChannelLayer(IDataLayer<IChannel> channelDataLayer, IDataLayer<IComponent> messageDataLayer)
-        : base(channelDataLayer, messageDataLayer)
-    {
-    }
 }

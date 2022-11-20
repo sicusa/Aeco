@@ -16,26 +16,29 @@ public class RPGGame : CompositeLayer
     private IGameLateUpdateLayer[] _lateUpdateLayers;
 
     public RPGGame(Config config)
-        : base(
-            new Character.Layers(config.EventDataLayer),
-            new Map.Layers(config.EventDataLayer),
+    {
+        var eventDataLayer = new PolyHashStorage<IReactiveEvent>();
+
+        InternalAddSublayers(
+            new Character.Layers(eventDataLayer),
+            new Map.Layers(eventDataLayer),
             new Gameplay.Layers(),
 
-            new ShortLivedCompositeLayer(
-                config.EventDataLayer
-            ),
+            eventDataLayer,
 
-            new PooledChannelLayer<IGameCommand>(),
+            new ChannelLayer<IGameCommand>(),
             new PolyPoolStorage<IPooledGameComponent>(),
             new PolyHashStorage<IGameComponent>(),
             new PolyHashStorage(),
 
             new FileSystemPersistenceLayer<IGameComponent>(
-                "./Save", new JsonEntitySerializer<IGameComponent>())
+                "./Save", new JsonEntitySerializer<IGameComponent>()),
             //new ReadOnlyFileSystemPersistenceLayer(
             //    "./Data", new JsonEntitySerializer<IComponent>())
-        )
-    {
+
+            new ShortLivedCompositeLayer(eventDataLayer)
+        );
+        
         EntityFactory = new EntityFactory<IComponent>();
         _updateLayers = GetSublayersRecursively<IGameUpdateLayer>().ToArray();
         _lateUpdateLayers = GetSublayersRecursively<IGameLateUpdateLayer>().ToArray();
