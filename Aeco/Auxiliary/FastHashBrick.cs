@@ -20,6 +20,7 @@ public class FastHashBrick<TKey, TValue>
     public FastHashBrick(int capacity)
     {
         Blocks = ArrayPool<Block>.Shared.Rent(capacity);
+        Array.Clear(Blocks);
     }
 
     ~FastHashBrick()
