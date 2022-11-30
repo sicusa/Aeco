@@ -30,19 +30,9 @@ public class FastHashBrick<TKey, TValue>
 
     public bool TryGetValue(int index, TKey key, [MaybeNullWhen(false)] out TValue value)
     {
+        int initialIndex = index;
         ref var block = ref Blocks[index];
 
-        if (block.Key.Equals(default)) {
-            if (block.NextBlockIndex == 0) {
-                value = default;
-                return false;
-            }
-            else if (block.NextBlockIndex == -1) {
-                return NextBrick!.TryGetValue(index, key, out value);
-            }
-        }
-
-        int initialIndex = index;
         while (true) {
             if (block.Key.Equals(key)) {
                 value = block.Value;
@@ -62,18 +52,9 @@ public class FastHashBrick<TKey, TValue>
 
     public ref Block FindBlock(int index, TKey key)
     {
+        int initialIndex = index;
         ref var block = ref Blocks[index];
 
-        if (block.Key.Equals(default)) {
-            if (block.NextBlockIndex == 0) {
-                return ref Unsafe.NullRef<Block>();
-            }
-            else if (block.NextBlockIndex == -1) {
-                return ref NextBrick!.FindBlock(index, key);
-            }
-        }
-
-        int initialIndex = index;
         while (true) {
             if (block.Key.Equals(key)) {
                 return ref block;
@@ -92,22 +73,20 @@ public class FastHashBrick<TKey, TValue>
     public ref Block AcquireBlock(int index, TKey key, out bool exists)
     {
         ref var block = ref Blocks[index];
-
-        if (block.Key.Equals(default)) {
-            block.Key = key;
-            exists = false;
-            return ref block;
-        }
-
         int initialIndex = index;
+
         while (true) {
             if (block.Key.Equals(key)) {
                 exists = true;
                 return ref block;
             }
-
             index = block.NextBlockIndex;
             if (index == 0) {
+                if (block.Key.Equals(default)) {
+                    block.Key = key;
+                    exists = false;
+                    return ref block;
+                }
                 int bucketIndex = Blocks.Length - 1;
                 while (bucketIndex > 0 && !Blocks[bucketIndex].Key.Equals(default)) {
                     --bucketIndex;
@@ -135,15 +114,7 @@ public class FastHashBrick<TKey, TValue>
     public ref Block RemoveBlock(int index, TKey key)
     {
         ref var block = ref Blocks[index];
-        if (block.Key.Equals(default)) {
-            if (block.NextBlockIndex == 0) {
-                return ref Unsafe.NullRef<Block>();
-            }
-            else if (block.NextBlockIndex == -1) {
-                return ref NextBrick!.RemoveBlock(index, key);
-            }
-        }
-        else if (block.Key.Equals(key)) {
+        if (block.Key.Equals(key)) {
             block.Key = default!;
             return ref block;
         }
