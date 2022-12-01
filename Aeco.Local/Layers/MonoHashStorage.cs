@@ -36,9 +36,6 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         if (!exists) {
             comp = new TStoredComponent();
             _entityIds.Add(entityId);
-            if (_singleton == null) {
-                _singleton = entityId;
-            }
         }
         return ref comp!;
     }
@@ -48,14 +45,6 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     public override bool ContainsAny()
         => _singleton != null;
-
-    private Guid? ResetSingleton()
-    {
-        if (_entityIds.Count != 0) {
-            _singleton = _entityIds.First();
-        }
-        return _singleton;
-    }
 
     private bool RawRemove(Guid entityId)
     {
@@ -91,10 +80,15 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     {
         ref TStoredComponent? value = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, entityId, out _existsTemp);
         value = component;
-        if (_singleton == null) {
-            _singleton = entityId;
-        }
         return ref value!;
+    }
+
+    private Guid? ResetSingleton()
+    {
+        if (_entityIds.Count != 0) {
+            _singleton = _entityIds.First();
+        }
+        return _singleton;
     }
 
     public override Guid? Singleton()

@@ -58,9 +58,6 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         if (!exists) {
             block.Value = new();
             _entityIds.Add(entityId);
-            if (_singleton == null) {
-                _singleton = entityId;
-            }
         }
         return ref block.Value;
     }
@@ -79,7 +76,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         return _singleton;
     }
 
-    private void ClearBlock(ref FastHashBrick<Guid, TStoredComponent>.Block block, in Guid entityId)
+    private void ClearBlock(ref FastHashBrick<Guid, TStoredComponent>.Block block, Guid entityId)
     {
         block.Value = default!;
         _entityIds.Remove(entityId);
