@@ -27,6 +27,12 @@ public class EnumArray<TKey, TElement>
         }
     }
 
+    protected EnumArray(EnumArray<TKey, TElement> other)
+    {
+        _array = (TElement[])other._array.Clone();
+        _lower = other._lower;
+    }
+
     public TElement this[TKey key]
     {
         get { return _array[Convert.ToInt32(key) - _lower]; }
@@ -68,9 +74,7 @@ public class EnumArray<TKey, TElement>
     }
 
     public object Clone()
-    {
-        return _array.Clone();
-    }
+        => new EnumArray<TKey, TElement>(this);
 
     void ICollection<TElement>.Add(TElement item)
         => ((ICollection<TElement>)_array).Add(item);
