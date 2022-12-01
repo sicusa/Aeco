@@ -306,7 +306,7 @@ public class CompositeLayer<TComponent, TSublayer>
     }
 
     public override IEnumerable<Guid> Query()
-        => EntityUtil.Union(_dataLayers.Keys.Select(l => l.Query()), _dataLayers.Count);
+        => QueryUtil.Union(_dataLayers.Keys.Select(l => l.Query()));
 
     public override bool Remove<UComponent>(Guid entityId)
     {
