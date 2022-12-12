@@ -1,5 +1,5 @@
 namespace Aeco.Reactive;
 
-public struct AnyModified<TComponent> : IReactiveEvent<TComponent>
+public struct AnyModified<TComponent> : IAnyReactiveEvent<TComponent>
 {
 }
