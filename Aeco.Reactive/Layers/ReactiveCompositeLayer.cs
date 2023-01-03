@@ -105,36 +105,6 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
         }
         base.RemoveAll<UComponent>();
     }
-
-    public override void Clear(Guid entityId)
-    {
-        foreach (var comp in GetAll(entityId)) {
-            var compType = comp.GetType();
-            LayerUtil<IReactiveEvent>.DynamicAcquire(
-                EventDataLayer, typeof(Removed<>).MakeGenericType(compType), entityId);
-            LayerUtil<IReactiveEvent>.DynamicAcquire(
-                EventDataLayer, typeof(AnyRemoved<>).MakeGenericType(compType), ReactiveCompositeLayer.AnyEventId);
-            LayerUtil<IReactiveEvent>.DynamicAcquire(
-                EventDataLayer, typeof(AnyCreatedOrRemoved<>).MakeGenericType(compType), ReactiveCompositeLayer.AnyEventId);
-        }
-        base.Clear(entityId);
-    }
-
-    public override void Clear()
-    {
-        foreach (var entityId in Query()) {
-            foreach (var comp in GetAll(entityId)) {
-                var compType = comp.GetType();
-                LayerUtil<IReactiveEvent>.DynamicAcquire(
-                    EventDataLayer, typeof(Removed<>).MakeGenericType(compType), entityId);
-                LayerUtil<IReactiveEvent>.DynamicAcquire(
-                    EventDataLayer, typeof(AnyRemoved<>).MakeGenericType(compType), ReactiveCompositeLayer.AnyEventId);
-                LayerUtil<IReactiveEvent>.DynamicAcquire(
-                    EventDataLayer, typeof(AnyCreatedOrRemoved<>).MakeGenericType(compType), ReactiveCompositeLayer.AnyEventId);
-            }
-        }
-        base.Clear();
-    }
 }
 
 public class ReactiveCompositeLayer<TComponent> : ReactiveCompositeLayer<TComponent, ILayer<TComponent>>
