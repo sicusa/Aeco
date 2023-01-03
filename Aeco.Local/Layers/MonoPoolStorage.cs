@@ -63,7 +63,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     }
 
     public override bool Contains(Guid entityId)
-        => _entityIds.Contains(entityId);
+        => _brick.Contains(GetIndex(entityId), entityId);
 
     public override bool ContainsAny()
         => _singleton != null;

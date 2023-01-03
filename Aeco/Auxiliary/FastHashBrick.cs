@@ -15,27 +15,26 @@ public class FastHashBrick<TKey, TValue>
     }
 
     public int Capacity { get; private set; }
+    public int Count { get; private set; }
 
     private Block[] _blocks;
     private FastHashBrick<TKey, TValue>? _nextBrick;
 
+    private static Stack<FastHashBrick<TKey, TValue>> s_pool = new();
+
     public FastHashBrick(int capacity)
     {
         Capacity = capacity;
-        _blocks = ArrayPool<Block>.Shared.Rent(capacity);
-        Array.Clear(_blocks);
-    }
-
-    ~FastHashBrick()
-    {
-        ArrayPool<Block>.Shared.Return(_blocks);
+        _blocks = new Block[capacity];
     }
 
     public bool TryGetValue(int index, TKey key, [MaybeNullWhen(false)] out TValue value)
     {
         if (key.Equals(default)) {
-            throw new InvalidOperationException("Key cannot be default value");
+            value = default;
+            return false;
         }
+
         int initialIndex = index;
         ref var block = ref _blocks[index];
 
@@ -59,8 +58,9 @@ public class FastHashBrick<TKey, TValue>
     public ref Block FindBlock(int index, TKey key)
     {
         if (key.Equals(default)) {
-            throw new InvalidOperationException("Key cannot be default value");
+            return ref Unsafe.NullRef<Block>();
         }
+
         int initialIndex = index;
         ref var block = ref _blocks[index];
 
@@ -79,12 +79,44 @@ public class FastHashBrick<TKey, TValue>
         }
     }
 
+    public bool Contains(int index, TKey key)
+    {
+        if (key.Equals(default)) {
+            return false;
+        }
+
+        int initialIndex = index;
+        ref var block = ref _blocks[index];
+
+        while (true) {
+            if (block.Key.Equals(key)) {
+                return true;
+            }
+            index = block.NextBlockIndex;
+            if (index == 0) {
+                return false;
+            }
+            else if (index == -1) {
+                return _nextBrick!.Contains(initialIndex, key);
+            }
+            block = ref _blocks[index];
+        }
+    }
+
     public ref Block AcquireBlock(int index, TKey key, out bool exists)
     {
         if (key.Equals(default)) {
             throw new InvalidOperationException("Key cannot be default value");
         }
+
         ref var block = ref _blocks[index];
+        if (block.Key.Equals(default)) {
+            block.Key = key;
+            ++Count;
+            exists = false;
+            return ref block;
+        }
+
         int initialIndex = index;
 
         while (true) {
@@ -96,11 +128,12 @@ public class FastHashBrick<TKey, TValue>
             if (index == 0) {
                 if (block.Key.Equals(default)) {
                     block.Key = key;
+                    ++Count;
                     exists = false;
                     return ref block;
                 }
 
-                int bucketIndex = _blocks.Length - 1;
+                int bucketIndex = Capacity - 1;
                 while (bucketIndex > 0 && !_blocks[bucketIndex].Key.Equals(default)) {
                     --bucketIndex;
                 }
@@ -114,6 +147,7 @@ public class FastHashBrick<TKey, TValue>
                 bucket.Key = key;
                 block.NextBlockIndex = bucketIndex;
 
+                ++Count;
                 exists = false;
                 return ref bucket;
             }
@@ -127,11 +161,13 @@ public class FastHashBrick<TKey, TValue>
     public ref Block RemoveBlock(int index, TKey key)
     {
         if (key.Equals(default)) {
-            throw new InvalidOperationException("Key cannot be default value");
+            return ref Unsafe.NullRef<Block>();
         }
+
         ref var block = ref _blocks[index];
         if (block.Key.Equals(key)) {
             block.Key = default!;
+            --Count;
             return ref block;
         }
 
@@ -152,6 +188,7 @@ public class FastHashBrick<TKey, TValue>
                 _blocks[prevIndex].NextBlockIndex = block.NextBlockIndex;
                 block.NextBlockIndex = 0;
                 block.Key = default!;
+                --Count;
                 return ref block;
             }
         }
@@ -159,8 +196,11 @@ public class FastHashBrick<TKey, TValue>
 
     public void Clear()
     {
-        Array.Clear(_blocks);
-        _nextBrick = null;
+        if (Count != 0) {
+            Array.Clear(_blocks);
+            Count = 0;
+        }
+        _nextBrick?.Clear();
     }
 }
 
