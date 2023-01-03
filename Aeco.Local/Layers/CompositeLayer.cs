@@ -182,6 +182,7 @@ public class CompositeLayer<TComponent, TSublayer>
             return cachedLayer;
         }
         foreach (var sublayer in Sublayers) {
+            IDataLayer<TComponent> sublayerAsDataLayer;
             IDataLayer<TComponent>? dataLayer;
             if (sublayer is IDataLayerTree<TComponent> dataLayerTree) {
                 if (!dataLayerTree.CheckSupported(compT)) { continue; }
@@ -189,16 +190,18 @@ public class CompositeLayer<TComponent, TSublayer>
                 if (terminalDataLayer == null) {
                     continue;
                 }
+                sublayerAsDataLayer = (IDataLayer<TComponent>)dataLayerTree;
                 dataLayer = dataLayerTree.IsSublayerCachable
-                    ? terminalDataLayer : (IDataLayer<TComponent>)dataLayerTree;
+                    ? terminalDataLayer : sublayerAsDataLayer;
             }
             else {
                 dataLayer = sublayer as IDataLayer<TComponent>;
                 if (dataLayer == null || !dataLayer.CheckSupported(compT)) {
                     continue;
                 }
+                sublayerAsDataLayer = dataLayer;
             }
-            ImmutableInterlocked.AddOrUpdate(ref _dataLayers, dataLayer,
+            ImmutableInterlocked.AddOrUpdate(ref _dataLayers, sublayerAsDataLayer,
                 _ => ImmutableHashSet<Type>.Empty, (_, comps) => comps.Add(compT));
             ImmutableInterlocked.TryAdd(ref _dataLayerCache, compT, dataLayer);
             return dataLayer;
