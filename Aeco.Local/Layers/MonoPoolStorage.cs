@@ -13,24 +13,18 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     private FastHashBrick<Guid, TStoredComponent> _brick;
     private SortedSet<Guid> _entityIds = new();
 
-    private int _cellarCapacity;
     private Guid? _singleton;
     private bool _existsTemp;
 
     public MonoPoolStorage(int brickCapacity = MonoPoolStorage.DefaultBrickCapacity)
     {
         BrickCapacity = brickCapacity;
-        _cellarCapacity = FastHashBrick.CalculateProperCellarCapacity(brickCapacity);
         _brick = new(brickCapacity);
     }
-    
-    private int GetIndex(Guid entityId)
-        => FastHashBrick.CalculateIndex(entityId.GetHashCode(), _cellarCapacity);
 
     public override bool TryGet(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
     {
-        int index = GetIndex(entityId);
-        ref var block = ref _brick.FindBlock(index, entityId);
+        ref var block = ref _brick.FindBlock(entityId);
         if (Unsafe.IsNullRef(ref block)) {
             component = default;
             return false;
@@ -41,8 +35,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     public override ref TStoredComponent Require(Guid entityId)
     {
-        int index = GetIndex(entityId);
-        ref var block = ref _brick.FindBlock(index, entityId);
+        ref var block = ref _brick.FindBlock(entityId);
         if (Unsafe.IsNullRef(ref block)) {
             throw new KeyNotFoundException("Component not found");
         }
@@ -54,7 +47,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     public override ref TStoredComponent Acquire(Guid entityId, out bool exists)
     {
-        ref var block = ref _brick.AcquireBlock(GetIndex(entityId), entityId, out exists);
+        ref var block = ref _brick.AcquireBlock(entityId, out exists);
         if (!exists) {
             block.Value = new();
             _entityIds.Add(entityId);
@@ -63,7 +56,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     }
 
     public override bool Contains(Guid entityId)
-        => _brick.Contains(GetIndex(entityId), entityId);
+        => _brick.Contains(entityId);
 
     public override bool ContainsAny()
         => _singleton != null;
@@ -87,8 +80,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     public override bool Remove(Guid entityId)
     {
-        int index = GetIndex(entityId);
-        ref var block = ref _brick.RemoveBlock(index, entityId);
+        ref var block = ref _brick.RemoveBlock(entityId);
         if (Unsafe.IsNullRef(ref block)) {
             return false;
         }
@@ -98,8 +90,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     public override bool Remove(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
     {
-        int index = GetIndex(entityId);
-        ref var block = ref _brick.RemoveBlock(index, entityId);
+        ref var block = ref _brick.RemoveBlock(entityId);
         if (Unsafe.IsNullRef(ref block)) {
             component = default;
             return false;
@@ -111,8 +102,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     public override ref TStoredComponent Set(Guid entityId, in TStoredComponent component)
     {
-        int index = GetIndex(entityId);
-        ref var block = ref _brick.AcquireBlock(index, entityId, out _existsTemp);
+        ref var block = ref _brick.AcquireBlock(entityId, out _existsTemp);
         if (!_existsTemp) {
             _entityIds.Add(entityId);
         }
@@ -131,8 +121,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     public override IEnumerable<object> GetAll(Guid entityId)
     {
-        int index = GetIndex(entityId);
-        ref var block = ref _brick.FindBlock(index, entityId);
+        ref var block = ref _brick.FindBlock(entityId);
         if (Unsafe.IsNullRef(ref block)) {
             return Enumerable.Empty<object>();
         }
