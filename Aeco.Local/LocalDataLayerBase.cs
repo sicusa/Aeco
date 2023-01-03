@@ -35,12 +35,12 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
     public ref readonly UComponent InspectAny<UComponent>()
         where UComponent : TComponent
         => ref Inspect<UComponent>(RequireSingleton<UComponent>());
-    public virtual ref UComponent UnsafeInspect<UComponent>(Guid entityId)
+    public virtual ref UComponent InspectRaw<UComponent>(Guid entityId)
         where UComponent : TComponent
         => ref Require<UComponent>(entityId);
-    public ref UComponent UnsafeInspectAny<UComponent>()
+    public ref UComponent InspectAnyRaw<UComponent>()
         where UComponent : TComponent
-        => ref UnsafeInspect<UComponent>(RequireSingleton<UComponent>());
+        => ref InspectRaw<UComponent>(RequireSingleton<UComponent>());
     public abstract bool Contains<UComponent>(Guid entityId)
         where UComponent : TComponent;
     public abstract bool ContainsAny<UComponent>()
@@ -62,10 +62,10 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
     public ref UComponent AcquireAny<UComponent>(out bool exists)
         where UComponent : TComponent, new()
         => ref Acquire<UComponent>(Singleton<UComponent>() ?? Guid.NewGuid(), out exists);
-    public virtual ref UComponent UnsafeAcquire<UComponent>(Guid entityId)
+    public virtual ref UComponent AcquireRaw<UComponent>(Guid entityId)
         where UComponent : TComponent, new()
         => ref Acquire<UComponent>(entityId);
-    public virtual ref UComponent UnsafeAcquire<UComponent>(Guid entityId, out bool exists)
+    public virtual ref UComponent AcquireRaw<UComponent>(Guid entityId, out bool exists)
         where UComponent : TComponent, new()
         => ref Acquire<UComponent>(entityId, out exists);
 

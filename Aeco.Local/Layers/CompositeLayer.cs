@@ -227,10 +227,10 @@ public class CompositeLayer<TComponent, TSublayer>
         return ref dataLayer.Inspect<UComponent>(entityId);
     }
 
-    public override ref UComponent UnsafeInspect<UComponent>(Guid entityId)
+    public override ref UComponent InspectRaw<UComponent>(Guid entityId)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();
-        return ref dataLayer.UnsafeInspect<UComponent>(entityId);
+        return ref dataLayer.InspectRaw<UComponent>(entityId);
     }
 
     public override ref UComponent Require<UComponent>(Guid entityId)
@@ -251,16 +251,16 @@ public class CompositeLayer<TComponent, TSublayer>
         return ref dataLayer.Acquire<UComponent>(entityId, out exists);
     }
 
-    public override ref UComponent UnsafeAcquire<UComponent>(Guid entityId)
+    public override ref UComponent AcquireRaw<UComponent>(Guid entityId)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();
-        return ref dataLayer.UnsafeAcquire<UComponent>(entityId);
+        return ref dataLayer.AcquireRaw<UComponent>(entityId);
     }
 
-    public override ref UComponent UnsafeAcquire<UComponent>(Guid entityId, out bool exists)
+    public override ref UComponent AcquireRaw<UComponent>(Guid entityId, out bool exists)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();
-        return ref dataLayer.UnsafeAcquire<UComponent>(entityId, out exists);
+        return ref dataLayer.AcquireRaw<UComponent>(entityId, out exists);
     }
 
     public override bool Contains<UComponent>(Guid entityId)

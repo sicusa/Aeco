@@ -23,10 +23,10 @@ public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
         => ref Require(entityId);
     public ref readonly TStoredComponent InspectAny()
         => ref Inspect(RequireSingleton());
-    public virtual ref TStoredComponent UnsafeInspect(Guid entityId)
+    public virtual ref TStoredComponent InspectRaw(Guid entityId)
         => ref Require(entityId);
-    public ref TStoredComponent UnsafeInspectAny()
-        => ref UnsafeInspect(RequireSingleton());
+    public ref TStoredComponent InspectAnyRaw()
+        => ref InspectRaw(RequireSingleton());
     public abstract bool Contains(Guid entityId);
     public abstract bool ContainsAny();
 
@@ -42,9 +42,9 @@ public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
         => ref Acquire(Singleton() ?? Guid.NewGuid());
     public ref TStoredComponent AcquireAny(out bool exists)
         => ref Acquire(Singleton() ?? Guid.NewGuid(), out exists);
-    public virtual ref TStoredComponent UnsafeAcquire(Guid entityId)
+    public virtual ref TStoredComponent AcquireRaw(Guid entityId)
         => ref Acquire(entityId);
-    public virtual ref TStoredComponent UnsafeAcquire(Guid entityId, out bool exists)
+    public virtual ref TStoredComponent AcquireRaw(Guid entityId, out bool exists)
         => ref Acquire(entityId, out exists);
 
     public abstract bool Remove(Guid entityId);
@@ -77,8 +77,8 @@ public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
         => Convert<UComponent>().TryGet(entityId, out component);
     public sealed override ref readonly UComponent Inspect<UComponent>(Guid entityId)
         => ref Convert<UComponent>().Inspect(entityId);
-    public sealed override ref UComponent UnsafeInspect<UComponent>(Guid entityId)
-        => ref Convert<UComponent>().UnsafeInspect(entityId);
+    public sealed override ref UComponent InspectRaw<UComponent>(Guid entityId)
+        => ref Convert<UComponent>().InspectRaw(entityId);
     public sealed override bool Contains<UComponent>(Guid entityId)
         => Convert<UComponent>().Contains(entityId);
     public sealed override bool ContainsAny<UComponent>()
@@ -91,10 +91,10 @@ public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
         => ref Convert<UComponent>().Acquire(entityId);
     public sealed override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
         => ref Convert<UComponent>().Acquire(entityId, out exists);
-    public sealed override ref UComponent UnsafeAcquire<UComponent>(Guid entityId)
-        => ref Convert<UComponent>().UnsafeAcquire(entityId);
-    public sealed override ref UComponent UnsafeAcquire<UComponent>(Guid entityId, out bool exists)
-        => ref Convert<UComponent>().UnsafeAcquire(entityId, out exists);
+    public sealed override ref UComponent AcquireRaw<UComponent>(Guid entityId)
+        => ref Convert<UComponent>().AcquireRaw(entityId);
+    public sealed override ref UComponent AcquireRaw<UComponent>(Guid entityId, out bool exists)
+        => ref Convert<UComponent>().AcquireRaw(entityId, out exists);
     public sealed override bool Remove<UComponent>(Guid entityId)
         => Convert<UComponent>().Remove(entityId);
     public sealed override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)

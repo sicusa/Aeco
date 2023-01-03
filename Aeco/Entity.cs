@@ -47,9 +47,9 @@ public class Entity<TComponent, TDataLayer> : IEntity<TComponent>
         where UComponent : TComponent
         => ref _dataLayer.Inspect<UComponent>(Id);
 
-    public ref UComponent UnsafeInspect<UComponent>()
+    public ref UComponent InspectRaw<UComponent>()
         where UComponent : TComponent
-        => ref _dataLayer.UnsafeInspect<UComponent>(Id);
+        => ref _dataLayer.InspectRaw<UComponent>(Id);
 
     public ref UComponent Require<UComponent>()
         where UComponent : TComponent
@@ -63,13 +63,13 @@ public class Entity<TComponent, TDataLayer> : IEntity<TComponent>
         where UComponent : TComponent, new()
         => ref _dataLayer.Acquire<UComponent>(Id, out exists);
 
-    public ref UComponent UnsafeAcquire<UComponent>()
+    public ref UComponent AcquireRaw<UComponent>()
         where UComponent : TComponent, new()
-        => ref _dataLayer.UnsafeAcquire<UComponent>(Id);
+        => ref _dataLayer.AcquireRaw<UComponent>(Id);
 
-    public ref UComponent UnsafeAcquire<UComponent>(out bool exists)
+    public ref UComponent AcquireRaw<UComponent>(out bool exists)
         where UComponent : TComponent, new()
-        => ref _dataLayer.UnsafeAcquire<UComponent>(Id, out exists);
+        => ref _dataLayer.AcquireRaw<UComponent>(Id, out exists);
     
     public bool Contains<UComponent>()
         where UComponent : TComponent

@@ -20,7 +20,7 @@ public interface IEntity<in TComponent> : IReadOnlyEntity<TComponent>
 {
     IEnumerable<object> Components { get; }
 
-    ref UComponent UnsafeInspect<UComponent>()
+    ref UComponent InspectRaw<UComponent>()
         where UComponent : TComponent;
     ref UComponent Require<UComponent>()
         where UComponent : TComponent;
@@ -28,9 +28,9 @@ public interface IEntity<in TComponent> : IReadOnlyEntity<TComponent>
         where UComponent : TComponent, new();
     ref UComponent Acquire<UComponent>(out bool exists)
         where UComponent : TComponent, new();
-    ref UComponent UnsafeAcquire<UComponent>()
+    ref UComponent AcquireRaw<UComponent>()
         where UComponent : TComponent, new();
-    ref UComponent UnsafeAcquire<UComponent>(out bool exists)
+    ref UComponent AcquireRaw<UComponent>(out bool exists)
         where UComponent : TComponent, new();
     bool Remove<UComponent>()
         where UComponent : TComponent;

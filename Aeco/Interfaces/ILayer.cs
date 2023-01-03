@@ -61,9 +61,9 @@ public interface IDataLayer<in TComponent>
     IEntity<TComponent> GetEntity<UComponent>()
         where UComponent : TComponent;
 
-    ref UComponent UnsafeInspect<UComponent>(Guid entityId)
+    ref UComponent InspectRaw<UComponent>(Guid entityId)
         where UComponent : TComponent;
-    ref UComponent UnsafeInspectAny<UComponent>()
+    ref UComponent InspectAnyRaw<UComponent>()
         where UComponent : TComponent;
 
     ref UComponent Require<UComponent>(Guid entityId)
@@ -80,9 +80,9 @@ public interface IDataLayer<in TComponent>
     ref UComponent AcquireAny<UComponent>(out bool exists)
         where UComponent : TComponent, new();
 
-    ref UComponent UnsafeAcquire<UComponent>(Guid entityId)
+    ref UComponent AcquireRaw<UComponent>(Guid entityId)
         where UComponent : TComponent, new();
-    ref UComponent UnsafeAcquire<UComponent>(Guid entityId, out bool exists)
+    ref UComponent AcquireRaw<UComponent>(Guid entityId, out bool exists)
         where UComponent : TComponent, new();
 
     bool Remove<UComponent>(Guid entityId)
@@ -126,8 +126,8 @@ public interface IMonoDataLayer<in TComponent, TStoredComponent>
 {
     IEntity<TStoredComponent> GetEntity();
 
-    ref TStoredComponent UnsafeInspect(Guid entityId);
-    ref TStoredComponent UnsafeInspectAny();
+    ref TStoredComponent InspectRaw(Guid entityId);
+    ref TStoredComponent InspectAnyRaw();
 
     ref TStoredComponent Require(Guid entityId);
     ref TStoredComponent RequireAny();
@@ -136,8 +136,8 @@ public interface IMonoDataLayer<in TComponent, TStoredComponent>
     ref TStoredComponent Acquire(Guid entityId, out bool exists);
     ref TStoredComponent AcquireAny();
     ref TStoredComponent AcquireAny(out bool exists);
-    ref TStoredComponent UnsafeAcquire(Guid entityId);
-    ref TStoredComponent UnsafeAcquire(Guid entityId, out bool exists);
+    ref TStoredComponent AcquireRaw(Guid entityId);
+    ref TStoredComponent AcquireRaw(Guid entityId, out bool exists);
 
     bool Remove(Guid entityId);
     bool RemoveAny();

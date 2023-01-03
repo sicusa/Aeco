@@ -61,24 +61,24 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
         }
     }
 
-    public ref UComponent UnsafeInspect<UComponent>(Guid entityId)
+    public ref UComponent InspectRaw<UComponent>(Guid entityId)
         where UComponent : TComponent
     {
         _lockSlim.EnterReadLock();
         try {
-            return ref _inner.UnsafeInspect<UComponent>(entityId);
+            return ref _inner.InspectRaw<UComponent>(entityId);
         }
         finally {
             _lockSlim.ExitReadLock();
         }
     }
 
-    public ref UComponent UnsafeInspectAny<UComponent>()
+    public ref UComponent InspectAnyRaw<UComponent>()
         where UComponent : TComponent
     {
         _lockSlim.EnterReadLock();
         try {
-            return ref _inner.UnsafeInspectAny<UComponent>();
+            return ref _inner.InspectAnyRaw<UComponent>();
         }
         finally {
             _lockSlim.ExitReadLock();
@@ -180,24 +180,24 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
         }
     }
 
-    public ref UComponent UnsafeAcquire<UComponent>(Guid entityId)
+    public ref UComponent AcquireRaw<UComponent>(Guid entityId)
         where UComponent : TComponent, new()
     {
         _lockSlim.EnterWriteLock();
         try {
-            return ref _inner.UnsafeAcquire<UComponent>(entityId);
+            return ref _inner.AcquireRaw<UComponent>(entityId);
         }
         finally {
             _lockSlim.ExitWriteLock();
         }
     }
 
-    public ref UComponent UnsafeAcquire<UComponent>(Guid entityId, out bool exists)
+    public ref UComponent AcquireRaw<UComponent>(Guid entityId, out bool exists)
         where UComponent : TComponent, new()
     {
         _lockSlim.EnterWriteLock();
         try {
-            return ref _inner.UnsafeAcquire<UComponent>(entityId, out exists);
+            return ref _inner.AcquireRaw<UComponent>(entityId, out exists);
         }
         finally {
             _lockSlim.ExitWriteLock();
