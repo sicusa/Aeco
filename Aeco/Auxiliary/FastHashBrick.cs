@@ -33,6 +33,9 @@ public class FastHashBrick<TKey, TValue>
 
     public bool TryGetValue(int index, TKey key, [MaybeNullWhen(false)] out TValue value)
     {
+        if (key.Equals(default)) {
+            throw new InvalidOperationException("Key cannot be default value");
+        }
         int initialIndex = index;
         ref var block = ref _blocks[index];
 
@@ -55,6 +58,9 @@ public class FastHashBrick<TKey, TValue>
 
     public ref Block FindBlock(int index, TKey key)
     {
+        if (key.Equals(default)) {
+            throw new InvalidOperationException("Key cannot be default value");
+        }
         int initialIndex = index;
         ref var block = ref _blocks[index];
 
@@ -120,6 +126,9 @@ public class FastHashBrick<TKey, TValue>
 
     public ref Block RemoveBlock(int index, TKey key)
     {
+        if (key.Equals(default)) {
+            throw new InvalidOperationException("Key cannot be default value");
+        }
         ref var block = ref _blocks[index];
         if (block.Key.Equals(key)) {
             block.Key = default!;
