@@ -67,6 +67,12 @@ public abstract class GroupBase : IGroup
 
     public bool Remove(Guid item)
         => ((ICollection<Guid>)_l).Remove(item);
+    
+    public void Sort(Comparison<Guid> comparision)
+        => _l.Sort(comparision);
+
+    public void Sort(IComparer<Guid> comparer)
+        => _l.Sort(comparer);
 }
 
 public class Group<T1> : GroupBase
