@@ -21,8 +21,6 @@ public class FastHashBrick<TKey, TValue>
     private Block[] _blocks;
     private FastHashBrick<TKey, TValue>? _nextBrick;
 
-    private bool _shouldRemoveNextBrickRef;
-
     public FastHashBrick(int capacity)
     {
         Capacity = capacity;
@@ -212,7 +210,6 @@ public class FastHashBrick<TKey, TValue>
             block.Key = default!;
             if (block.NextBlockIndex == 0) {
                 --SlotCount;
-                _shouldRemoveNextBrickRef = true;
             }
             return ref block;
         }
@@ -228,13 +225,7 @@ public class FastHashBrick<TKey, TValue>
                 return ref Unsafe.NullRef<Block>();
             }
             else if (index == -1) {
-                _shouldRemoveNextBrickRef = false;
-                ref var removedBlock = ref _nextBrick!.RemoveBlock(initialIndex, key);
-                if (_shouldRemoveNextBrickRef) {
-                    _shouldRemoveNextBrickRef = prevIndex == initialIndex;
-                    block.NextBlockIndex = 0;
-                }
-                return ref removedBlock;
+                return ref _nextBrick!.RemoveBlock(initialIndex, key);
             }
 
             block = ref _blocks[index == -2 ? 0 : index];
@@ -243,14 +234,12 @@ public class FastHashBrick<TKey, TValue>
                 _blocks[prevIndex].NextBlockIndex = block.NextBlockIndex;
                 block.Key = default!;
 
-                _shouldRemoveNextBrickRef = false;
                 if (index >= CellarCapacity) {
                     block.NextBlockIndex = 0;
                     --SlotCount;
                 }
                 else if (block.NextBlockIndex == 0) {
                     --SlotCount;
-                    _shouldRemoveNextBrickRef = prevIndex == initialIndex;
                 }
 
                 return ref block;
