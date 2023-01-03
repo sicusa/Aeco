@@ -38,6 +38,19 @@ public static class RPGTests
 
         var enemy = game.CreateEntity().AsEnemy(map.Id);
 
+        var ids = new List<Guid>();
+        for (int i = 0; i < 2000; ++i) {
+            var entity = game.CreateEntity();
+            entity.AsEnemy(map.Id);
+            ids.Add(entity.Id);
+        }
+        foreach (var id in ids) {
+            if (!game.Contains<Enemy>(id)) {
+                Console.WriteLine("Not found");
+            }
+        }
+        Console.WriteLine("Enemy count: " + game.GetCount<Enemy>());
+
         // frame 2
 
         game.Update(0.5f);
@@ -70,7 +83,9 @@ public static class RPGTests
         // frame 7
 
         game.Update(0.5f);
+
         Console.WriteLine("Enemy Alive: " + enemy.Contains<Health>());
+        Console.WriteLine("Enemy count: " + game.GetCount<Enemy>());
 
         player.Acquire<Persistent>();
         player.Dispose();
