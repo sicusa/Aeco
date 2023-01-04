@@ -1,6 +1,5 @@
 namespace Aeco;
 
-using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
 
@@ -16,7 +15,7 @@ public class FastHashBrick<TKey, TValue>
 
     public int Capacity { get; private set; }
     public int CellarCapacity { get; private set; }
-    public int SlotCount { get; private set; }
+    public int Count { get; private set; }
 
     private Block[] _blocks;
     private FastHashBrick<TKey, TValue>? _nextBrick;
@@ -50,14 +49,15 @@ public class FastHashBrick<TKey, TValue>
                 return true;
             }
             index = block.NextBlockIndex;
+
             if (index == 0) {
+                if (_nextBrick != null && _nextBrick.Count > 0) {
+                    return _nextBrick.TryGetValue(index, key, out value);
+                }
                 value = default;
                 return false;
             }
-            else if (index == -1) {
-                return _nextBrick!.TryGetValue(initialIndex, key, out value);
-            }
-            block = ref _blocks[index == -2 ? 0 : index];
+            block = ref _blocks[index == -1 ? 0 : index];
         }
     }
 
@@ -79,12 +79,12 @@ public class FastHashBrick<TKey, TValue>
             }
             index = block.NextBlockIndex;
             if (index == 0) {
+                if (_nextBrick != null && _nextBrick.Count > 0) {
+                    return ref _nextBrick.FindBlock(initialIndex, key);
+                }
                 return ref Unsafe.NullRef<Block>();
             }
-            else if (index == -1) {
-                return ref _nextBrick!.FindBlock(initialIndex, key);
-            }
-            block = ref _blocks[index == -2 ? 0 : index];
+            block = ref _blocks[index == -1 ? 0 : index];
         }
     }
 
@@ -106,17 +106,17 @@ public class FastHashBrick<TKey, TValue>
             }
             index = block.NextBlockIndex;
             if (index == 0) {
+                if (_nextBrick != null && _nextBrick.Count > 0) {
+                    return _nextBrick.Contains(initialIndex, key);
+                }
                 return false;
             }
-            else if (index == -1) {
-                return _nextBrick!.Contains(initialIndex, key);
-            }
-            block = ref _blocks[index == -2 ? 0 : index];
+            block = ref _blocks[index == -1 ? 0 : index];
         }
     }
 
     private bool IsBlockInUse(ref Block block)
-        => !block.Key.Equals(default) || block.NextBlockIndex != 0;
+        => !block.Key.Equals(default);
 
     public ref Block AcquireBlock(TKey key, out bool exists)
         => ref AcquireBlock(GetIndex(key), key, out exists);
@@ -133,9 +133,7 @@ public class FastHashBrick<TKey, TValue>
         while (true) {
             if (block.Key.Equals(default)) {
                 block.Key = key;
-                if (block.NextBlockIndex == 0) {
-                    ++SlotCount;
-                }
+                ++Count;
                 exists = false;
                 return ref block;
             }
@@ -145,35 +143,17 @@ public class FastHashBrick<TKey, TValue>
             }
             index = block.NextBlockIndex;
             if (index == 0) {
-                if (SlotCount >= Capacity) {
+                if (Count >= Capacity) {
                     _nextBrick ??= new(Capacity);
-                    block.NextBlockIndex = -1;
                     return ref _nextBrick.AcquireBlock(initialIndex, key, out exists);
                 }
 
-                int bucketIndex = Capacity - 1;
-                while (IsBlockInUse(ref _blocks[bucketIndex])) {
-                    --bucketIndex;
-                }
-
-                ref var bucket = ref _blocks[bucketIndex];
-                bucket.Key = key;
-                block.NextBlockIndex = bucketIndex == 0 ? -2 : bucketIndex;
-
-                ++SlotCount;
-
-                exists = false;
-                return ref bucket;
-            }
-            else if (index == -1) {
-                if (SlotCount >= Capacity) {
-                    return ref _nextBrick!.AcquireBlock(initialIndex, key, out exists);
-                }
-
-                ref var foundBlock = ref _nextBrick!.FindBlock(initialIndex, key);
-                if (!Unsafe.IsNullRef(ref foundBlock)) {
-                    exists = true;
-                    return ref foundBlock;
+                if (_nextBrick != null && _nextBrick.Count > 0) {
+                    ref var foundBlock = ref _nextBrick!.FindBlock(initialIndex, key);
+                    if (!Unsafe.IsNullRef(ref foundBlock)) {
+                        exists = true;
+                        return ref foundBlock;
+                    }
                 }
 
                 int bucketIndex = Capacity - 1;
@@ -183,16 +163,13 @@ public class FastHashBrick<TKey, TValue>
 
                 ref var bucket = ref _blocks[bucketIndex];
                 bucket.Key = key;
-                bucket.NextBlockIndex = -1;
-                block.NextBlockIndex = bucketIndex == 0 ? -2 : bucketIndex;
+                block.NextBlockIndex = bucketIndex == 0 ? -1 : bucketIndex;
 
-                ++SlotCount;
-
+                ++Count;
                 exists = false;
                 return ref bucket;
             }
-
-            block = ref _blocks[index == -2 ? 0 : index];
+            block = ref _blocks[index == -1 ? 0 : index];
         }
     }
 
@@ -208,9 +185,7 @@ public class FastHashBrick<TKey, TValue>
         ref var block = ref _blocks[index];
         if (block.Key.Equals(key)) {
             block.Key = default!;
-            if (block.NextBlockIndex == 0) {
-                --SlotCount;
-            }
+            --Count;
             return ref block;
         }
 
@@ -222,26 +197,20 @@ public class FastHashBrick<TKey, TValue>
             index = block.NextBlockIndex;
 
             if (index == 0) {
+                if (_nextBrick != null && _nextBrick.Count > 0) {
+                    return ref _nextBrick!.RemoveBlock(initialIndex, key);
+                }
                 return ref Unsafe.NullRef<Block>();
             }
-            else if (index == -1) {
-                return ref _nextBrick!.RemoveBlock(initialIndex, key);
-            }
 
-            block = ref _blocks[index == -2 ? 0 : index];
+            block = ref _blocks[index == -1 ? 0 : index];
 
             if (block.Key.Equals(key)) {
                 _blocks[prevIndex].NextBlockIndex = block.NextBlockIndex;
-                block.Key = default!;
-
                 if (index >= CellarCapacity) {
                     block.NextBlockIndex = 0;
-                    --SlotCount;
                 }
-                else if (block.NextBlockIndex == 0) {
-                    --SlotCount;
-                }
-
+                block.Key = default!;
                 return ref block;
             }
         }
@@ -249,9 +218,9 @@ public class FastHashBrick<TKey, TValue>
 
     public void Clear()
     {
-        if (SlotCount != 0) {
+        if (Count != 0) {
             Array.Clear(_blocks);
-            SlotCount = 0;
+            Count = 0;
         }
         _nextBrick?.Clear();
     }
