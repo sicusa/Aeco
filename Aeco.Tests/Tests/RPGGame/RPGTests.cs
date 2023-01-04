@@ -1,5 +1,7 @@
 namespace Aeco.Tests;
 
+using System.Linq;
+
 using Aeco.Persistence;
 
 using Aeco.Tests.RPGGame;
@@ -44,10 +46,15 @@ public static class RPGTests
             entity.AsEnemy(map.Id);
             ids.Add(entity.Id);
         }
-        foreach (var id in ids) {
-            if (!game.Contains<Enemy>(id)) {
-                Console.WriteLine("Not found");
-            }
+
+        var removedIds = ids.Take(1000).ToArray();
+        foreach (var id in removedIds) {
+            game.Clear(id);
+        }
+        Console.WriteLine("Enemy count: " + game.GetCount<Enemy>());
+
+        foreach (var id in removedIds) {
+            game.GetEntity(id).AsEnemy(map.Id);
         }
         Console.WriteLine("Enemy count: " + game.GetCount<Enemy>());
 
