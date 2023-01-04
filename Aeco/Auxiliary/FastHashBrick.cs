@@ -51,7 +51,7 @@ public class FastHashBrick<TKey, TValue>
             index = block.NextBlockIndex;
 
             if (index == 0) {
-                if (_nextBrick != null && _nextBrick.Count > 0) {
+                if (_nextBrick != null) {
                     return _nextBrick.TryGetValue(index, key, out value);
                 }
                 value = default;
@@ -79,7 +79,7 @@ public class FastHashBrick<TKey, TValue>
             }
             index = block.NextBlockIndex;
             if (index == 0) {
-                if (_nextBrick != null && _nextBrick.Count > 0) {
+                if (_nextBrick != null) {
                     return ref _nextBrick.FindBlock(initialIndex, key);
                 }
                 return ref Unsafe.NullRef<Block>();
@@ -106,7 +106,7 @@ public class FastHashBrick<TKey, TValue>
             }
             index = block.NextBlockIndex;
             if (index == 0) {
-                if (_nextBrick != null && _nextBrick.Count > 0) {
+                if (_nextBrick != null) {
                     return _nextBrick.Contains(initialIndex, key);
                 }
                 return false;
@@ -148,7 +148,7 @@ public class FastHashBrick<TKey, TValue>
                     return ref _nextBrick.AcquireBlock(initialIndex, key, out exists);
                 }
 
-                if (_nextBrick != null && _nextBrick.Count > 0) {
+                if (_nextBrick != null) {
                     ref var foundBlock = ref _nextBrick!.FindBlock(initialIndex, key);
                     if (!Unsafe.IsNullRef(ref foundBlock)) {
                         exists = true;
@@ -197,7 +197,7 @@ public class FastHashBrick<TKey, TValue>
             index = block.NextBlockIndex;
 
             if (index == 0) {
-                if (_nextBrick != null && _nextBrick.Count > 0) {
+                if (_nextBrick != null) {
                     return ref _nextBrick!.RemoveBlock(initialIndex, key);
                 }
                 return ref Unsafe.NullRef<Block>();
@@ -211,6 +211,7 @@ public class FastHashBrick<TKey, TValue>
                     block.NextBlockIndex = 0;
                 }
                 block.Key = default!;
+                --Count;
                 return ref block;
             }
         }
