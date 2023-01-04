@@ -23,15 +23,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     }
 
     public override bool TryGet(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
-    {
-        ref var block = ref _brick.FindBlock(entityId);
-        if (Unsafe.IsNullRef(ref block)) {
-            component = default;
-            return false;
-        }
-        component = block.Value;
-        return true;
-    }
+        => _brick.TryGetValue(entityId, out component);
 
     public override ref TStoredComponent Require(Guid entityId)
     {
