@@ -34,6 +34,10 @@ public static class LocalTests
         public int A { get; set; } = 5;
     }
 
+    public interface ICommand : IComponent
+    {
+    }
+
     public record struct TestCommand(string Name = "unknown") : ICommand
     {
     }

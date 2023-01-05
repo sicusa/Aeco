@@ -14,6 +14,10 @@ public static class ConcurrentTests
     {
     }
 
+    public interface ICommand : IComponent
+    {
+    }
+
     public record struct EchoCmd(int Id) : ICommand
     {
     }
