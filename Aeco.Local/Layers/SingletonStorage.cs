@@ -16,9 +16,9 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
         }
     }
 
-    public override bool TryGet(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
+    public override bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
     {
-        if (_id == entityId) {
+        if (_id == id) {
             component = _data;
             return true;
         }
@@ -28,49 +28,49 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
         }
     }
 
-    public override ref TStoredComponent Require(Guid entityId)
+    public override ref TStoredComponent Require(Guid id)
     {
-        if (entityId != _id) {
+        if (id != _id) {
             throw new KeyNotFoundException("Singleton component not found");
         }
         return ref _data;
     }
 
-    public override ref TStoredComponent Acquire(Guid entityId)
+    public override ref TStoredComponent Acquire(Guid id)
     {
         if (_id == null) {
-            _id = entityId;
+            _id = id;
             return ref _data;
         }
-        else if (_id == entityId) {
+        else if (_id == id) {
             return ref _data;
         }
         throw new NotSupportedException("Singleton component already exists");
     }
 
-    public override ref TStoredComponent Acquire(Guid entityId, out bool exists)
+    public override ref TStoredComponent Acquire(Guid id, out bool exists)
     {
         if (_id == null) {
-            _id = entityId;
+            _id = id;
             exists = false;
             return ref _data;
         }
-        else if (_id == entityId) {
+        else if (_id == id) {
             exists = true;
             return ref _data;
         }
         throw new NotSupportedException("Singleton component already exists");
     }
 
-    public override bool Contains(Guid entityId)
-        => _id == entityId;
+    public override bool Contains(Guid id)
+        => _id == id;
 
     public override bool ContainsAny()
         => _id != null;
 
-    public override bool Remove(Guid entityId)
+    public override bool Remove(Guid id)
     {
-        if (_id != entityId) {
+        if (_id != id) {
             return false;
         }
         _id = null;
@@ -78,9 +78,9 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
         return true;
     }
 
-    public override bool Remove(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
+    public override bool Remove(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
     {
-        if (_id != entityId) {
+        if (_id != id) {
             component = default;
             return false;
         }
@@ -91,13 +91,13 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
         return true;
     }
 
-    public override ref TStoredComponent Set(Guid entityId, in TStoredComponent component)
+    public override ref TStoredComponent Set(Guid id, in TStoredComponent component)
     {
         if (_id == null) {
-            _id = entityId;
+            _id = id;
             _data = component;
         }
-        else if (_id == entityId) {
+        else if (_id == id) {
             _data = component;
         }
         else {
@@ -115,12 +115,12 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
     public override IEnumerable<Guid> Query()
         => _id == null ? Enumerable.Empty<Guid>() : Enumerable.Repeat<Guid>(_id.Value, 1);
 
-    public override IEnumerable<object> GetAll(Guid entityId)
-        => _id == entityId ? Enumerable.Repeat<object>(_data!, 1) : Enumerable.Empty<object>();
+    public override IEnumerable<object> GetAll(Guid id)
+        => _id == id ? Enumerable.Repeat<object>(_data!, 1) : Enumerable.Empty<object>();
 
-    public override void Clear(Guid entityId)
+    public override void Clear(Guid id)
     {
-        if (_id == entityId) {
+        if (_id == id) {
             _id = null;
             _data = new();
         }

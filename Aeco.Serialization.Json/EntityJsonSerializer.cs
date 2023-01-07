@@ -15,24 +15,24 @@ public class JsonEntitySerializer<TComponent> : IEntitySerializer<TComponent>
             typeof(IEnumerable<TComponent>), SerializationUtil.KnownTypes);
     }
 
-    public void Write(Stream stream, IDataLayer<TComponent> dataLayer, Guid entityId)
+    public void Write(Stream stream, IDataLayer<TComponent> dataLayer, Guid id)
     {
         _serializer.WriteObject(
             stream,
-            dataLayer.GetAll(entityId).Where(p => {
+            dataLayer.GetAll(id).Where(p => {
                 var type = p.GetType();
                 return typeof(TComponent).IsAssignableFrom(type)
                     && Attribute.IsDefined(type, typeof(DataContractAttribute));
             }).Select(p => (TComponent)p));
     }
 
-    public bool Read(Stream stream, IDataLayer<TComponent> dataLayer, Guid entityId)
+    public bool Read(Stream stream, IDataLayer<TComponent> dataLayer, Guid id)
     {
         try {
             var components = (TComponent[]?)_serializer.ReadObject(stream);
             if (components == null) { return false; }
 
-            SerializationUtil<TComponent>.Set(dataLayer, entityId, components);
+            SerializationUtil<TComponent>.Set(dataLayer, id, components);
             return true;
         }
         catch {

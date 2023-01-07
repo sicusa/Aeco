@@ -13,13 +13,13 @@ public class EventDataLayer<TComponent, TSelectedComponent>
     public IDisposable Subscribe(IObserver<TSelectedComponent> observer)
         => _subject.Subscribe(observer);
 
-    public override ref UComponent Acquire<UComponent>(Guid entityId)
+    public override ref UComponent Acquire<UComponent>(Guid id)
         => throw new NotSupportedException("Event component only supports Set method");
 
-    public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+    public override ref UComponent Acquire<UComponent>(Guid id, out bool exists)
         => throw new NotSupportedException("Event component only supports Set method");
 
-    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
+    public override ref UComponent Set<UComponent>(Guid id, in UComponent component)
     {
         var convertedSubject = _subject as Subject<UComponent>
             ?? throw new NotSupportedException("Event component not supported");
@@ -27,19 +27,19 @@ public class EventDataLayer<TComponent, TSelectedComponent>
         return ref Unsafe.NullRef<UComponent>();
     }
 
-    public override ref UComponent Require<UComponent>(Guid entityId)
+    public override ref UComponent Require<UComponent>(Guid id)
         => throw new KeyNotFoundException("Component not found");
 
-    public override bool Contains<UComponent>(Guid entityId)
+    public override bool Contains<UComponent>(Guid id)
         => false;
 
     public override bool ContainsAny<UComponent>()
         => false;
 
-    public override bool Remove<UComponent>(Guid entityId)
+    public override bool Remove<UComponent>(Guid id)
         => false;
 
-    public override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public override bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
         component = default;
         return false;
@@ -52,13 +52,13 @@ public class EventDataLayer<TComponent, TSelectedComponent>
     public override Guid? Singleton<UComponent>()
         => null;
 
-    public override bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public override bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
         component = default;
         return false;
     }
 
-    public override IEnumerable<object> GetAll(Guid entityId)
+    public override IEnumerable<object> GetAll(Guid id)
         => Enumerable.Empty<object>();
 
     public override IEnumerable<Guid> Query<UComponent>()
@@ -73,7 +73,7 @@ public class EventDataLayer<TComponent, TSelectedComponent>
     public override int GetCount<UComponent>()
         => 0;
 
-    public override void Clear(Guid entityId)
+    public override void Clear(Guid id)
     {
     }
 

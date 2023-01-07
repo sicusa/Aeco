@@ -32,13 +32,13 @@ public interface IReadOnlyDataLayer<in TComponent> : IReadOnlyLayer<TComponent>
         where UComponent : TComponent;
     bool CheckSupported(Type componentType);
 
-    bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent;
-    ref readonly UComponent Inspect<UComponent>(Guid entityId)
+    ref readonly UComponent Inspect<UComponent>(Guid id)
         where UComponent : TComponent;
     ref readonly UComponent InspectAny<UComponent>()
         where UComponent : TComponent;
-    bool Contains<UComponent>(Guid entityId)
+    bool Contains<UComponent>(Guid id)
         where UComponent : TComponent;
     bool ContainsAny<UComponent>()
         where UComponent : TComponent;
@@ -61,48 +61,48 @@ public interface IDataLayer<in TComponent>
     IEntity<TComponent> GetEntity<UComponent>()
         where UComponent : TComponent;
 
-    ref UComponent InspectRaw<UComponent>(Guid entityId)
+    ref UComponent InspectRaw<UComponent>(Guid id)
         where UComponent : TComponent;
     ref UComponent InspectAnyRaw<UComponent>()
         where UComponent : TComponent;
 
-    ref UComponent Require<UComponent>(Guid entityId)
+    ref UComponent Require<UComponent>(Guid id)
         where UComponent : TComponent;
     ref UComponent RequireAny<UComponent>()
         where UComponent : TComponent;
 
-    ref UComponent Acquire<UComponent>(Guid entityId)
+    ref UComponent Acquire<UComponent>(Guid id)
         where UComponent : TComponent, new();
-    ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+    ref UComponent Acquire<UComponent>(Guid id, out bool exists)
         where UComponent : TComponent, new();
     ref UComponent AcquireAny<UComponent>()
         where UComponent : TComponent, new();
     ref UComponent AcquireAny<UComponent>(out bool exists)
         where UComponent : TComponent, new();
 
-    ref UComponent AcquireRaw<UComponent>(Guid entityId)
+    ref UComponent AcquireRaw<UComponent>(Guid id)
         where UComponent : TComponent, new();
-    ref UComponent AcquireRaw<UComponent>(Guid entityId, out bool exists)
+    ref UComponent AcquireRaw<UComponent>(Guid id, out bool exists)
         where UComponent : TComponent, new();
 
-    bool Remove<UComponent>(Guid entityId)
+    bool Remove<UComponent>(Guid id)
         where UComponent : TComponent;
     bool RemoveAny<UComponent>()
         where UComponent : TComponent;
-    bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent;
     bool RemoveAny<UComponent>([MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent;
     void RemoveAll<UComponent>()
         where UComponent : TComponent;
 
-    ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
+    ref UComponent Set<UComponent>(Guid id, in UComponent component)
         where UComponent : TComponent;
     ref UComponent SetAny<UComponent>(in UComponent component)
         where UComponent : TComponent;
 
-    IEnumerable<object> GetAll(Guid entityId);
-    void Clear(Guid entityId);
+    IEnumerable<object> GetAll(Guid id);
+    void Clear(Guid id);
     void Clear();
 }
 
@@ -111,10 +111,10 @@ public interface IReadOnlyMonoDataLayer<in TComponent, TStoredComponent> : IRead
 {
     IReadOnlyEntity<TStoredComponent> GetReadOnlyEntity();
 
-    bool TryGet(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component);
-    ref readonly TStoredComponent Inspect(Guid entityId);
+    bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component);
+    ref readonly TStoredComponent Inspect(Guid id);
     ref readonly TStoredComponent InspectAny();
-    bool Contains(Guid entityId);
+    bool Contains(Guid id);
     bool ContainsAny();
 
     Guid? Singleton();
@@ -126,25 +126,25 @@ public interface IMonoDataLayer<in TComponent, TStoredComponent>
 {
     IEntity<TStoredComponent> GetEntity();
 
-    ref TStoredComponent InspectRaw(Guid entityId);
+    ref TStoredComponent InspectRaw(Guid id);
     ref TStoredComponent InspectAnyRaw();
 
-    ref TStoredComponent Require(Guid entityId);
+    ref TStoredComponent Require(Guid id);
     ref TStoredComponent RequireAny();
 
-    ref TStoredComponent Acquire(Guid entityId);
-    ref TStoredComponent Acquire(Guid entityId, out bool exists);
+    ref TStoredComponent Acquire(Guid id);
+    ref TStoredComponent Acquire(Guid id, out bool exists);
     ref TStoredComponent AcquireAny();
     ref TStoredComponent AcquireAny(out bool exists);
-    ref TStoredComponent AcquireRaw(Guid entityId);
-    ref TStoredComponent AcquireRaw(Guid entityId, out bool exists);
+    ref TStoredComponent AcquireRaw(Guid id);
+    ref TStoredComponent AcquireRaw(Guid id, out bool exists);
 
-    bool Remove(Guid entityId);
+    bool Remove(Guid id);
     bool RemoveAny();
-    bool Remove(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component);
+    bool Remove(Guid id, [MaybeNullWhen(false)] out TStoredComponent component);
     bool RemoveAny([MaybeNullWhen(false)] out TStoredComponent component);
 
-    ref TStoredComponent Set(Guid entityId, in TStoredComponent component);
+    ref TStoredComponent Set(Guid id, in TStoredComponent component);
     ref TStoredComponent SetAny(in TStoredComponent component);
 }
 

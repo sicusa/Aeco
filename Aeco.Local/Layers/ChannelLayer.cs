@@ -11,9 +11,9 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
 
     private bool _tempExists;
 
-    public override bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public override bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
-        if (_channels.TryGetValue(entityId, out var channel)) {
+        if (_channels.TryGetValue(id, out var channel)) {
             for (var node = channel.First; node != channel.Last; node = node!.Next) {
                 if (node!.Value is UComponent foundComp) {
                     component = foundComp;
@@ -25,9 +25,9 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
         return false;
     }
 
-    public override ref UComponent Require<UComponent>(Guid entityId)
+    public override ref UComponent Require<UComponent>(Guid id)
     {
-        if (_channels.TryGetValue(entityId, out var channel)) {
+        if (_channels.TryGetValue(id, out var channel)) {
             for (var node = channel.First; node != channel.Last; node = node!.Next) {
                 if (node!.Value is UComponent) {
                     return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
@@ -37,18 +37,18 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
         throw new KeyNotFoundException("Component not found");
     }
 
-    public override ref UComponent Acquire<UComponent>(Guid entityId)
-        => ref Acquire<UComponent>(entityId, out _tempExists);
+    public override ref UComponent Acquire<UComponent>(Guid id)
+        => ref Acquire<UComponent>(id, out _tempExists);
 
-    public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+    public override ref UComponent Acquire<UComponent>(Guid id, out bool exists)
     {
         LinkedListNode<object> node;
 
-        if (!_channels.TryGetValue(entityId, out var channel)) {
+        if (!_channels.TryGetValue(id, out var channel)) {
             if (!_channelPool.TryPop(out channel)) {
                 channel = new LinkedList<object>();
             }
-            _channels[entityId] = channel;
+            _channels[id] = channel;
             node = channel.AddFirst(new UComponent());
             exists = false;
             return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
@@ -66,9 +66,9 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
         return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
     }
 
-    public override bool Contains<UComponent>(Guid entityId)
+    public override bool Contains<UComponent>(Guid id)
     {
-        if (_channels.TryGetValue(entityId, out var channel)) {
+        if (_channels.TryGetValue(id, out var channel)) {
             for (var node = channel.First; node != channel.Last; node = node!.Next) {
                 if (node!.Value is UComponent) {
                     return true;
@@ -92,10 +92,10 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
 
     public override Guid? Singleton<UComponent>()
     {
-        foreach (var (entityId, channel) in _channels) {
+        foreach (var (id, channel) in _channels) {
             for (var node = channel.First; node != channel.Last; node = node!.Next) {
                 if (node!.Value is UComponent) {
-                    return entityId;
+                    return id;
                 }
             }
         }
@@ -114,13 +114,13 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
     public override IEnumerable<Guid> Query()
         => throw new NotSupportedException("Query not supported for channel component");
 
-    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
+    public override ref UComponent Set<UComponent>(Guid id, in UComponent component)
     {
         LinkedListNode<object> node;
 
-        if (!_channels.TryGetValue(entityId, out var channel)) {
+        if (!_channels.TryGetValue(id, out var channel)) {
             channel = new LinkedList<object>();
-            _channels[entityId] = channel;
+            _channels[id] = channel;
             node = channel.AddFirst(component!);
             return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
         }
@@ -129,9 +129,9 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
         return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
     }
 
-    public override bool Remove<UComponent>(Guid entityId)
+    public override bool Remove<UComponent>(Guid id)
     {
-        if (_channels.TryGetValue(entityId, out var channel)) {
+        if (_channels.TryGetValue(id, out var channel)) {
             for (var node = channel.First; node != channel.Last; node = node!.Next) {
                 if (node!.Value is UComponent) {
                     channel.Remove(node);
@@ -142,9 +142,9 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
         return false;
     }
 
-    public override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public override bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
-        if (_channels.TryGetValue(entityId, out var channel)) {
+        if (_channels.TryGetValue(id, out var channel)) {
             for (var node = channel.First; node != channel.Last; node = node!.Next) {
                 if (node!.Value is UComponent foundComp) {
                     channel.Remove(node);
@@ -170,12 +170,12 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
         }
     }
 
-    public override IEnumerable<object> GetAll(Guid entityId)
-        => _channels.TryGetValue(entityId, out var channel) ? channel : Enumerable.Empty<object>();
+    public override IEnumerable<object> GetAll(Guid id)
+        => _channels.TryGetValue(id, out var channel) ? channel : Enumerable.Empty<object>();
 
-    public override void Clear(Guid entityId)
+    public override void Clear(Guid id)
     {
-        if (_channels.Remove(entityId, out var channel)) {
+        if (_channels.Remove(id, out var channel)) {
             channel.Clear();
             _channelPool.Push(channel);
         }

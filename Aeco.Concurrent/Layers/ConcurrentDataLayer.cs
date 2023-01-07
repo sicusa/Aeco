@@ -25,24 +25,24 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
     public IEntity<TComponent> GetEntity(Guid id) => _inner.GetEntity(id);
     public IReadOnlyEntity<TComponent> GetReadOnlyEntity(Guid id) => _inner.GetReadOnlyEntity(id);
 
-    public bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
     {
         _lockSlim.EnterReadLock();
         try {
-            return _inner.TryGet(entityId, out component);
+            return _inner.TryGet(id, out component);
         }
         finally {
             _lockSlim.ExitReadLock();
         }
     }
 
-    public ref readonly UComponent Inspect<UComponent>(Guid entityId)
+    public ref readonly UComponent Inspect<UComponent>(Guid id)
         where UComponent : TComponent
     {
         _lockSlim.EnterReadLock();
         try {
-            return ref _inner.Inspect<UComponent>(entityId);
+            return ref _inner.Inspect<UComponent>(id);
         }
         finally {
             _lockSlim.ExitReadLock();
@@ -61,12 +61,12 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
         }
     }
 
-    public ref UComponent InspectRaw<UComponent>(Guid entityId)
+    public ref UComponent InspectRaw<UComponent>(Guid id)
         where UComponent : TComponent
     {
         _lockSlim.EnterReadLock();
         try {
-            return ref _inner.InspectRaw<UComponent>(entityId);
+            return ref _inner.InspectRaw<UComponent>(id);
         }
         finally {
             _lockSlim.ExitReadLock();
@@ -85,12 +85,12 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
         }
     }
 
-    public bool Contains<UComponent>(Guid entityId)
+    public bool Contains<UComponent>(Guid id)
         where UComponent : TComponent
     {
         _lockSlim.EnterReadLock();
         try {
-            return _inner.Contains<UComponent>(entityId);
+            return _inner.Contains<UComponent>(id);
         }
         finally {
             _lockSlim.ExitReadLock();
@@ -108,12 +108,12 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
         }
     }
 
-    public ref UComponent Require<UComponent>(Guid entityId)
+    public ref UComponent Require<UComponent>(Guid id)
         where UComponent : TComponent
     {
         _lockSlim.EnterReadLock();
         try {
-            return ref _inner.Require<UComponent>(entityId);
+            return ref _inner.Require<UComponent>(id);
         }
         finally {
             _lockSlim.ExitReadLock();
@@ -132,24 +132,24 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
         }
     }
 
-    public ref UComponent Acquire<UComponent>(Guid entityId)
+    public ref UComponent Acquire<UComponent>(Guid id)
         where UComponent : TComponent, new()
     {
         _lockSlim.EnterWriteLock();
         try {
-            return ref _inner.Acquire<UComponent>(entityId);
+            return ref _inner.Acquire<UComponent>(id);
         }
         finally {
             _lockSlim.ExitWriteLock();
         }
     }
 
-    public ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+    public ref UComponent Acquire<UComponent>(Guid id, out bool exists)
         where UComponent : TComponent, new()
     {
         _lockSlim.EnterWriteLock();
         try {
-            return ref _inner.Acquire<UComponent>(entityId, out exists);
+            return ref _inner.Acquire<UComponent>(id, out exists);
         }
         finally {
             _lockSlim.ExitWriteLock();
@@ -180,48 +180,48 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
         }
     }
 
-    public ref UComponent AcquireRaw<UComponent>(Guid entityId)
+    public ref UComponent AcquireRaw<UComponent>(Guid id)
         where UComponent : TComponent, new()
     {
         _lockSlim.EnterWriteLock();
         try {
-            return ref _inner.AcquireRaw<UComponent>(entityId);
+            return ref _inner.AcquireRaw<UComponent>(id);
         }
         finally {
             _lockSlim.ExitWriteLock();
         }
     }
 
-    public ref UComponent AcquireRaw<UComponent>(Guid entityId, out bool exists)
+    public ref UComponent AcquireRaw<UComponent>(Guid id, out bool exists)
         where UComponent : TComponent, new()
     {
         _lockSlim.EnterWriteLock();
         try {
-            return ref _inner.AcquireRaw<UComponent>(entityId, out exists);
+            return ref _inner.AcquireRaw<UComponent>(id, out exists);
         }
         finally {
             _lockSlim.ExitWriteLock();
         }
     }
 
-    public bool Remove<UComponent>(Guid entityId)
+    public bool Remove<UComponent>(Guid id)
         where UComponent : TComponent
     {
         _lockSlim.EnterWriteLock();
         try {
-            return _inner.Remove<UComponent>(entityId);
+            return _inner.Remove<UComponent>(id);
         }
         finally {
             _lockSlim.ExitWriteLock();
         }
     }
 
-    public bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
     {
         _lockSlim.EnterWriteLock();
         try {
-            return _inner.Remove(entityId, out component);
+            return _inner.Remove(id, out component);
         }
         finally {
             _lockSlim.ExitWriteLock();
@@ -257,12 +257,12 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
         }
     }
 
-    public ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
+    public ref UComponent Set<UComponent>(Guid id, in UComponent component)
         where UComponent : TComponent
     {
         _lockSlim.EnterWriteLock();
         try {
-            return ref _inner.Set(entityId, component);
+            return ref _inner.Set(id, component);
         }
         finally {
             _lockSlim.ExitWriteLock();
@@ -281,11 +281,11 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
         }
     }
 
-    public void Clear(Guid entityId)
+    public void Clear(Guid id)
     {
         _lockSlim.EnterWriteLock();
         try {
-            _inner.Clear(entityId);
+            _inner.Clear(id);
         }
         finally {
             _lockSlim.ExitWriteLock();
@@ -303,11 +303,11 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
         }
     }
 
-    public IEnumerable<object> GetAll(Guid entityId)
+    public IEnumerable<object> GetAll(Guid id)
     {
         _lockSlim.EnterReadLock();
         try {
-            return _inner.GetAll(entityId);
+            return _inner.GetAll(id);
         }
         finally {
             _lockSlim.ExitReadLock();

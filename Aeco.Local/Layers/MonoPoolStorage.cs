@@ -22,33 +22,33 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         _brick = new(brickCapacity);
     }
 
-    public override bool TryGet(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
-        => _brick.TryGetValue(entityId, out component);
+    public override bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
+        => _brick.TryGetValue(id, out component);
 
-    public override ref TStoredComponent Require(Guid entityId)
+    public override ref TStoredComponent Require(Guid id)
     {
-        ref var block = ref _brick.FindBlock(entityId);
+        ref var block = ref _brick.FindBlock(id);
         if (Unsafe.IsNullRef(ref block)) {
             throw new KeyNotFoundException("Component not found");
         }
         return ref block.Value;
     }
     
-    public override ref TStoredComponent Acquire(Guid entityId)
-        => ref Acquire(entityId, out _existsTemp);
+    public override ref TStoredComponent Acquire(Guid id)
+        => ref Acquire(id, out _existsTemp);
 
-    public override ref TStoredComponent Acquire(Guid entityId, out bool exists)
+    public override ref TStoredComponent Acquire(Guid id, out bool exists)
     {
-        ref var block = ref _brick.AcquireBlock(entityId, out exists);
+        ref var block = ref _brick.AcquireBlock(id, out exists);
         if (!exists) {
             block.Value = new();
-            _entityIds.Add(entityId);
+            _entityIds.Add(id);
         }
         return ref block.Value;
     }
 
-    public override bool Contains(Guid entityId)
-        => _brick.Contains(entityId);
+    public override bool Contains(Guid id)
+        => _brick.Contains(id);
 
     public override bool ContainsAny()
         => _singleton != null;
@@ -61,42 +61,42 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         return _singleton;
     }
 
-    private void ClearBlock(ref FastHashBrick<Guid, TStoredComponent>.Block block, Guid entityId)
+    private void ClearBlock(ref FastHashBrick<Guid, TStoredComponent>.Block block, Guid id)
     {
         block.Value = default!;
-        _entityIds.Remove(entityId);
-        if (_singleton == entityId) {
+        _entityIds.Remove(id);
+        if (_singleton == id) {
             _singleton = null;
         }
     }
 
-    public override bool Remove(Guid entityId)
+    public override bool Remove(Guid id)
     {
-        ref var block = ref _brick.RemoveBlock(entityId);
+        ref var block = ref _brick.RemoveBlock(id);
         if (Unsafe.IsNullRef(ref block)) {
             return false;
         }
-        ClearBlock(ref block, entityId);
+        ClearBlock(ref block, id);
         return true;
     }
 
-    public override bool Remove(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
+    public override bool Remove(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
     {
-        ref var block = ref _brick.RemoveBlock(entityId);
+        ref var block = ref _brick.RemoveBlock(id);
         if (Unsafe.IsNullRef(ref block)) {
             component = default;
             return false;
         }
         component = block.Value;
-        ClearBlock(ref block, entityId);
+        ClearBlock(ref block, id);
         return true;
     }
 
-    public override ref TStoredComponent Set(Guid entityId, in TStoredComponent component)
+    public override ref TStoredComponent Set(Guid id, in TStoredComponent component)
     {
-        ref var block = ref _brick.AcquireBlock(entityId, out _existsTemp);
+        ref var block = ref _brick.AcquireBlock(id, out _existsTemp);
         if (!_existsTemp) {
-            _entityIds.Add(entityId);
+            _entityIds.Add(id);
         }
         block.Value = component;
         return ref block.Value;
@@ -111,17 +111,17 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     public override int GetCount()
         => _entityIds.Count;
 
-    public override IEnumerable<object> GetAll(Guid entityId)
+    public override IEnumerable<object> GetAll(Guid id)
     {
-        ref var block = ref _brick.FindBlock(entityId);
+        ref var block = ref _brick.FindBlock(id);
         if (Unsafe.IsNullRef(ref block)) {
             return Enumerable.Empty<object>();
         }
         return Enumerable.Repeat<object>(block.Value!, 1);
     }
 
-    public override void Clear(Guid entityId)
-        => Remove(entityId);
+    public override void Clear(Guid id)
+        => Remove(id);
 
     public override void Clear()
     {

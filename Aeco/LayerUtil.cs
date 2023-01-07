@@ -10,11 +10,11 @@ public static class LayerUtil<TComponent>
     private static ImmutableDictionary<Type, Func<IDataLayer<TComponent>, Guid, object>> s_acquireDelegates =
         ImmutableDictionary<Type, Func<IDataLayer<TComponent>, Guid, object>>.Empty;
     
-    private static object DoAcquire<UComponent>(IDataLayer<TComponent> dataLayer, Guid entityId)
+    private static object DoAcquire<UComponent>(IDataLayer<TComponent> dataLayer, Guid id)
         where UComponent : TComponent, new()
-        => dataLayer.Acquire<UComponent>(entityId)!;
+        => dataLayer.Acquire<UComponent>(id)!;
 
-    public static object DynamicAcquire(IDataLayer<TComponent> dataLayer, Type componentType, Guid entityId)
+    public static object DynamicAcquire(IDataLayer<TComponent> dataLayer, Type componentType, Guid id)
     {
         if (s_acquireMethodInfo == null) {
             s_acquireMethodInfo = typeof(LayerUtil<TComponent>)
@@ -26,6 +26,6 @@ public static class LayerUtil<TComponent>
                 typeof(Func<IDataLayer<TComponent>, Guid, object>), null, methodInfo);
             ImmutableInterlocked.TryAdd(ref s_acquireDelegates, componentType, acquireFunc);
         }
-        return acquireFunc(dataLayer, entityId);
+        return acquireFunc(dataLayer, id);
     }
 }

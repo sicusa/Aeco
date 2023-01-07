@@ -90,10 +90,10 @@ public class ReadOnlyFileSystemPersistenceLayer<TComponent, TSelectedComponent>
         }
     }
     
-    protected Stream? OpenReadStream(Guid entityId)
+    protected Stream? OpenReadStream(Guid id)
     {
         try {
-            var path = Path.Combine(DataDirectory, entityId.ToString());
+            var path = Path.Combine(DataDirectory, id.ToString());
             return new FileStream(path, FileMode.Open);
         }
         catch (FileNotFoundException) {
@@ -183,8 +183,8 @@ public class FileSystemPersistenceLayer<TComponent, TSelectedComponent>
         );
     }
 
-    public Stream OpenWriteStream(Guid entityId)
-        => new FileStream(Path.Combine(DataDirectory, entityId.ToString()), FileMode.Create);
+    public Stream OpenWriteStream(Guid id)
+        => new FileStream(Path.Combine(DataDirectory, id.ToString()), FileMode.Create);
     
     public bool RemoveEntity(Guid id)
     {

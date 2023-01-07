@@ -214,62 +214,62 @@ public class CompositeLayer<TComponent, TSublayer>
         => FindTerminalDataLayer<UComponent>()
             ?? throw new NotSupportedException("No suitable data layer for component: " + typeof(UComponent));
 
-    public override bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public override bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
         var dataLayer = FindTerminalDataLayer<UComponent>();
         if (dataLayer == null) {
             component = default;
             return false;
         }
-        return dataLayer.TryGet<UComponent>(entityId, out component);
+        return dataLayer.TryGet<UComponent>(id, out component);
     }
 
-    public override ref readonly UComponent Inspect<UComponent>(Guid entityId)
+    public override ref readonly UComponent Inspect<UComponent>(Guid id)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();
-        return ref dataLayer.Inspect<UComponent>(entityId);
+        return ref dataLayer.Inspect<UComponent>(id);
     }
 
-    public override ref UComponent InspectRaw<UComponent>(Guid entityId)
+    public override ref UComponent InspectRaw<UComponent>(Guid id)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();
-        return ref dataLayer.InspectRaw<UComponent>(entityId);
+        return ref dataLayer.InspectRaw<UComponent>(id);
     }
 
-    public override ref UComponent Require<UComponent>(Guid entityId)
+    public override ref UComponent Require<UComponent>(Guid id)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();
-        return ref dataLayer.Require<UComponent>(entityId);
+        return ref dataLayer.Require<UComponent>(id);
     }
 
-    public override ref UComponent Acquire<UComponent>(Guid entityId)
+    public override ref UComponent Acquire<UComponent>(Guid id)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();
-        return ref dataLayer.Acquire<UComponent>(entityId);
+        return ref dataLayer.Acquire<UComponent>(id);
     }
 
-    public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+    public override ref UComponent Acquire<UComponent>(Guid id, out bool exists)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();
-        return ref dataLayer.Acquire<UComponent>(entityId, out exists);
+        return ref dataLayer.Acquire<UComponent>(id, out exists);
     }
 
-    public override ref UComponent AcquireRaw<UComponent>(Guid entityId)
+    public override ref UComponent AcquireRaw<UComponent>(Guid id)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();
-        return ref dataLayer.AcquireRaw<UComponent>(entityId);
+        return ref dataLayer.AcquireRaw<UComponent>(id);
     }
 
-    public override ref UComponent AcquireRaw<UComponent>(Guid entityId, out bool exists)
+    public override ref UComponent AcquireRaw<UComponent>(Guid id, out bool exists)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();
-        return ref dataLayer.AcquireRaw<UComponent>(entityId, out exists);
+        return ref dataLayer.AcquireRaw<UComponent>(id, out exists);
     }
 
-    public override bool Contains<UComponent>(Guid entityId)
+    public override bool Contains<UComponent>(Guid id)
     {
         var dataLayer = FindTerminalDataLayer<UComponent>();
-        return dataLayer != null ? dataLayer.Contains<UComponent>(entityId) : false;
+        return dataLayer != null ? dataLayer.Contains<UComponent>(id) : false;
     }
 
     public override bool ContainsAny<UComponent>()
@@ -278,11 +278,11 @@ public class CompositeLayer<TComponent, TSublayer>
         return dataLayer != null ? dataLayer.ContainsAny<UComponent>() : false;
     }
 
-    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
-        => ref RequireTerminalDataLayer<UComponent>().Set(entityId, component);
+    public override ref UComponent Set<UComponent>(Guid id, in UComponent component)
+        => ref RequireTerminalDataLayer<UComponent>().Set(id, component);
 
-    public override IEnumerable<object> GetAll(Guid entityId)
-        => _sublayerList.OfType<IDataLayer<TComponent>>().SelectMany(s => s.GetAll(entityId));
+    public override IEnumerable<object> GetAll(Guid id)
+        => _sublayerList.OfType<IDataLayer<TComponent>>().SelectMany(s => s.GetAll(id));
 
     public override Guid? Singleton<UComponent>()
     {
@@ -311,32 +311,32 @@ public class CompositeLayer<TComponent, TSublayer>
     public override IEnumerable<Guid> Query()
         => QueryUtil.Union(_dataLayers.Keys.Select(l => l.Query()));
 
-    public override bool Remove<UComponent>(Guid entityId)
+    public override bool Remove<UComponent>(Guid id)
     {
         var dataLayer = FindTerminalDataLayer<UComponent>();
         if (dataLayer == null) {
             return false;
         }
-        return dataLayer.Remove<UComponent>(entityId);
+        return dataLayer.Remove<UComponent>(id);
     }
 
-    public override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public override bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
         var dataLayer = FindTerminalDataLayer<UComponent>();
         if (dataLayer == null) {
             component = default;
             return false;
         }
-        return dataLayer.Remove<UComponent>(entityId, out component);
+        return dataLayer.Remove<UComponent>(id, out component);
     }
 
     public override void RemoveAll<UComponent>()
         => FindTerminalDataLayer<UComponent>()?.RemoveAll<UComponent>();
 
-    public override void Clear(Guid entityId)
+    public override void Clear(Guid id)
     {
         foreach (var (dataLayer, _) in _dataLayers) {
-            dataLayer.Clear(entityId);
+            dataLayer.Clear(id);
         }
     }
 

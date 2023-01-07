@@ -15,70 +15,70 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     private Guid? _singleton;
     private bool _existsTemp;
 
-    public override bool TryGet(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
-        => _dict.TryGetValue(entityId, out component);
+    public override bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
+        => _dict.TryGetValue(id, out component);
 
-    public override ref TStoredComponent Require(Guid entityId)
+    public override ref TStoredComponent Require(Guid id)
     {
-        ref TStoredComponent comp = ref CollectionsMarshal.GetValueRefOrNullRef(_dict, entityId);
+        ref TStoredComponent comp = ref CollectionsMarshal.GetValueRefOrNullRef(_dict, id);
         if (Unsafe.IsNullRef(ref comp)) {
             throw new KeyNotFoundException("Component not found");
         }
         return ref comp;
     }
 
-    public override ref TStoredComponent Acquire(Guid entityId)
-        => ref Acquire(entityId, out _existsTemp);
+    public override ref TStoredComponent Acquire(Guid id)
+        => ref Acquire(id, out _existsTemp);
     
-    public override ref TStoredComponent Acquire(Guid entityId, out bool exists)
+    public override ref TStoredComponent Acquire(Guid id, out bool exists)
     {
-        ref TStoredComponent? comp = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, entityId, out exists);
+        ref TStoredComponent? comp = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, id, out exists);
         if (!exists) {
             comp = new TStoredComponent();
-            _entityIds.Add(entityId);
+            _entityIds.Add(id);
         }
         return ref comp!;
     }
 
-    public override bool Contains(Guid entityId)
-        => _entityIds.Contains(entityId);
+    public override bool Contains(Guid id)
+        => _entityIds.Contains(id);
 
     public override bool ContainsAny()
         => _singleton != null;
 
-    private bool RawRemove(Guid entityId)
+    private bool RawRemove(Guid id)
     {
-        if (!_entityIds.Remove(entityId)) {
+        if (!_entityIds.Remove(id)) {
             return false;
         }
-        _dict.Remove(entityId);
-        if (_singleton == entityId) {
+        _dict.Remove(id);
+        if (_singleton == id) {
             _singleton = null;
         }
         return true;
     }
 
-    public override bool Remove(Guid entityId)
-        => RawRemove(entityId);
+    public override bool Remove(Guid id)
+        => RawRemove(id);
 
-    public override bool Remove(Guid entityId, [MaybeNullWhen(false)] out TStoredComponent component)
+    public override bool Remove(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
     {
-        if (!_entityIds.Remove(entityId)) {
+        if (!_entityIds.Remove(id)) {
             component = default;
             return false;
         }
-        if (!_dict.Remove(entityId, out component)) {
+        if (!_dict.Remove(id, out component)) {
             throw new KeyNotFoundException("Internal error");
         }
-        if (_singleton == entityId) {
+        if (_singleton == id) {
             _singleton = null;
         }
         return true;
     }
 
-    public override ref TStoredComponent Set(Guid entityId, in TStoredComponent component)
+    public override ref TStoredComponent Set(Guid id, in TStoredComponent component)
     {
-        ref TStoredComponent? value = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, entityId, out _existsTemp);
+        ref TStoredComponent? value = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, id, out _existsTemp);
         value = component;
         return ref value!;
     }
@@ -100,17 +100,17 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     public override int GetCount()
         => _entityIds.Count;
 
-    public override IEnumerable<object> GetAll(Guid entityId)
+    public override IEnumerable<object> GetAll(Guid id)
     {
-        ref var comp = ref CollectionsMarshal.GetValueRefOrNullRef(_dict, entityId);
+        ref var comp = ref CollectionsMarshal.GetValueRefOrNullRef(_dict, id);
         if (Unsafe.IsNullRef(ref comp)) {
             return Enumerable.Empty<object>();
         }
         return Enumerable.Repeat<object>(comp!, 1);
     }
 
-    public override void Clear(Guid entityId)
-        => RawRemove(entityId);
+    public override void Clear(Guid id)
+        => RawRemove(id);
 
     public override void Clear()
     {

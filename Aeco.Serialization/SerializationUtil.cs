@@ -27,7 +27,7 @@ public static class SerializationUtil<TComponent>
     private static ImmutableDictionary<Type, MethodInfo> s_genericMethods =
         ImmutableDictionary<Type, MethodInfo>.Empty;
 
-    public static void Set(IDataLayer<TComponent> dataLayer, Guid entityId, IEnumerable<TComponent> components)
+    public static void Set(IDataLayer<TComponent> dataLayer, Guid id, IEnumerable<TComponent> components)
     {
         if (s_setMethodInfo == null) {
             s_setMethodInfo = typeof(IDataLayer<TComponent>).GetMethod("Set")!;
@@ -37,7 +37,7 @@ public static class SerializationUtil<TComponent>
             if (component == null) {
                 continue;
             }
-            param[0] = entityId;
+            param[0] = id;
             param[1] = component;
             var type = component.GetType();
             if (!s_genericMethods.TryGetValue(type, out var methodInfo)) {

@@ -29,7 +29,7 @@ public class LoggedCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCompo
         }
     }
 
-    public override bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public override bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
         var dataLayer = FindTerminalDataLayer<UComponent>();
         bool success;
@@ -38,73 +38,73 @@ public class LoggedCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCompo
             success = false;
         }
         else {
-            success = dataLayer.TryGet<UComponent>(entityId, out component);
+            success = dataLayer.TryGet<UComponent>(id, out component);
         }
         if (IsReadLogEnabled) {
-            Log($"TryGet [{typeof(UComponent)}] {entityId} => {success} ({dataLayer})");
+            Log($"TryGet [{typeof(UComponent)}] {id} => {success} ({dataLayer})");
         }
         return success;
     }
 
-    public override ref readonly UComponent Inspect<UComponent>(Guid entityId)
+    public override ref readonly UComponent Inspect<UComponent>(Guid id)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();
         if (IsReadLogEnabled) {
-            Log($"Inspect [{typeof(UComponent)}] {entityId} ({dataLayer})");
+            Log($"Inspect [{typeof(UComponent)}] {id} ({dataLayer})");
         }
-        return ref dataLayer.Inspect<UComponent>(entityId);
+        return ref dataLayer.Inspect<UComponent>(id);
     }
 
-    public override ref UComponent Require<UComponent>(Guid entityId)
+    public override ref UComponent Require<UComponent>(Guid id)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();
         if (IsReadLogEnabled) {
-            Log($"Require [{typeof(UComponent)}] {entityId} ({dataLayer})");
+            Log($"Require [{typeof(UComponent)}] {id} ({dataLayer})");
         }
-        return ref dataLayer.Require<UComponent>(entityId);
+        return ref dataLayer.Require<UComponent>(id);
     }
 
-    public override ref UComponent Acquire<UComponent>(Guid entityId)
+    public override ref UComponent Acquire<UComponent>(Guid id)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();
-        Log($"Acquire [{typeof(UComponent)}] {entityId} ({dataLayer})");
-        return ref dataLayer.Acquire<UComponent>(entityId);
+        Log($"Acquire [{typeof(UComponent)}] {id} ({dataLayer})");
+        return ref dataLayer.Acquire<UComponent>(id);
     }
 
-    public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+    public override ref UComponent Acquire<UComponent>(Guid id, out bool exists)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();
-        ref UComponent success = ref dataLayer.Acquire<UComponent>(entityId, out exists);
-        Log($"Acquire [{typeof(UComponent)}] {entityId} => exists: {exists}");
+        ref UComponent success = ref dataLayer.Acquire<UComponent>(id, out exists);
+        Log($"Acquire [{typeof(UComponent)}] {id} => exists: {exists}");
         return ref success;
     }
 
-    public override bool Contains<UComponent>(Guid entityId)
+    public override bool Contains<UComponent>(Guid id)
     {
         var dataLayer = FindTerminalDataLayer<UComponent>();
-        bool success = dataLayer != null ? dataLayer.Contains<UComponent>(entityId) : false;
+        bool success = dataLayer != null ? dataLayer.Contains<UComponent>(id) : false;
         if (IsReadLogEnabled) {
-            Log($"Contains [{typeof(UComponent)}] {entityId} => {success} ({dataLayer})");
+            Log($"Contains [{typeof(UComponent)}] {id} => {success} ({dataLayer})");
         }
         return success;
     }
 
-    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
+    public override ref UComponent Set<UComponent>(Guid id, in UComponent component)
     {
         var dataLayer = RequireTerminalDataLayer<UComponent>();
-        Log($"Set [{typeof(UComponent)}] {entityId} ({dataLayer})");
-        return ref dataLayer.Set<UComponent>(entityId, component);
+        Log($"Set [{typeof(UComponent)}] {id} ({dataLayer})");
+        return ref dataLayer.Set<UComponent>(id, component);
     }
 
-    public override bool Remove<UComponent>(Guid entityId)
+    public override bool Remove<UComponent>(Guid id)
     {
         var dataLayer = FindTerminalDataLayer<UComponent>();
-        bool success = dataLayer != null ? dataLayer.Remove<UComponent>(entityId) : false;
-        Log($"Remove [{typeof(UComponent)}] {entityId} => {success} ({dataLayer})");
+        bool success = dataLayer != null ? dataLayer.Remove<UComponent>(id) : false;
+        Log($"Remove [{typeof(UComponent)}] {id} => {success} ({dataLayer})");
         return success;
     }
 
-    public override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public override bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
         var dataLayer = FindTerminalDataLayer<UComponent>();
         bool success;
@@ -113,16 +113,16 @@ public class LoggedCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCompo
             success = false;
         }
         else {
-            success = dataLayer.Remove<UComponent>(entityId, out component);
+            success = dataLayer.Remove<UComponent>(id, out component);
         }
-        Log($"Remove [{typeof(UComponent)}] {entityId} => {success} ({dataLayer})");
+        Log($"Remove [{typeof(UComponent)}] {id} => {success} ({dataLayer})");
         return success;
     }
 
-    public override void Clear(Guid entityId)
+    public override void Clear(Guid id)
     {
-        Log($"Clear {entityId}");
-        base.Clear(entityId);
+        Log($"Clear {id}");
+        base.Clear(id);
     }
 
     public override void Clear()

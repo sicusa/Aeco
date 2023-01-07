@@ -7,8 +7,8 @@ public class DestroyHandler : VirtualLayer, IGameLateUpdateLayer
     {
         _ids.Clear();
         _ids.AddRange(game.Query<Destroy>());
-        foreach (var entityId in _ids) {
-            game.Clear(entityId);
+        foreach (var id in _ids) {
+            game.Clear(id);
         }
     }
 }

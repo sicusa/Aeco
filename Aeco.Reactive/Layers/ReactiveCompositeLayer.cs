@@ -20,64 +20,64 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
         EventDataLayer = eventDataLayer;
     }
 
-    public override ref UComponent InspectRaw<UComponent>(Guid entityId)
-        => ref base.Require<UComponent>(entityId);
+    public override ref UComponent InspectRaw<UComponent>(Guid id)
+        => ref base.Require<UComponent>(id);
 
-    public override ref readonly UComponent Inspect<UComponent>(Guid entityId)
-        => ref base.Require<UComponent>(entityId);
+    public override ref readonly UComponent Inspect<UComponent>(Guid id)
+        => ref base.Require<UComponent>(id);
 
-    public override ref UComponent Require<UComponent>(Guid entityId)
+    public override ref UComponent Require<UComponent>(Guid id)
     {
-        ref UComponent comp = ref base.Require<UComponent>(entityId);
-        EventDataLayer.Acquire<Modified<UComponent>>(entityId);
+        ref UComponent comp = ref base.Require<UComponent>(id);
+        EventDataLayer.Acquire<Modified<UComponent>>(id);
         EventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
         return ref comp;
     }
 
-    public override ref UComponent Acquire<UComponent>(Guid entityId)
+    public override ref UComponent Acquire<UComponent>(Guid id)
     {
-        ref UComponent comp = ref base.Acquire<UComponent>(entityId, out _existsTemp);
+        ref UComponent comp = ref base.Acquire<UComponent>(id, out _existsTemp);
         if (!_existsTemp) {
-            EventDataLayer.Acquire<Created<UComponent>>(entityId);
+            EventDataLayer.Acquire<Created<UComponent>>(id);
             EventDataLayer.Acquire<AnyCreated<UComponent>>(ReactiveCompositeLayer.AnyEventId);
             EventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
         }
-        EventDataLayer.Acquire<Modified<UComponent>>(entityId);
+        EventDataLayer.Acquire<Modified<UComponent>>(id);
         EventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
         return ref comp;
     }
 
-    public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
+    public override ref UComponent Acquire<UComponent>(Guid id, out bool exists)
     {
-        ref UComponent comp = ref base.Acquire<UComponent>(entityId, out exists);
+        ref UComponent comp = ref base.Acquire<UComponent>(id, out exists);
         if (!exists) {
-            EventDataLayer.Acquire<Created<UComponent>>(entityId);
+            EventDataLayer.Acquire<Created<UComponent>>(id);
             EventDataLayer.Acquire<AnyCreated<UComponent>>(ReactiveCompositeLayer.AnyEventId);
             EventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
         }
-        EventDataLayer.Acquire<Modified<UComponent>>(entityId);
+        EventDataLayer.Acquire<Modified<UComponent>>(id);
         EventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
         return ref comp;
     }
 
-    public override ref UComponent AcquireRaw<UComponent>(Guid entityId)
-        => ref base.Acquire<UComponent>(entityId);
+    public override ref UComponent AcquireRaw<UComponent>(Guid id)
+        => ref base.Acquire<UComponent>(id);
 
-    public override ref UComponent AcquireRaw<UComponent>(Guid entityId, out bool exists)
-        => ref base.Acquire<UComponent>(entityId, out exists);
+    public override ref UComponent AcquireRaw<UComponent>(Guid id, out bool exists)
+        => ref base.Acquire<UComponent>(id, out exists);
     
-    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
+    public override ref UComponent Set<UComponent>(Guid id, in UComponent component)
     {
-        ref UComponent comp = ref base.Set(entityId, component);
-        EventDataLayer.Acquire<Modified<UComponent>>(entityId);
+        ref UComponent comp = ref base.Set(id, component);
+        EventDataLayer.Acquire<Modified<UComponent>>(id);
         EventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
         return ref comp;
     }
 
-    public override bool Remove<UComponent>(Guid entityId)
+    public override bool Remove<UComponent>(Guid id)
     {
-        if (base.Remove<UComponent>(entityId)) {
-            EventDataLayer.Acquire<Removed<UComponent>>(entityId);
+        if (base.Remove<UComponent>(id)) {
+            EventDataLayer.Acquire<Removed<UComponent>>(id);
             EventDataLayer.Acquire<AnyRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
             EventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
             return true;
@@ -85,10 +85,10 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
         return false;
     }
 
-    public override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public override bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
-        if (base.Remove<UComponent>(entityId, out component)) {
-            EventDataLayer.Acquire<Removed<UComponent>>(entityId);
+        if (base.Remove<UComponent>(id, out component)) {
+            EventDataLayer.Acquire<Removed<UComponent>>(id);
             EventDataLayer.Acquire<AnyRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
             EventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
             return true;

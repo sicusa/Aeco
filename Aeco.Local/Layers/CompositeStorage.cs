@@ -43,38 +43,38 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
         return substorage;
     }
 
-    public override bool TryGet<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public override bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
         var substorage = FindSubstorage<UComponent>();
         if (substorage == null) {
             component = default;
             return false;
         }
-        return substorage.TryGet<UComponent>(entityId, out component);
+        return substorage.TryGet<UComponent>(id, out component);
     }
     
-    public override ref UComponent Require<UComponent>(Guid entityId)
+    public override ref UComponent Require<UComponent>(Guid id)
     {
         var substorage = FindSubstorage<UComponent>();
         if (substorage == null) {
             throw new KeyNotFoundException("Component not found: " + typeof(UComponent));
         }
-        return ref substorage.Require<UComponent>(entityId);
+        return ref substorage.Require<UComponent>(id);
     }
 
-    public override ref UComponent Acquire<UComponent>(Guid entityId)
-        => ref AcquireSubstorage<UComponent>().Acquire<UComponent>(entityId);
+    public override ref UComponent Acquire<UComponent>(Guid id)
+        => ref AcquireSubstorage<UComponent>().Acquire<UComponent>(id);
 
-    public override ref UComponent Acquire<UComponent>(Guid entityId, out bool exists)
-        => ref AcquireSubstorage<UComponent>().Acquire<UComponent>(entityId, out exists);
+    public override ref UComponent Acquire<UComponent>(Guid id, out bool exists)
+        => ref AcquireSubstorage<UComponent>().Acquire<UComponent>(id, out exists);
 
-    public override bool Contains<UComponent>(Guid entityId)
+    public override bool Contains<UComponent>(Guid id)
     {
         var substorage = FindSubstorage<UComponent>();
         if (substorage == null) {
             return false;
         }
-        return substorage.Contains<UComponent>(entityId);
+        return substorage.Contains<UComponent>(id);
     }
 
     public override bool ContainsAny<UComponent>()
@@ -86,30 +86,30 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
         return substorage.ContainsAny<UComponent>();
     }
 
-    public override bool Remove<UComponent>(Guid entityId)
+    public override bool Remove<UComponent>(Guid id)
     {
         var substorage = FindSubstorage<UComponent>();
         if (substorage == null) {
             return false;
         }
-        return substorage.Remove<UComponent>(entityId);
+        return substorage.Remove<UComponent>(id);
     }
 
-    public override bool Remove<UComponent>(Guid entityId, [MaybeNullWhen(false)] out UComponent component)
+    public override bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
         var substorage = FindSubstorage<UComponent>();
         if (substorage == null) {
             component = default;
             return false;
         }
-        return substorage.Remove<UComponent>(entityId, out component);
+        return substorage.Remove<UComponent>(id, out component);
     }
 
     public override void RemoveAll<UComponent>()
         => FindSubstorage<UComponent>()?.RemoveAll<UComponent>();
 
-    public override ref UComponent Set<UComponent>(Guid entityId, in UComponent component)
-        => ref AcquireSubstorage<UComponent>().Set(entityId, component);
+    public override ref UComponent Set<UComponent>(Guid id, in UComponent component)
+        => ref AcquireSubstorage<UComponent>().Set(id, component);
 
     public override Guid? Singleton<UComponent>()
     {
@@ -138,13 +138,13 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
     public override IEnumerable<Guid> Query()
         => QueryUtil.Union(_substorages.Values.Select(s => s.Query()));
 
-    public override IEnumerable<object> GetAll(Guid entityId)
-        => _substorages.Values.SelectMany(sub => sub.GetAll(entityId));
+    public override IEnumerable<object> GetAll(Guid id)
+        => _substorages.Values.SelectMany(sub => sub.GetAll(id));
 
-    public override void Clear(Guid entityId)
+    public override void Clear(Guid id)
     {
         foreach (var sub in _substorages.Values) {
-            sub.Clear(entityId);
+            sub.Clear(id);
         }
     }
 
