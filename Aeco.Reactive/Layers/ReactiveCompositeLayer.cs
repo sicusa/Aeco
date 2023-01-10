@@ -11,8 +11,6 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
     public override bool IsSublayerCachable => false;
 
     public IDataLayer<IReactiveEvent> EventDataLayer { get; }
-
-    private bool _existsTemp;
     
     public ReactiveCompositeLayer(IDataLayer<IReactiveEvent> eventDataLayer, params TSublayer[] sublayers)
         : base(sublayers)
@@ -36,8 +34,8 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
 
     public override ref UComponent Acquire<UComponent>(Guid id)
     {
-        ref UComponent comp = ref base.Acquire<UComponent>(id, out _existsTemp);
-        if (!_existsTemp) {
+        ref UComponent comp = ref base.Acquire<UComponent>(id, out bool exists);
+        if (!exists) {
             EventDataLayer.Acquire<Created<UComponent>>(id);
             EventDataLayer.Acquire<AnyCreated<UComponent>>(ReactiveCompositeLayer.AnyEventId);
             EventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);

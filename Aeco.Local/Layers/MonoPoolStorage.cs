@@ -14,7 +14,6 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     private SortedSet<Guid> _entityIds = new();
 
     private Guid? _singleton;
-    private bool _existsTemp;
 
     public MonoPoolStorage(int brickCapacity = MonoPoolStorage.DefaultBrickCapacity)
     {
@@ -35,7 +34,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     }
     
     public override ref TStoredComponent Acquire(Guid id)
-        => ref Acquire(id, out _existsTemp);
+        => ref Acquire(id, out bool _);
 
     public override ref TStoredComponent Acquire(Guid id, out bool exists)
     {
@@ -94,8 +93,8 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     public override ref TStoredComponent Set(Guid id, in TStoredComponent component)
     {
-        ref var block = ref _brick.AcquireBlock(id, out _existsTemp);
-        if (!_existsTemp) {
+        ref var block = ref _brick.AcquireBlock(id, out bool exists);
+        if (!exists) {
             _entityIds.Add(id);
         }
         block.Value = component;

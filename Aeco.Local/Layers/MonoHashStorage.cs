@@ -13,7 +13,6 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     private SortedSet<Guid> _entityIds = new();
 
     private Guid? _singleton;
-    private bool _existsTemp;
 
     public override bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
         => _dict.TryGetValue(id, out component);
@@ -28,7 +27,7 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     }
 
     public override ref TStoredComponent Acquire(Guid id)
-        => ref Acquire(id, out _existsTemp);
+        => ref Acquire(id, out bool _);
     
     public override ref TStoredComponent Acquire(Guid id, out bool exists)
     {
@@ -78,7 +77,7 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     public override ref TStoredComponent Set(Guid id, in TStoredComponent component)
     {
-        ref TStoredComponent? value = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, id, out _existsTemp);
+        ref TStoredComponent? value = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, id, out bool exists);
         value = component;
         return ref value!;
     }

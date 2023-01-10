@@ -9,8 +9,6 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
     private Dictionary<Guid, LinkedList<object>> _channels = new();
     private Stack<LinkedList<object>> _channelPool = new();
 
-    private bool _tempExists;
-
     public override bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
         if (_channels.TryGetValue(id, out var channel)) {
@@ -38,7 +36,7 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
     }
 
     public override ref UComponent Acquire<UComponent>(Guid id)
-        => ref Acquire<UComponent>(id, out _tempExists);
+        => ref Acquire<UComponent>(id, out bool _);
 
     public override ref UComponent Acquire<UComponent>(Guid id, out bool exists)
     {
