@@ -31,7 +31,7 @@ public class LoggedCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCompo
 
     public override bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
-        var dataLayer = FindTerminalDataLayer<UComponent>();
+        var dataLayer = GetReadableDataLayer<UComponent>();
         bool success;
         if (dataLayer == null) {
             component = default;
@@ -48,7 +48,7 @@ public class LoggedCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCompo
 
     public override ref readonly UComponent Inspect<UComponent>(Guid id)
     {
-        var dataLayer = RequireTerminalDataLayer<UComponent>();
+        var dataLayer = RequireDataLayer<UComponent>();
         if (IsReadLogEnabled) {
             Log($"Inspect [{typeof(UComponent)}] {id} ({dataLayer})");
         }
@@ -57,7 +57,7 @@ public class LoggedCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCompo
 
     public override ref UComponent Require<UComponent>(Guid id)
     {
-        var dataLayer = RequireTerminalDataLayer<UComponent>();
+        var dataLayer = RequireDataLayer<UComponent>();
         if (IsReadLogEnabled) {
             Log($"Require [{typeof(UComponent)}] {id} ({dataLayer})");
         }
@@ -66,14 +66,14 @@ public class LoggedCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCompo
 
     public override ref UComponent Acquire<UComponent>(Guid id)
     {
-        var dataLayer = RequireTerminalDataLayer<UComponent>();
+        var dataLayer = RequireExpandableDataLayer<UComponent>();
         Log($"Acquire [{typeof(UComponent)}] {id} ({dataLayer})");
         return ref dataLayer.Acquire<UComponent>(id);
     }
 
     public override ref UComponent Acquire<UComponent>(Guid id, out bool exists)
     {
-        var dataLayer = RequireTerminalDataLayer<UComponent>();
+        var dataLayer = RequireExpandableDataLayer<UComponent>();
         ref UComponent success = ref dataLayer.Acquire<UComponent>(id, out exists);
         Log($"Acquire [{typeof(UComponent)}] {id} => exists: {exists}");
         return ref success;
@@ -81,7 +81,7 @@ public class LoggedCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCompo
 
     public override bool Contains<UComponent>(Guid id)
     {
-        var dataLayer = FindTerminalDataLayer<UComponent>();
+        var dataLayer = GetReadableDataLayer<UComponent>();
         bool success = dataLayer != null ? dataLayer.Contains<UComponent>(id) : false;
         if (IsReadLogEnabled) {
             Log($"Contains [{typeof(UComponent)}] {id} => {success} ({dataLayer})");
@@ -91,14 +91,14 @@ public class LoggedCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCompo
 
     public override ref UComponent Set<UComponent>(Guid id, in UComponent component)
     {
-        var dataLayer = RequireTerminalDataLayer<UComponent>();
+        var dataLayer = RequireSettableDataLayer<UComponent>();
         Log($"Set [{typeof(UComponent)}] {id} ({dataLayer})");
         return ref dataLayer.Set<UComponent>(id, component);
     }
 
     public override bool Remove<UComponent>(Guid id)
     {
-        var dataLayer = FindTerminalDataLayer<UComponent>();
+        var dataLayer = GetShrinkableDataLayer<UComponent>();
         bool success = dataLayer != null ? dataLayer.Remove<UComponent>(id) : false;
         Log($"Remove [{typeof(UComponent)}] {id} => {success} ({dataLayer})");
         return success;
@@ -106,7 +106,7 @@ public class LoggedCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCompo
 
     public override bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
-        var dataLayer = FindTerminalDataLayer<UComponent>();
+        var dataLayer = GetShrinkableDataLayer<UComponent>();
         bool success;
         if (dataLayer == null) {
             component = default;

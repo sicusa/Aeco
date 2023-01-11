@@ -22,7 +22,7 @@ public static class ConcurrentTests
     {
     }
 
-    public class TestConcurrentLayer : VirtualLayer, ITestLayer
+    public class TestConcurrentLayer : ITestLayer
     {
         public Guid ChannelId { get; init; }
 
@@ -42,18 +42,17 @@ public static class ConcurrentTests
             new ChannelLayer(),
             new PolyHashStorage(),
             new TestConcurrentLayer { ChannelId = channelId });
-        var worldConcurrent = new ConcurrentDataLayer(world);
+        var concurrentWorld = new ConcurrentDataLayer(world);
 
         var testLayers = world.GetSublayers<ITestLayer>().ToArray();
         
-        var channel = world.GetEntity(channelId);
-        channel.Acquire<TestChannel>();
+        world.Acquire<TestChannel>(channelId);
 
         new Thread(() => {
             int i = 0;
             while (true) {
-                channel.Set(new EchoCmd(++i));
-                channel.Set(new EchoCmd(1000 + i));
+                concurrentWorld.Set(channelId, new EchoCmd(++i));
+                concurrentWorld.Set(channelId, new EchoCmd(1000 + i));
                 Console.WriteLine("Sent: " + i);
                 Thread.Sleep(1000);
             }
@@ -62,8 +61,8 @@ public static class ConcurrentTests
         new Thread(() => {
             int i = 2000;
             while (true) {
-                channel.Set(new EchoCmd(++i));
-                channel.Set(new EchoCmd(1000 + i));
+                concurrentWorld.Set(channelId, new EchoCmd(++i));
+                concurrentWorld.Set(channelId, new EchoCmd(1000 + i));
                 Console.WriteLine("Sent: " + i);
                 Thread.Sleep(500);
             }
@@ -71,7 +70,7 @@ public static class ConcurrentTests
 
         while (true) {
             foreach (var layer in testLayers) {
-                layer.Update(worldConcurrent);
+                layer.Update(concurrentWorld);
             }
             Thread.Sleep(100);
         }

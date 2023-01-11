@@ -2,11 +2,8 @@ namespace Aeco.Tests;
 
 using System.Linq;
 
-using Aeco.Persistence;
-
 using Aeco.Tests.RPGGame;
 using Aeco.Tests.RPGGame.Character;
-using Aeco.Tests.RPGGame.Gameplay;
 using Aeco.Tests.RPGGame.Map;
 
 public static class RPGTests
@@ -20,15 +17,15 @@ public static class RPGTests
 
         game.Update(0.5f);
 
-        var map = game.GetEntity<Map>();
-        var mapBlocks = game.Require<Map>(map.Id).Blocks;
+        var mapId = game.Singleton<Map>()!.Value;
+        var mapBlocks = game.Require<Map>(mapId).Blocks;
 
-        var player = game.GetEntity<Player>();
-        player.Acquire<Equipments>().Weapon = new LongSword();
+        var playerId = game.Singleton<Player>()!.Value;
+        game.Acquire<Equipments>(playerId).Weapon = new LongSword();
 
-        ref var pos = ref player.Require<Position>();
-        ref var rot = ref player.Require<Rotation>();
-        Console.WriteLine("Found in map: " + mapBlocks[pos].Contains(player.Id)); // true
+        ref var pos = ref game.Require<Position>(playerId);
+        ref var rot = ref game.Require<Rotation>(playerId);
+        Console.WriteLine("Found in map: " + mapBlocks[pos].Contains(playerId)); // true
 
         ++pos.X;
         rot.Value = Direction.Left;
@@ -36,15 +33,16 @@ public static class RPGTests
         // frame 1
 
         game.Update(0.5f);
-        Console.WriteLine("Found in map: " + mapBlocks[pos].Contains(player.Id)); // false
+        Console.WriteLine("Found in map: " + mapBlocks[pos].Contains(playerId)); // false
 
-        var enemy = game.CreateEntity().AsEnemy(map.Id);
+        var enemyId = Guid.NewGuid();
+        game.MakeEnemy(enemyId, mapId);
 
         var ids = new List<Guid>();
         for (int i = 0; i < 2000; ++i) {
-            var entity = game.CreateEntity();
-            entity.AsEnemy(map.Id);
-            ids.Add(entity.Id);
+            var otherEnemyId = Guid.NewGuid();
+            game.MakeEnemy(otherEnemyId, mapId);
+            ids.Add(otherEnemyId);
         }
 
         var removedIds = ids.Take(1000).ToArray();
@@ -54,53 +52,45 @@ public static class RPGTests
         Console.WriteLine("Enemy count: " + game.GetCount<Enemy>());
 
         foreach (var id in removedIds) {
-            game.GetEntity(id).AsEnemy(map.Id);
+            game.MakeEnemy(id, mapId);
         }
         Console.WriteLine("Enemy count: " + game.GetCount<Enemy>());
 
         // frame 2
 
         game.Update(0.5f);
-        player.Set(new Attack());
+        game.Set(playerId, new Attack());
+
 
         // frame 3
 
         game.Update(0.5f);
-        Console.WriteLine("Enemy HP: " + enemy.Require<Health>().Value);
+        Console.WriteLine("Enemy HP: " + game.Require<Health>(enemyId).Value);
 
-        player.Acquire<Equipments>().Weapon = new PoisonousLongSword();
-        player.Set(new Attack());
+        game.Acquire<Equipments>(playerId).Weapon = new PoisonousLongSword();
+        game.Set(playerId, new Attack());
 
         // frame 4
 
         game.Update(0.5f);
-        Console.WriteLine("Enemy HP: " + enemy.Require<Health>().Value);
-        Console.WriteLine("Enemy posioned: " + enemy.Contains<Posioned>());
+        Console.WriteLine("Enemy HP: " + game.Require<Health>(enemyId).Value);
+        Console.WriteLine("Enemy posioned: " + game.Contains<Posioned>(enemyId));
 
         // frame 5 ~ 6
 
         for (int i = 5; i <= 6; ++i) {
             game.Update(0.5f);
-            Console.WriteLine("Enemy HP: " + enemy.Require<Health>().Value);
-            Console.WriteLine("Enemy posioned: " + enemy.Contains<Posioned>());
+            Console.WriteLine("Enemy HP: " + game.Require<Health>(enemyId).Value);
+            Console.WriteLine("Enemy posioned: " + game.Contains<Posioned>(enemyId));
         }
 
-        player.Set(new Attack());
+        game.Set(playerId, new Attack());
 
         // frame 7
 
         game.Update(0.5f);
 
-        Console.WriteLine("Enemy Alive: " + enemy.Contains<Health>());
+        Console.WriteLine("Enemy Alive: " + game.Contains<Health>(enemyId));
         Console.WriteLine("Enemy count: " + game.GetCount<Enemy>());
-
-        player.Acquire<Persistent>();
-        player.Dispose();
-
-        enemy.Acquire<Persistent>();
-        enemy.Dispose();
-
-        map.Acquire<Persistent>();
-        map.Dispose();
     }
 }

@@ -3,17 +3,15 @@ namespace Aeco.Local;
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayerBase<TComponent, TStoredComponent>
+public class SingletonStorage<TComponent, TStoredComponent>
+    : LocalMonoDataLayerBase<TComponent, TStoredComponent>
     where TStoredComponent : TComponent, new()
 {
     private Guid? _id;
-    private TStoredComponent _data = new();
+    private TStoredComponent _data = default!;
 
     public SingletonStorage()
     {
-        if (_data == null) {
-            _data = new();
-        }
     }
 
     public override bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
@@ -40,6 +38,7 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
     {
         if (_id == null) {
             _id = id;
+            _data = new();
             return ref _data;
         }
         else if (_id == id) {
@@ -52,6 +51,7 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
     {
         if (_id == null) {
             _id = id;
+            _data = new();
             exists = false;
             return ref _data;
         }
@@ -74,7 +74,7 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
             return false;
         }
         _id = null;
-        _data = new();
+        _data = default!;
         return true;
     }
 
@@ -87,7 +87,7 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
         component = _data;
 
         _id = null;
-        _data = new();
+        _data = default!;
         return true;
     }
 
@@ -122,14 +122,14 @@ public class SingletonStorage<TComponent, TStoredComponent> : LocalMonoDataLayer
     {
         if (_id == id) {
             _id = null;
-            _data = new();
+            _data = default!;
         }
     }
 
     public override void Clear()
     {
         _id = null;
-        _data = new();
+        _data = default!;
     }
 }
 
@@ -140,14 +140,12 @@ public class SingletonStorage<TStoredComponent> : SingletonStorage<IComponent, T
 
 public static class SingletonStorage
 {
-    public static IDataLayer<TComponent> CreateUnsafe<TComponent>(Type selectedComponentType)
+    public class Factory<TComponent> : IDataLayerFactory<TComponent>
     {
-        var type = typeof(SingletonStorage<,>).MakeGenericType(
-            new Type[] {typeof(TComponent), selectedComponentType});
-        return (IDataLayer<TComponent>)Activator.CreateInstance(type)!;
-    }
+        public static Factory<TComponent> Shared { get; } = new();
 
-    public static Func<Type, IDataLayer<TComponent>> MakeUnsafeCreator<TComponent>()
-        => selectedComponentType =>
-            CreateUnsafe<TComponent>(selectedComponentType);
+        public IDataLayer<TComponent> Create<TStoredComponent>()
+            where TStoredComponent : TComponent, new()
+            => new SingletonStorage<TComponent, TStoredComponent>();
+    }
 }

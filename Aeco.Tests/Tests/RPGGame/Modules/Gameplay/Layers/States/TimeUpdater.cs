@@ -1,6 +1,6 @@
 namespace Aeco.Tests.RPGGame.Gameplay;
 
-public class TimeUpdator : VirtualLayer, IGameUpdateLayer
+public class TimeUpdator : Layer, IGameUpdateLayer
 {
     public void Update(RPGGame game)
     {

@@ -16,14 +16,8 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
 
     public bool CheckSupported(Type componentType)
         =>  _inner.CheckSupported(componentType);
-    public IEntity<TComponent> GetEntity<UComponent>() where UComponent : TComponent
-        => _inner.GetEntity<UComponent>();
-    public IReadOnlyEntity<TComponent> GetReadOnlyEntity<UComponent>() where UComponent : TComponent
-        => _inner.GetReadOnlyEntity<UComponent>();
 
     public IEnumerable<Guid> Query() => _inner.Query();
-    public IEntity<TComponent> GetEntity(Guid id) => _inner.GetEntity(id);
-    public IReadOnlyEntity<TComponent> GetReadOnlyEntity(Guid id) => _inner.GetReadOnlyEntity(id);
 
     public bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
@@ -258,7 +252,7 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
     }
 
     public ref UComponent Set<UComponent>(Guid id, in UComponent component)
-        where UComponent : TComponent
+        where UComponent : TComponent, new()
     {
         _lockSlim.EnterWriteLock();
         try {
@@ -270,7 +264,7 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
     }
 
     public ref UComponent SetAny<UComponent>(in UComponent component)
-        where UComponent : TComponent
+        where UComponent : TComponent, new()
     {
         _lockSlim.EnterWriteLock();
         try {

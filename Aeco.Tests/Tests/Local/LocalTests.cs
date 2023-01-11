@@ -3,9 +3,6 @@ namespace Aeco.Tests;
 using System.Runtime.Serialization;
 
 using Aeco.Local;
-using Aeco.Serialization.Json;
-using Aeco.Persistence;
-using Aeco.Persistence.Local;
 
 public static class LocalTests
 {
@@ -46,70 +43,63 @@ public static class LocalTests
     {
         Console.WriteLine("== Local ==");
 
-        var entityFactory = new EntityFactory();
-
         var compositeLayer = new CompositeLayer(
             new MonoPoolStorage<TestComponent>(),
-            new PolyPoolStorage<ITestComponentB>(),
+            new PolyClosedHashStorage<ITestComponentB>(),
             new ChannelLayer<ICommand>(),
-            new PolyHashStorage(),
-            new FileSystemPersistenceLayer(
-                "./Entities", new JsonEntitySerializer<IComponent>())
+            new PolyHashStorage()
         );
-        compositeLayer.EntityFactory = entityFactory;
 
-        var entity = compositeLayer.CreateEntity();
-        entity.Acquire<Persistent>();
-        Console.WriteLine(compositeLayer.Contains<Persistent>(entity.Id));
+        var id = Guid.NewGuid();
 
-        Console.WriteLine($"ID: {entity.Id}");
-        foreach (var component in compositeLayer.GetAll(entity.Id)){
+        Console.WriteLine("[TestComponent1]");
+        Console.WriteLine($"ContainsComponent<TestComponent>(): {compositeLayer.Contains<TestComponent>(id)}");
+        compositeLayer.Acquire<TestComponent>(id);
+        Console.WriteLine($"ContainsComponent<TestComponent>(): {compositeLayer.Contains<TestComponent>(id)}");
+        compositeLayer.Remove<TestComponent>(id);
+        Console.WriteLine($"ContainsComponent<TestComponent>(): {compositeLayer.Contains<TestComponent>(id)}");
+        compositeLayer.Acquire<TestComponent>(id);
+        Console.WriteLine($"ContainsComponent<TestComponent>(): {compositeLayer.Contains<TestComponent>(id)}");
+
+        Console.WriteLine("\n[TestComponentB]");
+        Console.WriteLine($"ContainsComponent<TestComponentB>(): {compositeLayer.Contains<TestComponentB>(id)}");
+        compositeLayer.Acquire<TestComponentB>(id);
+        Console.WriteLine($"ContainsComponent<TestComponentB>(): {compositeLayer.Contains<TestComponentB>(id)}");
+        compositeLayer.Remove<TestComponentB>(id);
+        Console.WriteLine($"ContainsComponent<TestComponentB>(): {compositeLayer.Contains<TestComponentB>(id)}");
+        compositeLayer.Acquire<TestComponentB>(id);
+        Console.WriteLine($"ContainsComponent<TestComponentB>(): {compositeLayer.Contains<TestComponentB>(id)}");
+
+        Console.WriteLine("\n[TestComponentBB]");
+        Console.WriteLine($"ContainsComponent<TestComponentBB>(): {compositeLayer.Contains<TestComponentBB>(id)}");
+        compositeLayer.Acquire<TestComponentBB>(id);
+        Console.WriteLine($"ContainsComponent<TestComponentB>(): {compositeLayer.Contains<TestComponentBB>(id)}");
+        compositeLayer.Remove<TestComponentBB>(id);
+        Console.WriteLine($"ContainsComponent<TestComponentB>(): {compositeLayer.Contains<TestComponentBB>(id)}");
+        compositeLayer.Acquire<TestComponentBB>(id);
+        Console.WriteLine($"ContainsComponent<TestComponentB>(): {compositeLayer.Contains<TestComponentBB>(id)}");
+
+        Console.WriteLine($"ID: {id}");
+        foreach (var component in compositeLayer.GetAll(id)){
             Console.WriteLine($"\tComponent: {component}");
         }
 
-        Console.WriteLine("[TestComponent1]");
-        Console.WriteLine($"ContainsComponent<TestComponent>(): {entity.Contains<TestComponent>()}");
-        entity.Acquire<TestComponent>();
-        Console.WriteLine($"ContainsComponent<TestComponent>(): {entity.Contains<TestComponent>()}");
-        entity.Remove<TestComponent>();
-        Console.WriteLine($"ContainsComponent<TestComponent>(): {entity.Contains<TestComponent>()}");
-        entity.Acquire<TestComponent>();
-        Console.WriteLine($"ContainsComponent<TestComponent>(): {entity.Contains<TestComponent>()}");
-
-        Console.WriteLine("\n[TestComponentB]");
-        Console.WriteLine($"ContainsComponent<TestComponentB>(): {entity.Contains<TestComponentB>()}");
-        entity.Acquire<TestComponentB>();
-        Console.WriteLine($"ContainsComponent<TestComponentB>(): {entity.Contains<TestComponentB>()}");
-        entity.Remove<TestComponentB>();
-        Console.WriteLine($"ContainsComponent<TestComponentB>(): {entity.Contains<TestComponentB>()}");
-        entity.Acquire<TestComponentB>();
-        Console.WriteLine($"ContainsComponent<TestComponentB>(): {entity.Contains<TestComponentB>()}");
-
-        Console.WriteLine("\n[TestComponentBB]");
-        Console.WriteLine($"ContainsComponent<TestComponentBB>(): {entity.Contains<TestComponentBB>()}");
-        entity.Acquire<TestComponentBB>();
-        Console.WriteLine($"ContainsComponent<TestComponentB>(): {entity.Contains<TestComponentBB>()}");
-        entity.Remove<TestComponentBB>();
-        Console.WriteLine($"ContainsComponent<TestComponentB>(): {entity.Contains<TestComponentBB>()}");
-        entity.Acquire<TestComponentBB>();
-        Console.WriteLine($"ContainsComponent<TestComponentB>(): {entity.Contains<TestComponentBB>()}");
-
-        var q = new Query<Persistent, TestComponent, TestComponentB, TestComponentBB>();
-        foreach (var id in q.Query(compositeLayer)) {
-            Console.WriteLine(id);
+        var q = new Query<TestComponent, TestComponentB, TestComponentBB>();
+        foreach (var foundId in q.Query(compositeLayer)) {
+            Console.WriteLine(foundId);
         }
+
+
 
         Console.WriteLine("\n[TestCommand]");
-        entity.Set(new TestCommand("Test"));
-        entity.Set(new TestCommand("Test2"));
-        entity.Set(new TestCommand("Test3"));
-        entity.Set(new TestCommand("Test4"));
+        compositeLayer.Set(id, new TestCommand("Test"));
+        compositeLayer.Set(id, new TestCommand("Test2"));
+        compositeLayer.Set(id, new TestCommand("Test3"));
+        compositeLayer.Set(id, new TestCommand("Test4"));
 
-        while (entity.TryGet<TestCommand>(out var recCmd)) {
+        while (compositeLayer.TryGet<TestCommand>(id, out var recCmd)) {
             Console.WriteLine($"TestCommand.Name: {recCmd.Name}");
-            Console.WriteLine(entity.Remove<TestCommand>());
+            Console.WriteLine(compositeLayer.Remove<TestCommand>(id));
         }
-
-        entity.Dispose();
     }
 }

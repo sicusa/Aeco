@@ -2,7 +2,7 @@ namespace Aeco.Tests.RPGGame.Map;
 
 using Aeco.Tests.RPGGame.Gameplay;
 
-public class MapObjectDestroyedListener : VirtualLayer, IGameLateUpdateLayer
+public class MapObjectDestroyedListener : Layer, IGameLateUpdateLayer
 {
     private Query<InMap, Position, Destroy> _q = new();
 

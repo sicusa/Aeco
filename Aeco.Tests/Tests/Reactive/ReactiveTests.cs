@@ -30,28 +30,28 @@ public static class ReactiveTests
             eventStorage,
             new ReactiveCompositeLayer(
                 eventDataLayer: eventStorage,
-                new PolyPoolStorage<IReactiveComponent>(),
+                new PolyClosedHashStorage<IReactiveComponent>(),
                 new PolyHashStorage<IReactiveEvent<Position>>()));
 
-        var entity = world.CreateEntity();
-        entity.Acquire<Position>();
+        var id = Guid.NewGuid();
+        world.Acquire<Position>(id);
 
-        Console.WriteLine(entity.Remove<Created<Position>>()); // true
-        Console.WriteLine(entity.Remove<Modified<Position>>()); // true
+        Console.WriteLine(world.Remove<Created<Position>>(id)); // true
+        Console.WriteLine(world.Remove<Modified<Position>>(id)); // true
 
-        entity.Acquire<Position>().X = 10;
-        Console.WriteLine(entity.Remove<Created<Position>>()); // false
-        Console.WriteLine(entity.Remove<Modified<Position>>()); // true
+        world.Acquire<Position>(id).X = 10;
+        Console.WriteLine(world.Remove<Created<Position>>(id)); // false
+        Console.WriteLine(world.Remove<Modified<Position>>(id)); // true
 
-        entity.Acquire<Rotation>().Angle = 1;
+        world.Acquire<Rotation>(id).Angle = 1;
 
-        var another = world.CreateEntity();
-        another.Acquire<Position>();
-        another.Acquire<Rotation>();
+        var anotherId = Guid.NewGuid();
+        world.Acquire<Position>(anotherId);
+        world.Acquire<Rotation>(anotherId);
 
         Group<Position, Rotation> group = new();
-        foreach (var id in group.Query(world)) {
-            Console.WriteLine(id);
+        foreach (var foundId in group.Query(world)) {
+            Console.WriteLine(foundId);
         }
     }
 }

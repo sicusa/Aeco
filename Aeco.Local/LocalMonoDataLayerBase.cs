@@ -5,18 +5,13 @@ using System.Diagnostics.CodeAnalysis;
 
 public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
     : LocalDataLayerBase<TComponent, TStoredComponent>, IMonoDataLayer<TComponent, TStoredComponent>
-    where TStoredComponent : TComponent
+    where TStoredComponent : TComponent, new()
 {
     public override bool CheckSupported(Type componentType)
         => typeof(TStoredComponent) == componentType;
     
     protected Guid RequireSingleton()
         => Singleton() ?? throw new KeyNotFoundException("Singleton not found: " + typeof(TStoredComponent));
-
-    public IReadOnlyEntity<TStoredComponent> GetReadOnlyEntity()
-        => (IReadOnlyEntity<TStoredComponent>)GetReadOnlyEntity(RequireSingleton());
-    public IEntity<TStoredComponent> GetEntity()
-        => (IEntity<TStoredComponent>)GetEntity(RequireSingleton());
 
     public abstract bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component);
     public virtual ref readonly TStoredComponent Inspect(Guid id)
@@ -67,44 +62,59 @@ public abstract class LocalMonoDataLayerBase<TComponent, TStoredComponent>
     public abstract ref TStoredComponent Set(Guid id, in TStoredComponent component);
     public ref TStoredComponent SetAny(in TStoredComponent component)
         => ref Set(RequireSingleton(), component);
-    
-    private IMonoDataLayer<TComponent, UComponent> Convert<UComponent>()
-        where UComponent : TComponent
-        => this as IMonoDataLayer<TComponent, UComponent>
-            ?? throw new NotSupportedException("Component not supported");
 
     public sealed override bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
-        => Convert<UComponent>().TryGet(id, out component);
+        => ConvertReadable<UComponent>().TryGet(id, out component);
     public sealed override ref readonly UComponent Inspect<UComponent>(Guid id)
-        => ref Convert<UComponent>().Inspect(id);
+        => ref ConvertReadable<UComponent>().Inspect(id);
     public sealed override ref UComponent InspectRaw<UComponent>(Guid id)
-        => ref Convert<UComponent>().InspectRaw(id);
+        => ref ConvertWritable<UComponent>().InspectRaw(id);
     public sealed override bool Contains<UComponent>(Guid id)
-        => Convert<UComponent>().Contains(id);
+        => ConvertReadable<UComponent>().Contains(id);
     public sealed override bool ContainsAny<UComponent>()
-        => Convert<UComponent>().ContainsAny();
+        => ConvertReadable<UComponent>().ContainsAny();
     public sealed override Guid? Singleton<UComponent>()
-        => Convert<UComponent>().Singleton();
+        => ConvertReadable<UComponent>().Singleton();
     public sealed override ref UComponent Require<UComponent>(Guid id)
-        => ref Convert<UComponent>().Require(id);
+        => ref ConvertWritable<UComponent>().Require(id);
     public sealed override ref UComponent Acquire<UComponent>(Guid id)
-        => ref Convert<UComponent>().Acquire(id);
+        => ref ConvertExpandable<UComponent>().Acquire(id);
     public sealed override ref UComponent Acquire<UComponent>(Guid id, out bool exists)
-        => ref Convert<UComponent>().Acquire(id, out exists);
+        => ref ConvertExpandable<UComponent>().Acquire(id, out exists);
     public sealed override ref UComponent AcquireRaw<UComponent>(Guid id)
-        => ref Convert<UComponent>().AcquireRaw(id);
+        => ref ConvertExpandable<UComponent>().AcquireRaw(id);
     public sealed override ref UComponent AcquireRaw<UComponent>(Guid id, out bool exists)
-        => ref Convert<UComponent>().AcquireRaw(id, out exists);
+        => ref ConvertExpandable<UComponent>().AcquireRaw(id, out exists);
     public sealed override bool Remove<UComponent>(Guid id)
-        => Convert<UComponent>().Remove(id);
+        => ConvertShrinkable<UComponent>().Remove(id);
     public sealed override bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
-        => Convert<UComponent>().Remove(id, out component);
+        => ConvertShrinkable<UComponent>().Remove(id, out component);
     public sealed override void RemoveAll<UComponent>()
-        => Convert<UComponent>().Clear();
+        => ConvertShrinkable<UComponent>().Clear();
     public sealed override ref UComponent Set<UComponent>(Guid id, in UComponent component)
-        => ref Convert<UComponent>().Set(id, component);
+        => ref ConvertSettable<UComponent>().Set(id, component);
     public sealed override int GetCount<UComponent>()
-        => Convert<UComponent>().GetCount();
+        => ConvertReadable<UComponent>().GetCount();
     public sealed override IEnumerable<Guid> Query<UComponent>()
-        => Convert<UComponent>().Query();
+        => ConvertReadable<UComponent>().Query();
+
+    private IReadableMonoDataLayer<TComponent, UComponent> ConvertReadable<UComponent>()
+        where UComponent : TComponent
+        => (IReadableMonoDataLayer<TComponent, UComponent>)this;
+
+    private IWritableMonoDataLayer<TComponent, UComponent> ConvertWritable<UComponent>()
+        where UComponent : TComponent
+        => (IWritableMonoDataLayer<TComponent, UComponent>)this;
+
+    private IExpandableMonoDataLayer<TComponent, UComponent> ConvertExpandable<UComponent>()
+        where UComponent : TComponent, new()
+        => (IExpandableMonoDataLayer<TComponent, UComponent>)this;
+
+    private ISettableMonoDataLayer<TComponent, UComponent> ConvertSettable<UComponent>()
+        where UComponent : TComponent, new()
+        => (ISettableMonoDataLayer<TComponent, UComponent>)this;
+
+    private IShrinkableMonoDataLayer<TComponent, UComponent> ConvertShrinkable<UComponent>()
+        where UComponent : TComponent
+        => (IShrinkableMonoDataLayer<TComponent, UComponent>)this;
 }

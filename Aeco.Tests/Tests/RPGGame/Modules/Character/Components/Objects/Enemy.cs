@@ -11,13 +11,12 @@ public struct Enemy : IPooledGameComponent
 
 public static class EnemyExtensions
 {
-    public static IEntity<IComponent> AsEnemy(this IEntity<IComponent> entity, Guid mapId)
+    public static void MakeEnemy(this IExpandableDataLayer<IComponent> dataLayer, Guid id, Guid mapId)
     {
-        entity.Acquire<Enemy>();
-        entity.Acquire<InMap>().MapId = mapId;
-        entity.Acquire<Health>();
-        entity.Acquire<Attackable>();
-        entity.Acquire<Equipments>();
-        return entity;
+        dataLayer.Acquire<Enemy>(id);
+        dataLayer.Acquire<InMap>(id).MapId = mapId;
+        dataLayer.Acquire<Health>(id);
+        dataLayer.Acquire<Attackable>(id);
+        dataLayer.Acquire<Equipments>(id);
     }
 }

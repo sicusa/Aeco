@@ -8,11 +8,11 @@ using Aeco.Local;
 public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TComponent, TSublayer>
     where TSublayer : ILayer<TComponent>
 {
-    public override bool IsSublayerCachable => false;
+    public override bool IsProvidedLayerCachable => false;
 
-    public IDataLayer<IReactiveEvent> EventDataLayer { get; }
+    public IExpandableDataLayer<IReactiveEvent> EventDataLayer { get; }
     
-    public ReactiveCompositeLayer(IDataLayer<IReactiveEvent> eventDataLayer, params TSublayer[] sublayers)
+    public ReactiveCompositeLayer(IExpandableDataLayer<IReactiveEvent> eventDataLayer, params TSublayer[] sublayers)
         : base(sublayers)
     {
         EventDataLayer = eventDataLayer;
@@ -107,7 +107,7 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
 
 public class ReactiveCompositeLayer<TComponent> : ReactiveCompositeLayer<TComponent, ILayer<TComponent>>
 {
-    public ReactiveCompositeLayer(IDataLayer<IReactiveEvent> eventDataLayer, params ILayer<TComponent>[] sublayers)
+    public ReactiveCompositeLayer(IExpandableDataLayer<IReactiveEvent> eventDataLayer, params ILayer<TComponent>[] sublayers)
         : base(eventDataLayer, sublayers)
     {
     }
@@ -117,7 +117,7 @@ public class ReactiveCompositeLayer : ReactiveCompositeLayer<IComponent>
 {
     public static readonly Guid AnyEventId = Guid.NewGuid();
 
-    public ReactiveCompositeLayer(IDataLayer<IReactiveEvent> eventDataLayer, params ILayer<IComponent>[] sublayers)
+    public ReactiveCompositeLayer(IExpandableDataLayer<IReactiveEvent> eventDataLayer, params ILayer<IComponent>[] sublayers)
         : base(eventDataLayer, sublayers)
     {
     }

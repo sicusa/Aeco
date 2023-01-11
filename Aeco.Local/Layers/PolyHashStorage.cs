@@ -4,7 +4,7 @@ public class PolyHashStorage<TComponent, TSelectedComponent> : CompositeStorage<
     where TSelectedComponent : TComponent
 {
     public PolyHashStorage()
-        : base(MonoHashStorage.MakeUnsafeCreator<TComponent>())
+        : base(MonoHashStorage.Factory<TComponent>.Shared)
     {
     }
 }

@@ -4,7 +4,7 @@ public class PolySingletonStorage<TComponent, TSelectedComponent> : CompositeSto
     where TSelectedComponent : TComponent
 {
     public PolySingletonStorage()
-        : base(SingletonStorage.MakeUnsafeCreator<TComponent>())
+        : base(SingletonStorage.Factory<TComponent>.Shared)
     {
     }
 }

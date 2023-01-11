@@ -2,7 +2,7 @@ namespace Aeco;
 
 using System.Collections;
 
-public class EnumArray<TKey, TElement>
+public sealed class EnumArray<TKey, TElement>
     : IEnumerable<TElement>, ICollection<TElement>, IReadOnlyCollection<TElement>, IEnumerable
     , IStructuralComparable, IStructuralEquatable, ICloneable
     where TKey : Enum
@@ -47,7 +47,7 @@ public class EnumArray<TKey, TElement>
         }
     }
 
-    protected EnumArray(EnumArray<TKey, TElement> other)
+    private EnumArray(EnumArray<TKey, TElement> other)
     {
         _array = (TElement[])other._array.Clone();
     }

@@ -1,47 +1,49 @@
 namespace Aeco.Local;
 
 using System;
+using System.Reflection;
 using System.Diagnostics.CodeAnalysis;
-using System.Collections.Immutable;
 
-public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBase<TComponent, TSelectedComponent>, IDataLayerTree<TComponent>
+public class CompositeStorage<TComponent, TSelectedComponent>
+    : LocalDataLayerBase<TComponent, TSelectedComponent>
+    , ILayerProvider<TComponent, IDataLayer<TComponent>>
     where TSelectedComponent : TComponent
 {
-    private Func<Type, IDataLayer<TComponent>> _substorageCreator;
-    private ImmutableDictionary<Type, IDataLayer<TComponent>> _substorages =
-        ImmutableDictionary<Type, IDataLayer<TComponent>>.Empty;
+    private IDataLayerFactory<TComponent> _factory;
+    private SparseSet<IDataLayer<TComponent>> _substorages = new();
 
-    public bool IsSublayerCachable => true;
+    public bool IsProvidedLayerCachable => true;
 
-    public CompositeStorage(Func<Type, IDataLayer<TComponent>> substorageCreator)
+    private static volatile MethodInfo? s_createMethodInfo;
+
+    public CompositeStorage(IDataLayerFactory<TComponent> dataLayerFactory)
     {
-        _substorageCreator = substorageCreator;
+        _factory = dataLayerFactory;
     }
 
-    public IDataLayer<TComponent>? FindTerminalDataLayer<UComponent>()
-        where UComponent : TComponent
+    IDataLayer<TComponent>? ILayerProvider<TComponent, IDataLayer<TComponent>>.GetLayer<UComponent>()
         => AcquireSubstorage<UComponent>();
 
     private IDataLayer<TComponent>? FindSubstorage<UComponent>()
         where UComponent : TComponent
-    {
-        var type = typeof(UComponent);
-        if (!_substorages.TryGetValue(type, out var substorage)) {
-            return null;
-        }
-        return substorage;
-    }
+        => _substorages.TryGetValue(TypeIndexer<UComponent>.Index, out var substorage)
+            ? substorage : null;
 
     private IDataLayer<TComponent> AcquireSubstorage<UComponent>()
         where UComponent : TComponent
     {
-        var type = typeof(UComponent);
-        if (!_substorages.TryGetValue(type, out var substorage)) {
-            substorage = _substorageCreator(type);
-            ImmutableInterlocked.TryAdd(ref _substorages, type, substorage);
+        var index = TypeIndexer<UComponent>.Index;
+        ref var storage = ref _substorages.GetOrAddValueRef(index, out bool exists);
+        if (!exists) {
+            if (s_createMethodInfo == null) {
+                s_createMethodInfo = typeof(IDataLayerFactory<TComponent>).GetMethod("Create")!;
+            }
+            var type = typeof(UComponent);
+            var methodInfo = s_createMethodInfo.MakeGenericMethod(type);
+            storage = (IDataLayer<TComponent>)methodInfo.Invoke(_factory, null)!;
         }
-        return substorage;
-    }
+        return storage;
+    } 
 
     public override bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
@@ -62,12 +64,6 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
         return ref substorage.Require<UComponent>(id);
     }
 
-    public override ref UComponent Acquire<UComponent>(Guid id)
-        => ref AcquireSubstorage<UComponent>().Acquire<UComponent>(id);
-
-    public override ref UComponent Acquire<UComponent>(Guid id, out bool exists)
-        => ref AcquireSubstorage<UComponent>().Acquire<UComponent>(id, out exists);
-
     public override bool Contains<UComponent>(Guid id)
     {
         var substorage = FindSubstorage<UComponent>();
@@ -85,6 +81,45 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
         }
         return substorage.ContainsAny<UComponent>();
     }
+
+    public override Guid? Singleton<UComponent>()
+    {
+        var substorage = FindSubstorage<UComponent>();
+        return substorage?.Singleton<UComponent>();
+    }
+
+    public override IEnumerable<Guid> Query<UComponent>()
+    {
+        var substorage = FindSubstorage<UComponent>();
+        if (substorage == null) {
+            return Enumerable.Empty<Guid>();
+        }
+        return substorage.Query<UComponent>();
+    }
+
+    public override IEnumerable<Guid> Query()
+        => QueryUtil.Union(_substorages.Values.Select(s => s.Query()));
+
+    public override int GetCount()
+        => _substorages.Values.Sum(s => s.GetCount());
+
+    public override int GetCount<UComponent>()
+    {
+        var substorage = FindSubstorage<UComponent>();
+        return substorage != null ? substorage.GetCount() : 0;
+    }
+
+    public override IEnumerable<object> GetAll(Guid id)
+        => _substorages.Values.SelectMany(sub => sub.GetAll(id));
+
+    public override ref UComponent Acquire<UComponent>(Guid id)
+        => ref AcquireSubstorage<UComponent>().Acquire<UComponent>(id);
+
+    public override ref UComponent Acquire<UComponent>(Guid id, out bool exists)
+        => ref AcquireSubstorage<UComponent>().Acquire<UComponent>(id, out exists);
+
+    public override ref UComponent Set<UComponent>(Guid id, in UComponent component)
+        => ref AcquireSubstorage<UComponent>().Set(id, component);
 
     public override bool Remove<UComponent>(Guid id)
     {
@@ -108,50 +143,17 @@ public class CompositeStorage<TComponent, TSelectedComponent> : LocalDataLayerBa
     public override void RemoveAll<UComponent>()
         => FindSubstorage<UComponent>()?.RemoveAll<UComponent>();
 
-    public override ref UComponent Set<UComponent>(Guid id, in UComponent component)
-        => ref AcquireSubstorage<UComponent>().Set(id, component);
-
-    public override Guid? Singleton<UComponent>()
-    {
-        var substorage = FindSubstorage<UComponent>();
-        return substorage?.Singleton<UComponent>();
-    }
-
-    public override IEnumerable<Guid> Query<UComponent>()
-    {
-        var substorage = FindSubstorage<UComponent>();
-        if (substorage == null) {
-            return Enumerable.Empty<Guid>();
-        }
-        return substorage.Query<UComponent>();
-    }
-
-    public override int GetCount()
-        => _substorages.Values.Sum(s => s.GetCount());
-
-    public override int GetCount<UComponent>()
-    {
-        var substorage = FindSubstorage<UComponent>();
-        return substorage != null ? substorage.GetCount() : 0;
-    }
-
-    public override IEnumerable<Guid> Query()
-        => QueryUtil.Union(_substorages.Values.Select(s => s.Query()));
-
-    public override IEnumerable<object> GetAll(Guid id)
-        => _substorages.Values.SelectMany(sub => sub.GetAll(id));
-
     public override void Clear(Guid id)
     {
         foreach (var sub in _substorages.Values) {
-            sub.Clear(id);
+            (sub as IShrinkableDataLayer<TComponent>)?.Clear(id);
         }
     }
 
     public override void Clear()
     {
         foreach (var sub in _substorages.Values) {
-            sub.Clear();
+            (sub as IShrinkableDataLayer<TComponent>)?.Clear();
         }
     }
 }

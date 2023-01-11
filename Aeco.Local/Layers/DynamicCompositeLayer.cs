@@ -27,7 +27,7 @@ public class DynamicCompositeLayer<TComponent, TSublayer>
     }
 
     public bool ContainsSublayer(TSublayer sublayer)
-        => SublayerSet.Contains(sublayer);
+        => InternalContainsSublayer(sublayer);
 
     public bool RemoveSublayer(TSublayer sublayer)
     {
@@ -40,9 +40,10 @@ public class DynamicCompositeLayer<TComponent, TSublayer>
 
     public void ClearSublayers()
     {
-        foreach (var sublayer in RawClearSublayers()) {
+        foreach (var sublayer in Sublayers) {
             _sublayerRemoved.OnNext(sublayer);
         }
+        InternalClearSublayers();
     }
 }
 

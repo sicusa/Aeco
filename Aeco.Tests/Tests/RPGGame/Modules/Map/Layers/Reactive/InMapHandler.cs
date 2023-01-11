@@ -2,7 +2,7 @@ namespace Aeco.Tests.RPGGame.Map;
 
 using Aeco.Reactive;
 
-public class InMapHandler : VirtualLayer, IGameUpdateLayer
+public class InMapHandler : Layer, IGameUpdateLayer
 {
     private Query<Created<InMap>, InMap> _q = new();
 

@@ -27,10 +27,10 @@ public static class SerializationUtil<TComponent>
     private static ImmutableDictionary<Type, MethodInfo> s_genericMethods =
         ImmutableDictionary<Type, MethodInfo>.Empty;
 
-    public static void Set(IDataLayer<TComponent> dataLayer, Guid id, IEnumerable<TComponent> components)
+    public static void Set(ISettableDataLayer<TComponent> dataLayer, Guid id, IEnumerable<TComponent> components)
     {
         if (s_setMethodInfo == null) {
-            s_setMethodInfo = typeof(IDataLayer<TComponent>).GetMethod("Set")!;
+            s_setMethodInfo = typeof(ISettableDataLayer<TComponent>).GetMethod("Set")!;
         }
         var param = new object[2];
         foreach (var component in components) {

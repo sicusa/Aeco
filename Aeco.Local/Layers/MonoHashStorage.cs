@@ -6,11 +6,12 @@ using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
 
-public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerBase<TComponent, TStoredComponent>
+public class MonoHashStorage<TComponent, TStoredComponent>
+    : LocalMonoDataLayerBase<TComponent, TStoredComponent>, IStableDataLayer<TComponent>
     where TStoredComponent : TComponent, new()
 {
+    private SortedSet<Guid> _ids = new();
     private Dictionary<Guid, TStoredComponent> _dict = new();
-    private SortedSet<Guid> _entityIds = new();
 
     private Guid? _singleton;
 
@@ -19,11 +20,11 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     public override ref TStoredComponent Require(Guid id)
     {
-        ref TStoredComponent comp = ref CollectionsMarshal.GetValueRefOrNullRef(_dict, id);
+        ref var comp = ref CollectionsMarshal.GetValueRefOrNullRef(_dict, id);
         if (Unsafe.IsNullRef(ref comp)) {
             throw new KeyNotFoundException("Component not found");
         }
-        return ref comp;
+        return ref comp!;
     }
 
     public override ref TStoredComponent Acquire(Guid id)
@@ -31,23 +32,23 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     
     public override ref TStoredComponent Acquire(Guid id, out bool exists)
     {
-        ref TStoredComponent? comp = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, id, out exists);
+        ref var comp = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, id, out exists);
         if (!exists) {
-            comp = new TStoredComponent();
-            _entityIds.Add(id);
+            comp = new();
+            _ids.Add(id);
         }
         return ref comp!;
     }
 
     public override bool Contains(Guid id)
-        => _entityIds.Contains(id);
+        => _ids.Contains(id);
 
     public override bool ContainsAny()
-        => _singleton != null;
+        => _ids.Count != 0;
 
     private bool RawRemove(Guid id)
     {
-        if (!_entityIds.Remove(id)) {
+        if (!_ids.Remove(id)) {
             return false;
         }
         _dict.Remove(id);
@@ -62,12 +63,12 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     public override bool Remove(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
     {
-        if (!_entityIds.Remove(id)) {
+        if (!_ids.Remove(id)) {
             component = default;
             return false;
         }
         if (!_dict.Remove(id, out component)) {
-            throw new KeyNotFoundException("Internal error");
+            throw new InvalidOperationException("Internal error");
         }
         if (_singleton == id) {
             _singleton = null;
@@ -77,15 +78,15 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
 
     public override ref TStoredComponent Set(Guid id, in TStoredComponent component)
     {
-        ref TStoredComponent? value = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, id, out bool exists);
+        ref var value = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, id, out bool exists);
         value = component;
         return ref value!;
     }
 
     private Guid? ResetSingleton()
     {
-        if (_entityIds.Count != 0) {
-            _singleton = _entityIds.First();
+        if (_ids.Count != 0) {
+            _singleton = _ids.First();
         }
         return _singleton;
     }
@@ -94,10 +95,10 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         => _singleton == null ? ResetSingleton() : _singleton;
 
     public override IEnumerable<Guid> Query()
-        => _entityIds;
+        => _ids;
 
     public override int GetCount()
-        => _entityIds.Count;
+        => _ids.Count;
 
     public override IEnumerable<object> GetAll(Guid id)
     {
@@ -114,7 +115,7 @@ public class MonoHashStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     public override void Clear()
     {
         _dict.Clear();
-        _entityIds.Clear();
+        _ids.Clear();
         _singleton = null;
     }
 }
@@ -126,14 +127,12 @@ public class MonoHashStorage<TStoredComponent> : MonoHashStorage<IComponent, TSt
 
 public static class MonoHashStorage
 {
-    public static IDataLayer<TComponent> CreateUnsafe<TComponent>(Type selectedComponentType)
+    public class Factory<TComponent> : IDataLayerFactory<TComponent>
     {
-        var type = typeof(MonoHashStorage<,>).MakeGenericType(
-            new Type[] {typeof(TComponent), selectedComponentType});
-        return (IDataLayer<TComponent>)Activator.CreateInstance(type)!;
-    }
+        public static Factory<TComponent> Shared { get; } = new();
 
-    public static Func<Type, IDataLayer<TComponent>> MakeUnsafeCreator<TComponent>()
-        => selectedComponentType =>
-            CreateUnsafe<TComponent>(selectedComponentType);
+        public IDataLayer<TComponent> Create<TStoredComponent>()
+            where TStoredComponent : TComponent, new()
+            => new MonoHashStorage<TComponent, TStoredComponent>();
+    }
 }

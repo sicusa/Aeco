@@ -4,14 +4,14 @@ using System.Diagnostics.CodeAnalysis;
 
 public interface IQuery<out TComponent>
 {
-    IEnumerable<Guid> Query(IDataLayer<TComponent> dataLayer);
+    IEnumerable<Guid> Query(IReadableDataLayer<TComponent> dataLayer);
 }
 
 public class GenericQuery<TBase, T1, T2> : IQuery<TBase>
     where T1 : TBase
     where T2 : TBase
 {
-    public IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer)
+    public IEnumerable<Guid> Query(IReadableDataLayer<TBase> dataLayer)
     {
         var e1 = dataLayer.Query<T1>().GetEnumerator();
         var e2 = dataLayer.Query<T2>().GetEnumerator();
@@ -46,7 +46,7 @@ public class GenericQuery<TBase, T1, T2, T3> : IQuery<TBase>
     where T2 : TBase
     where T3 : TBase
 {
-    public IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer)
+    public IEnumerable<Guid> Query(IReadableDataLayer<TBase> dataLayer)
     {
         var e1 = dataLayer.Query<T1>().GetEnumerator();
         var e2 = dataLayer.Query<T2>().GetEnumerator();
@@ -90,7 +90,7 @@ public class GenericQuery<TBase, T1, T2, T3, T4> : IQuery<TBase>
     where T3 : TBase
     where T4 : TBase
 {
-    public IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer)
+    public IEnumerable<Guid> Query(IReadableDataLayer<TBase> dataLayer)
     {
         var e1 = dataLayer.Query<T1>().GetEnumerator();
         var e2 = dataLayer.Query<T2>().GetEnumerator();
@@ -143,7 +143,7 @@ public class GenericQuery<TBase, T1, T2, T3, T4, T5> : IQuery<TBase>
     where T4 : TBase
     where T5 : TBase
 {
-    public IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer)
+    public IEnumerable<Guid> Query(IReadableDataLayer<TBase> dataLayer)
     {
         var e1 = dataLayer.Query<T1>().GetEnumerator();
         var e2 = dataLayer.Query<T2>().GetEnumerator();
@@ -205,7 +205,7 @@ public class GenericQuery<TBase, T1, T2, T3, T4, T5, T6> : IQuery<TBase>
     where T5 : TBase
     where T6 : TBase
 {
-    public IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer)
+    public IEnumerable<Guid> Query(IReadableDataLayer<TBase> dataLayer)
     {
         var e1 = dataLayer.Query<T1>().GetEnumerator();
         var e2 = dataLayer.Query<T2>().GetEnumerator();
@@ -276,7 +276,7 @@ public class GenericQuery<TBase, T1, T2, T3, T4, T5, T6, T7> : IQuery<TBase>
     where T6 : TBase
     where T7 : TBase
 {
-    public IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer)
+    public IEnumerable<Guid> Query(IReadableDataLayer<TBase> dataLayer)
     {
         var e1 = dataLayer.Query<T1>().GetEnumerator();
         var e2 = dataLayer.Query<T2>().GetEnumerator();
@@ -356,7 +356,7 @@ public class GenericQuery<TBase, T1, T2, T3, T4, T5, T6, T7, T8> : IQuery<TBase>
     where T7 : TBase
     where T8 : TBase
 {
-    public IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer)
+    public IEnumerable<Guid> Query(IReadableDataLayer<TBase> dataLayer)
     {
         var e1 = dataLayer.Query<T1>().GetEnumerator();
         var e2 = dataLayer.Query<T2>().GetEnumerator();
@@ -501,7 +501,7 @@ internal class WithoutQuery<TBase, T1> : IQuery<TBase>
     where T1 : TBase
 {
     [AllowNull] public IQuery<TBase> Internal { get; init; }
-    public IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer)
+    public IEnumerable<Guid> Query(IReadableDataLayer<TBase> dataLayer)
         => Internal.Query(dataLayer).Where(
             id => !dataLayer.Contains<T1>(id));
 }
@@ -511,7 +511,7 @@ internal class WithoutQuery<TBase, T1, T2> : IQuery<TBase>
     where T2 : TBase
 {
     [AllowNull] public IQuery<TBase> Internal { get; init; }
-    public IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer)
+    public IEnumerable<Guid> Query(IReadableDataLayer<TBase> dataLayer)
         => Internal.Query(dataLayer).Where(
             id => !dataLayer.Contains<T1>(id) && !dataLayer.Contains<T2>(id));
 }
@@ -522,7 +522,7 @@ internal class WithoutQuery<TBase, T1, T2, T3> : IQuery<TBase>
     where T3 : TBase
 {
     [AllowNull] public IQuery<TBase> Internal { get; init; }
-    public IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer)
+    public IEnumerable<Guid> Query(IReadableDataLayer<TBase> dataLayer)
         => Internal.Query(dataLayer).Where(
             id => !dataLayer.Contains<T1>(id) && !dataLayer.Contains<T2>(id) && !dataLayer.Contains<T3>(id));
 }
@@ -534,7 +534,7 @@ internal class WithoutQuery<TBase, T1, T2, T3, T4> : IQuery<TBase>
     where T4 : TBase
 {
     [AllowNull] public IQuery<TBase> Internal { get; init; }
-    public IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer)
+    public IEnumerable<Guid> Query(IReadableDataLayer<TBase> dataLayer)
         => Internal.Query(dataLayer).Where(
             id => !dataLayer.Contains<T1>(id) && !dataLayer.Contains<T2>(id) && !dataLayer.Contains<T3>(id) && !dataLayer.Contains<T4>(id));
 }
@@ -547,7 +547,7 @@ internal class WithoutQuery<TBase, T1, T2, T3, T4, T5> : IQuery<TBase>
     where T5 : TBase
 {
     [AllowNull] public IQuery<TBase> Internal { get; init; }
-    public IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer)
+    public IEnumerable<Guid> Query(IReadableDataLayer<TBase> dataLayer)
         => Internal.Query(dataLayer).Where(
             id => !dataLayer.Contains<T1>(id) && !dataLayer.Contains<T2>(id) && !dataLayer.Contains<T3>(id) && !dataLayer.Contains<T4>(id)
                && !dataLayer.Contains<T5>(id));
@@ -562,7 +562,7 @@ internal class WithoutQuery<TBase, T1, T2, T3, T4, T5, T6> : IQuery<TBase>
     where T6 : TBase
 {
     [AllowNull] public IQuery<TBase> Internal { get; init; }
-    public IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer)
+    public IEnumerable<Guid> Query(IReadableDataLayer<TBase> dataLayer)
         => Internal.Query(dataLayer).Where(
             id => !dataLayer.Contains<T1>(id) && !dataLayer.Contains<T2>(id) && !dataLayer.Contains<T3>(id) && !dataLayer.Contains<T4>(id)
                && !dataLayer.Contains<T5>(id) && !dataLayer.Contains<T6>(id));
@@ -578,7 +578,7 @@ internal class WithoutQuery<TBase, T1, T2, T3, T4, T5, T6, T7> : IQuery<TBase>
     where T7 : TBase
 {
     [AllowNull] public IQuery<TBase> Internal { get; init; }
-    public IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer)
+    public IEnumerable<Guid> Query(IReadableDataLayer<TBase> dataLayer)
         => Internal.Query(dataLayer).Where(
             id => !dataLayer.Contains<T1>(id) && !dataLayer.Contains<T2>(id) && !dataLayer.Contains<T3>(id) && !dataLayer.Contains<T4>(id)
                && !dataLayer.Contains<T5>(id) && !dataLayer.Contains<T6>(id) && !dataLayer.Contains<T7>(id));
@@ -595,7 +595,7 @@ internal class WithoutQuery<TBase, T1, T2, T3, T4, T5, T6, T7, T8> : IQuery<TBas
     where T8 : TBase
 {
     [AllowNull] public IQuery<TBase> Internal { get; init; }
-    public IEnumerable<Guid> Query(IDataLayer<TBase> dataLayer)
+    public IEnumerable<Guid> Query(IReadableDataLayer<TBase> dataLayer)
         => Internal.Query(dataLayer).Where(
             id => !dataLayer.Contains<T1>(id) && !dataLayer.Contains<T2>(id) && !dataLayer.Contains<T3>(id) && !dataLayer.Contains<T4>(id)
                && !dataLayer.Contains<T5>(id) && !dataLayer.Contains<T6>(id) && !dataLayer.Contains<T7>(id) && !dataLayer.Contains<T8>(id));

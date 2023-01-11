@@ -11,7 +11,7 @@ public class ReactiveDynamicCompositeLayer<TComponent, TSublayer> : ReactiveComp
     private Subject<TSublayer> _sublayerAdded = new();
     private Subject<TSublayer> _sublayerRemoved = new();
 
-    public ReactiveDynamicCompositeLayer(IDataLayer<IReactiveEvent> eventDataLayer, params TSublayer[] sublayers)
+    public ReactiveDynamicCompositeLayer(IExpandableDataLayer<IReactiveEvent> eventDataLayer, params TSublayer[] sublayers)
         : base(eventDataLayer, sublayers)
     {
     }
@@ -26,7 +26,7 @@ public class ReactiveDynamicCompositeLayer<TComponent, TSublayer> : ReactiveComp
     }
 
     public bool ContainsSublayer(TSublayer sublayer)
-        => SublayerSet.Contains(sublayer);
+        => InternalContainsSublayer(sublayer);
 
     public bool RemoveSublayer(TSublayer sublayer)
     {
@@ -39,16 +39,17 @@ public class ReactiveDynamicCompositeLayer<TComponent, TSublayer> : ReactiveComp
 
     public void ClearSublayers()
     {
-        foreach (var sublayer in RawClearSublayers()) {
+        foreach (var sublayer in Sublayers) {
             _sublayerRemoved.OnNext(sublayer);
         }
+        InternalClearSublayers();
     }
 }
 
 public class ReactiveDynamicCompositeLayer<TComponent>
     : ReactiveDynamicCompositeLayer<TComponent, ILayer<TComponent>>, IDynamicCompositeLayer<TComponent>
 {
-    public ReactiveDynamicCompositeLayer(IDataLayer<IReactiveEvent> eventDataLayer, params ILayer<TComponent>[] sublayers)
+    public ReactiveDynamicCompositeLayer(IExpandableDataLayer<IReactiveEvent> eventDataLayer, params ILayer<TComponent>[] sublayers)
         : base(eventDataLayer, sublayers)
     {
     }
@@ -56,7 +57,7 @@ public class ReactiveDynamicCompositeLayer<TComponent>
 
 public class ReactiveDynamicCompositeLayer : ReactiveDynamicCompositeLayer<IComponent>
 {
-    public ReactiveDynamicCompositeLayer(IDataLayer<IReactiveEvent> eventDataLayer, params ILayer<IComponent>[] sublayers)
+    public ReactiveDynamicCompositeLayer(IExpandableDataLayer<IReactiveEvent> eventDataLayer, params ILayer<IComponent>[] sublayers)
         : base(eventDataLayer, sublayers)
     {
     }

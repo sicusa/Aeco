@@ -1,6 +1,6 @@
 namespace Aeco.Tests.RPGGame.Gameplay;
 
-public class DestroyHandler : VirtualLayer, IGameLateUpdateLayer
+public class DestroyHandler : Layer, IGameLateUpdateLayer
 {
     private List<Guid> _ids = new();
     public void LateUpdate(RPGGame game)

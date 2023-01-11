@@ -1,6 +1,6 @@
 namespace Aeco.Tests.RPGGame.Character;
 
-public class HealthUpdator : VirtualLayer, IGameUpdateLayer
+public class HealthUpdator : Layer, IGameUpdateLayer
 {
     public void Update(RPGGame game)
     {

@@ -11,13 +11,12 @@ public struct Player : IPooledGameComponent
 
 public static class PlayerExtensions
 {
-    public static IEntity<IComponent> AsPlayer(this IEntity<IComponent> entity, Guid mapId)
+    public static void MakePlayer(this IExpandableDataLayer<IComponent> dataLayer, Guid id, Guid mapId)
     {
-        entity.Acquire<Player>();
-        entity.Acquire<InMap>().MapId = mapId;
-        entity.Acquire<Health>();
-        entity.Acquire<Attackable>();
-        entity.Acquire<Equipments>();
-        return entity;
+        dataLayer.Acquire<Player>(id);
+        dataLayer.Acquire<InMap>(id).MapId = mapId;
+        dataLayer.Acquire<Health>(id);
+        dataLayer.Acquire<Attackable>(id);
+        dataLayer.Acquire<Equipments>(id);
     }
 }

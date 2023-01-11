@@ -5,7 +5,7 @@ using Aeco.Reactive;
 
 public class Layers : CompositeLayer
 {
-    public Layers(IDataLayer<IReactiveEvent> eventDataLayer)
+    public Layers(IExpandableDataLayer<IReactiveEvent> eventDataLayer)
         : base(
             // storages
             new ReactiveCompositeLayer(

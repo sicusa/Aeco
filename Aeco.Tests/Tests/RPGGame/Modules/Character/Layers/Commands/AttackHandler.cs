@@ -2,7 +2,7 @@ namespace Aeco.Tests.RPGGame.Character;
 
 using Aeco.Tests.RPGGame.Map;
 
-public class AttackHandler : VirtualLayer, IGameUpdateLayer
+public class AttackHandler : Layer, IGameUpdateLayer
 {
     public void Update(RPGGame game)
     {

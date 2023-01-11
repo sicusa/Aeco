@@ -3,7 +3,7 @@ namespace Aeco;
 using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
 
-public class FastHashBrick<TKey, TValue>
+public sealed class ClosedHashBrick<TKey, TValue>
     where TKey : notnull, IEquatable<TKey>
 {
     public struct Block
@@ -13,14 +13,14 @@ public class FastHashBrick<TKey, TValue>
         public int NextBlockIndex;
     }
 
-    public int Capacity { get; private set; }
-    public int CellarCapacity { get; private set; }
+    public int Capacity { get; private init; }
+    public int CellarCapacity { get; private init; }
     public int UsedBlockCount { get; private set; }
 
     private Block[] _blocks;
-    private FastHashBrick<TKey, TValue>? _nextBrick;
+    private ClosedHashBrick<TKey, TValue>? _nextBrick;
 
-    public FastHashBrick(int capacity)
+    public ClosedHashBrick(int capacity)
     {
         Capacity = capacity;
         CellarCapacity = FastHashBrick.CalculateProperCellarCapacity(capacity);

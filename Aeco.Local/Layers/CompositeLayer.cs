@@ -1,35 +1,21 @@
 namespace Aeco.Local;
 
-using System.Reactive.Subjects;
 using System.Diagnostics.CodeAnalysis;
-using System.Collections.Immutable;
 
 public class CompositeLayer<TComponent, TSublayer>
-    : LocalDataLayerBase<TComponent, TComponent>, ICompositeDataLayer<TComponent, TSublayer>
-    , ITrackableDataLayer<TComponent>
+    : LocalDataLayerBase<TComponent, TComponent>
+    , ICompositeDataLayer<TComponent, TSublayer>
     where TSublayer : ILayer<TComponent>
 {
-    public virtual bool IsSublayerCachable => true;
+    public virtual bool IsProvidedLayerCachable => true;
 
-    public IEnumerable<Guid> Entities => _entities.Keys;
-    public IObservable<Guid> EntityCreated => EntityCreatedSubject;
-    public IObservable<Guid> EntityDisposed => EntityDisposedSubject;
+    public IReadOnlyList<TSublayer> Sublayers => _sublayers;
 
-    public IReadOnlyList<TSublayer> Sublayers => _sublayerList;
-    protected IReadOnlySet<TSublayer> SublayerSet => _sublayerSet;
+    private HashSet<TSublayer> _sublayerSet = new();
+    private List<TSublayer> _sublayers = new();
 
-    protected Subject<Guid> EntityCreatedSubject { get; } = new();
-    protected Subject<Guid> EntityDisposedSubject { get; } = new();
-
-    private Dictionary<Guid, IEntity<TComponent>> _entities = new();
-
-    private ImmutableHashSet<TSublayer> _sublayerSet = ImmutableHashSet<TSublayer>.Empty;
-    private ImmutableList<TSublayer> _sublayerList = ImmutableList<TSublayer>.Empty;
-
-    private ImmutableDictionary<IDataLayer<TComponent>, ImmutableHashSet<Type>> _dataLayers =
-        ImmutableDictionary<IDataLayer<TComponent>, ImmutableHashSet<Type>>.Empty;
-    private ImmutableDictionary<Type, IDataLayer<TComponent>> _dataLayerCache =
-        ImmutableDictionary<Type, IDataLayer<TComponent>>.Empty;
+    private Dictionary<ILayer<TComponent>, SparseSet<Type>> _dataLayers = new();
+    private SparseSet<ILayer<TComponent>> _dataLayerCache = new();
 
     public CompositeLayer()
     {
@@ -43,45 +29,16 @@ public class CompositeLayer<TComponent, TSublayer>
     public override bool CheckSupported(Type componentType)
         => true;
 
-    protected override IEntity<TComponent> RawCreateEntity(Guid id)
-    {
-        var entity = base.RawCreateEntity(id);
-        _entities[entity.Id] = entity;
-        EntityCreatedSubject.OnNext(id);
-        entity.Disposed.Subscribe(ReleaseEntity);
-        return entity;
-    }
-
-    private void ReleaseEntity(IEntity<TComponent> entity)
-    {
-        _entities.Remove(entity.Id);
-        EntityDisposedSubject.OnNext(entity.Id);
-    }
-
-    public virtual bool ContainsEntity(Guid id)
-        => _entities.ContainsKey(id);
-
-    public virtual void ClearEntities()
-    {
-        foreach (var (_, entity) in _entities) {
-            entity.Dispose();
-        }
-    }
-
     protected bool InternalAddSublayer(TSublayer sublayer)
     {
-        var changed = ImmutableInterlocked.Update(
-            ref _sublayerSet, (sublayers, sublayer) => sublayers.Add(sublayer), sublayer);
-        if (!changed) { return false; }
-
-        ImmutableInterlocked.Update(
-            ref _sublayerList, (sublayers, sublayer) => sublayers.Add(sublayer), sublayer);
-
-        if (sublayer is IDataLayer<TComponent> dataLayer) {
-            ImmutableInterlocked.TryAdd(
-                ref _dataLayers, dataLayer, ImmutableHashSet<Type>.Empty);
+        if (!_sublayerSet.Add(sublayer)) {
+            return false;
         }
+        _sublayers.Add(sublayer);
 
+        if (sublayer is IExpandableDataLayer<TComponent> dataLayer) {
+            _dataLayers.Add(dataLayer, new());
+        }
         (sublayer as IParentLayerListener<TComponent, CompositeLayer<TComponent, TSublayer>>)?.OnLayerAdded(this);
         return true;
     }
@@ -93,19 +50,20 @@ public class CompositeLayer<TComponent, TSublayer>
         }
     }
 
+    protected bool InternalContainsSublayer(TSublayer sublayer)
+        => _sublayers.Contains(sublayer);
+
     protected bool InternalRemoveSublayer(TSublayer sublayer)
     {
-        var changed = ImmutableInterlocked.Update(
-            ref _sublayerSet, (sublayers, sublayer) => sublayers.Remove(sublayer), sublayer);
-        if (!changed) { return false; }
-
-        ImmutableInterlocked.Update(
-            ref _sublayerList, (sublayers, sublayer) => sublayers.Remove(sublayer), sublayer);
+        if (!_sublayerSet.Remove(sublayer)) {
+            return false;
+        }
+        _sublayers.Remove(sublayer);
         
-        if (sublayer is IDataLayer<TComponent> dataLayer) {
-            if (ImmutableInterlocked.TryRemove(ref _dataLayers, dataLayer, out var cachedComps)) {
-                ImmutableInterlocked.Update(ref _dataLayerCache,
-                    (cache, comps) => cache.RemoveRange(comps), cachedComps);
+        if (sublayer is IExpandableDataLayer<TComponent> dataLayer
+                && _dataLayers.Remove(dataLayer, out var cachedComps)) {
+            foreach (var index in cachedComps.AsKeySpan()) {
+                _dataLayerCache.Remove(index);
             }
         }
 
@@ -113,21 +71,17 @@ public class CompositeLayer<TComponent, TSublayer>
         return true;
     }
 
-    protected IReadOnlyList<TSublayer> RawClearSublayers()
+    protected void InternalClearSublayers()
     {
-        var oldSublayers = _sublayerList;
-
-        ImmutableInterlocked.Update(ref _sublayerSet, c => c.Clear());
-        ImmutableInterlocked.Update(ref _sublayerList, c => c.Clear());
-        ImmutableInterlocked.Update(ref _dataLayers, c => c.Clear());
-        ImmutableInterlocked.Update(ref _dataLayerCache, c => c.Clear());
-
-        return oldSublayers;
+        _sublayers.Clear();
+        _sublayerSet.Clear();
+        _dataLayers.Clear();
+        _dataLayerCache.Clear();
     }
     
     public virtual T? GetSublayer<T>()
     {
-        foreach (var sublayer in _sublayerList) {
+        foreach (var sublayer in _sublayers) {
             if (sublayer is T result) {
                 return result;
             }
@@ -137,7 +91,7 @@ public class CompositeLayer<TComponent, TSublayer>
 
     public virtual T? GetSublayerRecursively<T>()
     {
-        foreach (var sublayer in _sublayerList) {
+        foreach (var sublayer in _sublayers) {
             if (sublayer is T result) {
                 return result;
             }
@@ -153,7 +107,7 @@ public class CompositeLayer<TComponent, TSublayer>
 
     public virtual IEnumerable<T> GetSublayers<T>()
     {
-        foreach (var sublayer in _sublayerList) {
+        foreach (var sublayer in _sublayers) {
             if (sublayer is T result) {
                 yield return result;
             }
@@ -162,7 +116,7 @@ public class CompositeLayer<TComponent, TSublayer>
 
     public virtual IEnumerable<T> GetSublayersRecursively<T>()
     {
-        foreach (var sublayer in _sublayerList) {
+        foreach (var sublayer in _sublayers) {
             if (sublayer is T result) {
                 yield return result;
             }
@@ -174,49 +128,9 @@ public class CompositeLayer<TComponent, TSublayer>
         }
     }
 
-    public IDataLayer<TComponent>? FindTerminalDataLayer<UComponent>()
-        where UComponent : TComponent
-    {
-        var compT = typeof(UComponent);
-        if (_dataLayerCache.TryGetValue(compT, out var cachedLayer)) {
-            return cachedLayer;
-        }
-        foreach (var sublayer in Sublayers) {
-            IDataLayer<TComponent> sublayerAsDataLayer;
-            IDataLayer<TComponent>? dataLayer;
-            if (sublayer is IDataLayerTree<TComponent> dataLayerTree) {
-                if (!dataLayerTree.CheckSupported(compT)) { continue; }
-                var terminalDataLayer = dataLayerTree.FindTerminalDataLayer<UComponent>();
-                if (terminalDataLayer == null) {
-                    continue;
-                }
-                sublayerAsDataLayer = (IDataLayer<TComponent>)dataLayerTree;
-                dataLayer = dataLayerTree.IsSublayerCachable
-                    ? terminalDataLayer : sublayerAsDataLayer;
-            }
-            else {
-                dataLayer = sublayer as IDataLayer<TComponent>;
-                if (dataLayer == null || !dataLayer.CheckSupported(compT)) {
-                    continue;
-                }
-                sublayerAsDataLayer = dataLayer;
-            }
-            ImmutableInterlocked.AddOrUpdate(ref _dataLayers, sublayerAsDataLayer,
-                _ => ImmutableHashSet<Type>.Empty, (_, comps) => comps.Add(compT));
-            ImmutableInterlocked.TryAdd(ref _dataLayerCache, compT, dataLayer);
-            return dataLayer;
-        }
-        return null;
-    }
-
-    public IDataLayer<TComponent> RequireTerminalDataLayer<UComponent>()
-        where UComponent : TComponent
-        => FindTerminalDataLayer<UComponent>()
-            ?? throw new NotSupportedException("No suitable data layer for component: " + typeof(UComponent));
-
     public override bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
-        var dataLayer = FindTerminalDataLayer<UComponent>();
+        var dataLayer = GetReadableDataLayer<UComponent>();
         if (dataLayer == null) {
             component = default;
             return false;
@@ -226,82 +140,82 @@ public class CompositeLayer<TComponent, TSublayer>
 
     public override ref readonly UComponent Inspect<UComponent>(Guid id)
     {
-        var dataLayer = RequireTerminalDataLayer<UComponent>();
+        var dataLayer = RequireReadableDataLayer<UComponent>();
         return ref dataLayer.Inspect<UComponent>(id);
     }
 
     public override ref UComponent InspectRaw<UComponent>(Guid id)
     {
-        var dataLayer = RequireTerminalDataLayer<UComponent>();
+        var dataLayer = RequireWritableDataLayer<UComponent>();
         return ref dataLayer.InspectRaw<UComponent>(id);
     }
 
     public override ref UComponent Require<UComponent>(Guid id)
     {
-        var dataLayer = RequireTerminalDataLayer<UComponent>();
+        var dataLayer = RequireWritableDataLayer<UComponent>();
         return ref dataLayer.Require<UComponent>(id);
     }
 
     public override ref UComponent Acquire<UComponent>(Guid id)
     {
-        var dataLayer = RequireTerminalDataLayer<UComponent>();
+        var dataLayer = RequireExpandableDataLayer<UComponent>();
         return ref dataLayer.Acquire<UComponent>(id);
     }
 
     public override ref UComponent Acquire<UComponent>(Guid id, out bool exists)
     {
-        var dataLayer = RequireTerminalDataLayer<UComponent>();
+        var dataLayer = RequireExpandableDataLayer<UComponent>();
         return ref dataLayer.Acquire<UComponent>(id, out exists);
     }
 
     public override ref UComponent AcquireRaw<UComponent>(Guid id)
     {
-        var dataLayer = RequireTerminalDataLayer<UComponent>();
+        var dataLayer = RequireExpandableDataLayer<UComponent>();
         return ref dataLayer.AcquireRaw<UComponent>(id);
     }
 
     public override ref UComponent AcquireRaw<UComponent>(Guid id, out bool exists)
     {
-        var dataLayer = RequireTerminalDataLayer<UComponent>();
+        var dataLayer = RequireExpandableDataLayer<UComponent>();
         return ref dataLayer.AcquireRaw<UComponent>(id, out exists);
     }
 
     public override bool Contains<UComponent>(Guid id)
     {
-        var dataLayer = FindTerminalDataLayer<UComponent>();
+        var dataLayer = GetReadableDataLayer<UComponent>();
         return dataLayer != null ? dataLayer.Contains<UComponent>(id) : false;
     }
 
     public override bool ContainsAny<UComponent>()
     {
-        var dataLayer = FindTerminalDataLayer<UComponent>();
+        var dataLayer = GetReadableDataLayer<UComponent>();
         return dataLayer != null ? dataLayer.ContainsAny<UComponent>() : false;
     }
 
     public override ref UComponent Set<UComponent>(Guid id, in UComponent component)
-        => ref RequireTerminalDataLayer<UComponent>().Set(id, component);
+        => ref RequireSettableDataLayer<UComponent>().Set(id, component);
 
     public override IEnumerable<object> GetAll(Guid id)
-        => _sublayerList.OfType<IDataLayer<TComponent>>().SelectMany(s => s.GetAll(id));
+        => _dataLayers.Keys.OfType<IReadableDataLayer<TComponent>>()
+            .SelectMany(s => s.GetAll(id));
 
     public override Guid? Singleton<UComponent>()
-    {
-        var dataLayer = FindTerminalDataLayer<UComponent>();
-        return dataLayer?.Singleton<UComponent>();
-    }
+        => GetReadableDataLayer<UComponent>()?.Singleton<UComponent>();
 
     public override int GetCount()
-        => _dataLayers.Keys.Sum(l => l.GetCount());
+        => _dataLayers.Keys.Sum(l =>
+            l is IReadableDataLayer<TComponent> readable
+                ? readable.GetCount() : 0);
 
     public override int GetCount<UComponent>()
     {
-        var dataLayer = FindTerminalDataLayer<UComponent>();
+        var dataLayer = GetReadableDataLayer<UComponent>();
         return dataLayer != null ? dataLayer.GetCount<UComponent>() : 0;
     }
 
     public override IEnumerable<Guid> Query<UComponent>()
     {
-        var dataLayer = FindTerminalDataLayer<UComponent>();
+        var dataLayer = GetReadableDataLayer<UComponent>();
         if (dataLayer == null) {
             return Enumerable.Empty<Guid>();
         }
@@ -309,11 +223,13 @@ public class CompositeLayer<TComponent, TSublayer>
     }
 
     public override IEnumerable<Guid> Query()
-        => QueryUtil.Union(_dataLayers.Keys.Select(l => l.Query()));
+        => QueryUtil.Union(
+            _dataLayers.Keys.OfType<IReadableDataLayer<TComponent>>()
+                .Select(l => l.Query()));
 
     public override bool Remove<UComponent>(Guid id)
     {
-        var dataLayer = FindTerminalDataLayer<UComponent>();
+        var dataLayer = GetShrinkableDataLayer<UComponent>();
         if (dataLayer == null) {
             return false;
         }
@@ -322,7 +238,7 @@ public class CompositeLayer<TComponent, TSublayer>
 
     public override bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
     {
-        var dataLayer = FindTerminalDataLayer<UComponent>();
+        var dataLayer = GetShrinkableDataLayer<UComponent>();
         if (dataLayer == null) {
             component = default;
             return false;
@@ -331,21 +247,129 @@ public class CompositeLayer<TComponent, TSublayer>
     }
 
     public override void RemoveAll<UComponent>()
-        => FindTerminalDataLayer<UComponent>()?.RemoveAll<UComponent>();
+        => GetShrinkableDataLayer<UComponent>()?.RemoveAll<UComponent>();
 
     public override void Clear(Guid id)
     {
         foreach (var (dataLayer, _) in _dataLayers) {
-            dataLayer.Clear(id);
+            (dataLayer as IShrinkableDataLayer<TComponent>)?.Clear(id);
         }
     }
 
     public override void Clear()
     {
         foreach (var (dataLayer, _) in _dataLayers) {
-            dataLayer.Clear();
+            (dataLayer as IShrinkableDataLayer<TComponent>)?.Clear();
         }
     }
+
+    IReadableDataLayer<TComponent>? ILayerProvider<TComponent, IReadableDataLayer<TComponent>>.GetLayer<UComponent>()
+        => GetReadableDataLayer<UComponent>();
+    IWritableDataLayer<TComponent>? ILayerProvider<TComponent, IWritableDataLayer<TComponent>>.GetLayer<UComponent>()
+        => GetWritableDataLayer<UComponent>();
+    IExpandableDataLayer<TComponent>? ILayerProvider<TComponent, IExpandableDataLayer<TComponent>>.GetLayer<UComponent>()
+        => GetExpandableDataLayer<UComponent>();
+    ISettableDataLayer<TComponent>? ILayerProvider<TComponent, ISettableDataLayer<TComponent>>.GetLayer<UComponent>()
+        => GetSettableDataLayer<UComponent>();
+    IShrinkableDataLayer<TComponent>? ILayerProvider<TComponent, IShrinkableDataLayer<TComponent>>.GetLayer<UComponent>()
+        => GetShrinkableDataLayer<UComponent>();
+    IDataLayer<TComponent>? ILayerProvider<TComponent, IDataLayer<TComponent>>.GetLayer<UComponent>()
+        => GetDataLayer<UComponent>();
+
+    public TDataLayer? GenericGetDataLayer<UComponent, TDataLayer>()
+        where UComponent : TComponent
+        where TDataLayer : class, IDataLayerBase<TComponent>
+    {
+        var compIndex = TypeIndexer<UComponent>.Index;
+        if (_dataLayerCache.TryGetValue(compIndex, out var cachedLayer)) {
+            return cachedLayer as TDataLayer;
+        }
+
+        var type = typeof(UComponent);
+        foreach (var sublayer in _sublayers) {
+            TDataLayer dataLayer;
+            TDataLayer? terminalDataLayer;
+            if (sublayer is ILayerProvider<TComponent, TDataLayer> provider) {
+                if (!provider.CheckSupported(type)) { continue; }
+                terminalDataLayer = provider.GetLayer<UComponent>();
+                if (terminalDataLayer == null) {
+                    continue;
+                }
+                dataLayer = (TDataLayer)provider;
+                terminalDataLayer = provider.IsProvidedLayerCachable
+                    ? terminalDataLayer : dataLayer;
+            }
+            else {
+                terminalDataLayer = sublayer as TDataLayer;
+                if (terminalDataLayer == null || !terminalDataLayer.CheckSupported(typeof(UComponent))) {
+                    continue;
+                }
+                dataLayer = terminalDataLayer;
+            }
+            if (!_dataLayers.TryGetValue(dataLayer, out var cachedComps)) {
+                cachedComps = new SparseSet<Type>();
+                _dataLayers.Add(dataLayer, cachedComps);
+            }
+            cachedComps.Add(compIndex, type);
+            _dataLayerCache.Add(compIndex, terminalDataLayer);
+            return terminalDataLayer;
+        }
+        return null;
+    }
+
+    public IReadableDataLayer<TComponent>? GetReadableDataLayer<UComponent>()
+        where UComponent : TComponent
+        => GenericGetDataLayer<UComponent, IReadableDataLayer<TComponent>>();
+
+    public IWritableDataLayer<TComponent>? GetWritableDataLayer<UComponent>()
+        where UComponent : TComponent
+        => GenericGetDataLayer<UComponent, IWritableDataLayer<TComponent>>();
+
+    public IExpandableDataLayer<TComponent>? GetExpandableDataLayer<UComponent>()
+        where UComponent : TComponent
+        => GenericGetDataLayer<UComponent, IExpandableDataLayer<TComponent>>();
+
+    public ISettableDataLayer<TComponent>? GetSettableDataLayer<UComponent>()
+        where UComponent : TComponent
+        => GenericGetDataLayer<UComponent, ISettableDataLayer<TComponent>>();
+
+    public IShrinkableDataLayer<TComponent>? GetShrinkableDataLayer<UComponent>()
+        where UComponent : TComponent
+        => GenericGetDataLayer<UComponent, IShrinkableDataLayer<TComponent>>();
+
+    public IDataLayer<TComponent>? GetDataLayer<UComponent>()
+        where UComponent : TComponent
+        => GenericGetDataLayer<UComponent, IDataLayer<TComponent>>();
+
+    public IReadableDataLayer<TComponent> RequireReadableDataLayer<UComponent>()
+        where UComponent : TComponent
+        => GetReadableDataLayer<UComponent>()
+            ?? throw new NotSupportedException("No suitable readable data layer for component: " + typeof(UComponent));
+
+    public IWritableDataLayer<TComponent> RequireWritableDataLayer<UComponent>()
+        where UComponent : TComponent
+        => GetWritableDataLayer<UComponent>()
+            ?? throw new NotSupportedException("No suitable writable data layer for component: " + typeof(UComponent));
+
+    public IExpandableDataLayer<TComponent> RequireExpandableDataLayer<UComponent>()
+        where UComponent : TComponent
+        => GetExpandableDataLayer<UComponent>()
+            ?? throw new NotSupportedException("No suitable expandable data layer for component: " + typeof(UComponent));
+
+    public ISettableDataLayer<TComponent> RequireSettableDataLayer<UComponent>()
+        where UComponent : TComponent
+        => GetSettableDataLayer<UComponent>()
+            ?? throw new NotSupportedException("No suitable settable data layer for component: " + typeof(UComponent));
+
+    public IShrinkableDataLayer<TComponent> RequireShrinkableDataLayer<UComponent>()
+        where UComponent : TComponent
+        => GetShrinkableDataLayer<UComponent>()
+            ?? throw new NotSupportedException("No suitable shrinkable data layer for component: " + typeof(UComponent));
+
+    public IDataLayer<TComponent> RequireDataLayer<UComponent>()
+        where UComponent : TComponent
+        => GetDataLayer<UComponent>()
+            ?? throw new NotSupportedException("No suitable data layer for component: " + typeof(UComponent));
 }
 
 public class CompositeLayer<TComponent>

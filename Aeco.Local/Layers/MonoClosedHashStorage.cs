@@ -5,17 +5,18 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerBase<TComponent, TStoredComponent>
+public class MonoClosedHashStorage<TComponent, TStoredComponent>
+    : LocalMonoDataLayerBase<TComponent, TStoredComponent>, IStableDataLayer<TComponent>
     where TStoredComponent : TComponent, new()
 {
     public int BrickCapacity { get; set; }
 
-    private FastHashBrick<Guid, TStoredComponent> _brick;
-    private SortedSet<Guid> _entityIds = new();
+    private SortedSet<Guid> _ids = new();
+    private ClosedHashBrick<Guid, TStoredComponent> _brick;
 
     private Guid? _singleton;
 
-    public MonoPoolStorage(int brickCapacity = MonoPoolStorage.DefaultBrickCapacity)
+    public MonoClosedHashStorage(int brickCapacity = MonoClosedHashStorage.DefaultBrickCapacity)
     {
         BrickCapacity = brickCapacity;
         _brick = new(brickCapacity);
@@ -41,7 +42,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         ref var block = ref _brick.AcquireBlock(id, out exists);
         if (!exists) {
             block.Value = new();
-            _entityIds.Add(id);
+            _ids.Add(id);
         }
         return ref block.Value;
     }
@@ -50,20 +51,20 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         => _brick.Contains(id);
 
     public override bool ContainsAny()
-        => _singleton != null;
+        => _ids.Count != 0;
 
     private Guid? ResetSingleton()
     {
-        if (_entityIds.Count != 0) {
-            _singleton = _entityIds.First();
+        if (_ids.Count != 0) {
+            _singleton = _ids.First();
         }
         return _singleton;
     }
 
-    private void ClearBlock(ref FastHashBrick<Guid, TStoredComponent>.Block block, Guid id)
+    private void ClearBlock(ref ClosedHashBrick<Guid, TStoredComponent>.Block block, Guid id)
     {
         block.Value = default!;
-        _entityIds.Remove(id);
+        _ids.Remove(id);
         if (_singleton == id) {
             _singleton = null;
         }
@@ -95,7 +96,7 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     {
         ref var block = ref _brick.AcquireBlock(id, out bool exists);
         if (!exists) {
-            _entityIds.Add(id);
+            _ids.Add(id);
         }
         block.Value = component;
         return ref block.Value;
@@ -105,10 +106,10 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
         => _singleton == null ? ResetSingleton() : _singleton;
 
     public override IEnumerable<Guid> Query()
-        => _entityIds;
+        => _ids;
 
     public override int GetCount()
-        => _entityIds.Count;
+        => _ids.Count;
 
     public override IEnumerable<object> GetAll(Guid id)
     {
@@ -125,28 +126,29 @@ public class MonoPoolStorage<TComponent, TStoredComponent> : LocalMonoDataLayerB
     public override void Clear()
     {
         _brick.Clear();
-        _entityIds.Clear();
+        _ids.Clear();
         _singleton = null;
     }
 }
 
-public class MonoPoolStorage<TStoredComponent> : MonoPoolStorage<IComponent, TStoredComponent>
+public class MonoPoolStorage<TStoredComponent> : MonoClosedHashStorage<IComponent, TStoredComponent>
     where TStoredComponent : IComponent, new()
 {
 }
 
-public static class MonoPoolStorage
+public static class MonoClosedHashStorage
 {
     public const int DefaultBrickCapacity = 521;
 
-    public static IDataLayer<TComponent> CreateUnsafe<TComponent>(Type selectedComponentType, int capacity = DefaultBrickCapacity)
+    public class Factory<TComponent> : IDataLayerFactory<TComponent>
     {
-        var type = typeof(MonoPoolStorage<,>).MakeGenericType(
-            new Type[] {typeof(TComponent), selectedComponentType});
-        return (IDataLayer<TComponent>)Activator.CreateInstance(type, new object[] {capacity})!;
-    }
+        public static Factory<TComponent> Default =
+            new() { BrickCapacity = DefaultBrickCapacity };
 
-    public static Func<Type, IDataLayer<TComponent>> MakeUnsafeCreator<TComponent>(int capacity = DefaultBrickCapacity)
-        => selectedComponentType =>
-            CreateUnsafe<TComponent>(selectedComponentType, capacity);
+        public required int BrickCapacity { get; init; }
+
+        public IDataLayer<TComponent> Create<TStoredComponent>()
+            where TStoredComponent : TComponent, new()
+            => new MonoClosedHashStorage<TComponent, TStoredComponent>(BrickCapacity);
+    }
 }

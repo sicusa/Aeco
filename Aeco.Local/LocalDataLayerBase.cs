@@ -3,29 +3,15 @@ namespace Aeco.Local;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
-    : LocalLayerBase<TComponent>, IDataLayer<TComponent>
+public abstract class LocalDataLayerBase<TComponent, TSelectedComponent> : IDataLayer<TComponent>
     where TSelectedComponent : TComponent
 {
-    public IEntityFactory<TComponent, LocalDataLayerBase<TComponent, TSelectedComponent>>? EntityFactory { get; set; }
-
     protected Guid RequireSingleton<UComponent>()
         where UComponent : TComponent
         => Singleton<UComponent>() ?? throw new KeyNotFoundException("Singleton not found: " + typeof(UComponent));
     
-    public virtual IReadOnlyEntity<TComponent> GetReadOnlyEntity<UComponent>()
-        where UComponent : TComponent
-        => GetReadOnlyEntity(RequireSingleton<UComponent>());
-    public virtual IEntity<TComponent> GetEntity<UComponent>()
-        where UComponent : TComponent
-        => GetEntity(RequireSingleton<UComponent>());
-
     public virtual bool CheckSupported(Type componentType)
         => typeof(TSelectedComponent).IsAssignableFrom(componentType);
-
-    protected override IEntity<TComponent> RawCreateEntity(Guid id)
-        => EntityFactory != null ? EntityFactory.GetEntity(this, id)
-            : new Entity<TComponent, LocalDataLayerBase<TComponent, TSelectedComponent>>(this, id);
 
     public abstract bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent;
@@ -95,9 +81,9 @@ public abstract class LocalDataLayerBase<TComponent, TSelectedComponent>
         where UComponent : TComponent;
 
     public abstract ref UComponent Set<UComponent>(Guid id, in UComponent component)
-        where UComponent : TComponent;
+        where UComponent : TComponent, new();
     public ref UComponent SetAny<UComponent>(in UComponent component)
-        where UComponent : TComponent
+        where UComponent : TComponent, new()
         => ref Set<UComponent>(RequireSingleton<UComponent>(), component);
 
     public abstract void Clear(Guid id);

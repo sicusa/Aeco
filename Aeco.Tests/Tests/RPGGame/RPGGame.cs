@@ -2,8 +2,6 @@ namespace Aeco.Tests.RPGGame;
 
 using Aeco.Local;
 using Aeco.Reactive;
-using Aeco.Serialization.Json;
-using Aeco.Persistence.Local;
 
 using Aeco.Tests.RPGGame.Character;
 
@@ -27,19 +25,13 @@ public class RPGGame : CompositeLayer
             eventDataLayer,
 
             new ChannelLayer<IGameCommand>(),
-            new PolyPoolStorage<IPooledGameComponent>(),
+            new PolyDenseStorage<IPooledGameComponent>(),
             new PolyHashStorage<IGameComponent>(),
             new PolyHashStorage(),
-
-            new FileSystemPersistenceLayer<IGameComponent>(
-                "./Save", new JsonEntitySerializer<IGameComponent>()),
-            //new ReadOnlyFileSystemPersistenceLayer(
-            //    "./Data", new JsonEntitySerializer<IComponent>())
 
             new ShortLivedCompositeLayer(eventDataLayer)
         );
         
-        EntityFactory = new EntityFactory<IComponent>();
         _updateLayers = GetSublayersRecursively<IGameUpdateLayer>().ToArray();
         _lateUpdateLayers = GetSublayersRecursively<IGameLateUpdateLayer>().ToArray();
     }
@@ -57,7 +49,7 @@ public class RPGGame : CompositeLayer
         Acquire<Map.Map>(mapId);
 
         // Initialize player
-        this.CreateEntity().AsPlayer(mapId);
+        this.MakePlayer(Guid.NewGuid(), mapId);
     }
 
     public void Update(float deltaTime)

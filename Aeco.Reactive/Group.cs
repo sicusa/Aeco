@@ -2,7 +2,7 @@ using System.Collections;
 
 namespace Aeco.Reactive;
 
-public interface IGroup : IQuery<IComponent>, IList<Guid>
+public interface IGroup : IQuery<IComponent>, IList<Guid>, IReadOnlyList<Guid>
 {
 }
 
@@ -26,16 +26,16 @@ public abstract class GroupBase : IGroup
     IEnumerator IEnumerable.GetEnumerator()
         => _l.GetEnumerator();
     
-    protected virtual void Reset(IDataLayer<IComponent> dataLayer, IEnumerable<Guid> ids)
+    protected virtual void Reset(IReadableDataLayer<IComponent> dataLayer, IEnumerable<Guid> ids)
     {
         _l.Clear();
         _l.AddRange(ids);
     }
 
-    public abstract bool ShouldRefresh(IDataLayer<IComponent> dataLayer);
-    public abstract void Refresh(IDataLayer<IComponent> dataLayer);
+    public abstract bool ShouldRefresh(IReadableDataLayer<IComponent> dataLayer);
+    public abstract void Refresh(IReadableDataLayer<IComponent> dataLayer);
 
-    public IEnumerable<Guid> Query(IDataLayer<IComponent> dataLayer)
+    public IEnumerable<Guid> Query(IReadableDataLayer<IComponent> dataLayer)
     {
         if (!_initialized || ShouldRefresh(dataLayer)) {
             Refresh(dataLayer);
@@ -78,10 +78,10 @@ public abstract class GroupBase : IGroup
 public class Group<T1> : GroupBase
     where T1 : IComponent
 {
-    public override bool ShouldRefresh(IDataLayer<IComponent> dataLayer)
+    public override bool ShouldRefresh(IReadableDataLayer<IComponent> dataLayer)
         => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>();
     
-    public override void Refresh(IDataLayer<IComponent> dataLayer)
+    public override void Refresh(IReadableDataLayer<IComponent> dataLayer)
         => Reset(dataLayer, dataLayer.Query<T1>());
 }
 
@@ -91,11 +91,11 @@ public class Group<T1, T2> : GroupBase
 {
     private Query<T1, T2> _q = new();
 
-    public override bool ShouldRefresh(IDataLayer<IComponent> dataLayer)
+    public override bool ShouldRefresh(IReadableDataLayer<IComponent> dataLayer)
         => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T2>>();
 
-    public override void Refresh(IDataLayer<IComponent> dataLayer)
+    public override void Refresh(IReadableDataLayer<IComponent> dataLayer)
         => Reset(dataLayer, _q.Query(dataLayer));
 }
 
@@ -106,12 +106,12 @@ public class Group<T1, T2, T3> : GroupBase
 {
     private Query<T1, T2, T3> _q = new();
 
-    public override bool ShouldRefresh(IDataLayer<IComponent> dataLayer)
+    public override bool ShouldRefresh(IReadableDataLayer<IComponent> dataLayer)
         => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T2>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T3>>();
 
-    public override void Refresh(IDataLayer<IComponent> dataLayer)
+    public override void Refresh(IReadableDataLayer<IComponent> dataLayer)
         => Reset(dataLayer, _q.Query(dataLayer));
 }
 
@@ -123,13 +123,13 @@ public class Group<T1, T2, T3, T4> : GroupBase
 {
     private Query<T1, T2, T3, T4> _q = new();
 
-    public override bool ShouldRefresh(IDataLayer<IComponent> dataLayer)
+    public override bool ShouldRefresh(IReadableDataLayer<IComponent> dataLayer)
         => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T2>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T3>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T4>>();
 
-    public override void Refresh(IDataLayer<IComponent> dataLayer)
+    public override void Refresh(IReadableDataLayer<IComponent> dataLayer)
         => Reset(dataLayer, _q.Query(dataLayer));
 }
 
@@ -142,14 +142,14 @@ public class Group<T1, T2, T3, T4, T5> : GroupBase
 {
     private Query<T1, T2, T3, T4, T5> _q = new();
 
-    public override bool ShouldRefresh(IDataLayer<IComponent> dataLayer)
+    public override bool ShouldRefresh(IReadableDataLayer<IComponent> dataLayer)
         => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T2>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T3>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T4>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T5>>();
 
-    public override void Refresh(IDataLayer<IComponent> dataLayer)
+    public override void Refresh(IReadableDataLayer<IComponent> dataLayer)
         => Reset(dataLayer, _q.Query(dataLayer));
 }
 
@@ -163,7 +163,7 @@ public class Group<T1, T2, T3, T4, T5, T6> : GroupBase
 {
     private Query<T1, T2, T3, T4, T5, T6> _q = new();
 
-    public override bool ShouldRefresh(IDataLayer<IComponent> dataLayer)
+    public override bool ShouldRefresh(IReadableDataLayer<IComponent> dataLayer)
         => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T2>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T3>>()
@@ -171,7 +171,7 @@ public class Group<T1, T2, T3, T4, T5, T6> : GroupBase
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T5>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T6>>();
 
-    public override void Refresh(IDataLayer<IComponent> dataLayer)
+    public override void Refresh(IReadableDataLayer<IComponent> dataLayer)
         => Reset(dataLayer, _q.Query(dataLayer));
 }
 
@@ -186,7 +186,7 @@ public class Group<T1, T2, T3, T4, T5, T6, T7> : GroupBase
 {
     private Query<T1, T2, T3, T4, T5, T6, T7> _q = new();
 
-    public override bool ShouldRefresh(IDataLayer<IComponent> dataLayer)
+    public override bool ShouldRefresh(IReadableDataLayer<IComponent> dataLayer)
         => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T2>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T3>>()
@@ -195,7 +195,7 @@ public class Group<T1, T2, T3, T4, T5, T6, T7> : GroupBase
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T6>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T7>>();
 
-    public override void Refresh(IDataLayer<IComponent> dataLayer)
+    public override void Refresh(IReadableDataLayer<IComponent> dataLayer)
         => Reset(dataLayer, _q.Query(dataLayer));
 }
 
@@ -211,7 +211,7 @@ public class Group<T1, T2, T3, T4, T5, T6, T7, T8> : GroupBase
 {
     private Query<T1, T2, T3, T4, T5, T6, T7, T8> _q = new();
 
-    public override bool ShouldRefresh(IDataLayer<IComponent> dataLayer)
+    public override bool ShouldRefresh(IReadableDataLayer<IComponent> dataLayer)
         => dataLayer.ContainsAny<AnyCreatedOrRemoved<T1>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T2>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T3>>()
@@ -221,6 +221,6 @@ public class Group<T1, T2, T3, T4, T5, T6, T7, T8> : GroupBase
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T7>>()
             || dataLayer.ContainsAny<AnyCreatedOrRemoved<T8>>();
 
-    public override void Refresh(IDataLayer<IComponent> dataLayer)
+    public override void Refresh(IReadableDataLayer<IComponent> dataLayer)
         => Reset(dataLayer, _q.Query(dataLayer));
 }

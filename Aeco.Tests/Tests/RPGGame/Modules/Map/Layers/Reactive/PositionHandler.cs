@@ -2,7 +2,7 @@ namespace Aeco.Tests.RPGGame.Map;
 
 using Aeco.Reactive;
 
-public class PositionHandler : VirtualLayer, IGameUpdateLayer
+public class PositionHandler : Layer, IGameUpdateLayer
 {
     private Query<Modified<Position>, Position, InMap> _q = new();
 
