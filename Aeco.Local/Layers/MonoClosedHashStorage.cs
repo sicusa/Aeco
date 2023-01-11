@@ -131,7 +131,7 @@ public class MonoClosedHashStorage<TComponent, TStoredComponent>
     }
 }
 
-public class MonoPoolStorage<TStoredComponent> : MonoClosedHashStorage<IComponent, TStoredComponent>
+public class MonoClosedHashStorage<TStoredComponent> : MonoClosedHashStorage<IComponent, TStoredComponent>
     where TStoredComponent : IComponent, new()
 {
 }

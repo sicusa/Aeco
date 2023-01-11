@@ -44,7 +44,7 @@ public static class LocalTests
         Console.WriteLine("== Local ==");
 
         var compositeLayer = new CompositeLayer(
-            new MonoPoolStorage<TestComponent>(),
+            new MonoClosedHashStorage<TestComponent>(),
             new PolyClosedHashStorage<ITestComponentB>(),
             new ChannelLayer<ICommand>(),
             new PolyHashStorage()
