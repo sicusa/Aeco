@@ -206,15 +206,16 @@ public sealed class SparseSet<T> : IDictionary<int, T>, IReadOnlyDictionary<int,
 
     private void RemoveValue(ref int valueIndexRef, Span<T> denseSpan)
     {
-        int lastIndex = denseSpan.Length - 1;
-        if (valueIndexRef != lastIndex) {
-            denseSpan[valueIndexRef] = denseSpan[lastIndex];
-            UnsafeGetValueIndexRef(_reverse[lastIndex]) = valueIndexRef;
-            _reverse[valueIndexRef] = _reverse[lastIndex];
+        int lastValueIndex = denseSpan.Length - 1;
+        if (valueIndexRef != lastValueIndex) {
+            denseSpan[valueIndexRef] = denseSpan[lastValueIndex];
+            int lastIndex = _reverse[lastValueIndex];
+            UnsafeGetValueIndexRef(lastIndex) = valueIndexRef;
+            _reverse[valueIndexRef] = _reverse[lastValueIndex];
             valueIndexRef = int.MaxValue;
         }
-        _dense.RemoveAt(lastIndex);
-        _reverse.RemoveAt(lastIndex);
+        _dense.RemoveAt(lastValueIndex);
+        _reverse.RemoveAt(lastValueIndex);
     }
 
     private ref int GetValueIndexRef(int index)
