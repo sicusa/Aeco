@@ -4,7 +4,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 
 public class SingletonStorage<TComponent, TStoredComponent>
-    : LocalMonoDataLayerBase<TComponent, TStoredComponent>
+    : MonoStorageBase<TComponent, TStoredComponent>
     where TStoredComponent : TComponent, new()
 {
     private Guid? _id;
@@ -144,7 +144,7 @@ public static class SingletonStorage
     {
         public static Factory<TComponent> Shared { get; } = new();
 
-        public IDataLayer<TComponent> Create<TStoredComponent>()
+        public IBasicDataLayer<TComponent> Create<TStoredComponent>()
             where TStoredComponent : TComponent, new()
             => new SingletonStorage<TComponent, TStoredComponent>();
     }

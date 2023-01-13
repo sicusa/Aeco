@@ -1,6 +1,6 @@
 namespace Aeco.Local;
 
-public class PolySingletonStorage<TComponent, TSelectedComponent> : CompositeStorage<TComponent, TSelectedComponent>
+public class PolySingletonStorage<TComponent, TSelectedComponent> : PolyStorage<TComponent, TSelectedComponent>
     where TSelectedComponent : TComponent
 {
     public PolySingletonStorage()

@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
 
 public class MonoHashStorage<TComponent, TStoredComponent>
-    : LocalMonoDataLayerBase<TComponent, TStoredComponent>, IStableDataLayer<TComponent>
+    : MonoStorageBase<TComponent, TStoredComponent>
     where TStoredComponent : TComponent, new()
 {
     private SortedSet<Guid> _ids = new();
@@ -131,7 +131,7 @@ public static class MonoHashStorage
     {
         public static Factory<TComponent> Shared { get; } = new();
 
-        public IDataLayer<TComponent> Create<TStoredComponent>()
+        public IBasicDataLayer<TComponent> Create<TStoredComponent>()
             where TStoredComponent : TComponent, new()
             => new MonoHashStorage<TComponent, TStoredComponent>();
     }

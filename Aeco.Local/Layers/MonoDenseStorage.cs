@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 public class MonoDenseStorage<TComponent, TStoredComponent>
-    : LocalMonoDataLayerBase<TComponent, TStoredComponent>
+    : MonoStorageBase<TComponent, TStoredComponent>
     where TStoredComponent : TComponent, new()
 {
     public int PageCount => _sparseSet.PageCount;
@@ -173,7 +173,7 @@ public static class MonoDenseStorage
         public required int PageCount { get; init; }
         public required int PageSize { get; init; }
 
-        public IDataLayer<TComponent> Create<TStoredComponent>()
+        public IBasicDataLayer<TComponent> Create<TStoredComponent>()
             where TStoredComponent : TComponent, new()
             => new MonoDenseStorage<TComponent, TStoredComponent>(PageCount, PageSize);
     }

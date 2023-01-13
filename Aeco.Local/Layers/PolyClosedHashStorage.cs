@@ -1,6 +1,6 @@
 namespace Aeco.Local;
 
-public class PolyClosedHashStorage<TComponent, TSelectedComponent> : CompositeStorage<TComponent, TSelectedComponent>
+public class PolyClosedHashStorage<TComponent, TSelectedComponent> : PolyStorage<TComponent, TSelectedComponent>
     where TSelectedComponent : TComponent
 {
     public PolyClosedHashStorage()

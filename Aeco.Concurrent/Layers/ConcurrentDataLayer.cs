@@ -14,8 +14,8 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
         _inner = inner;
     }
 
-    public bool CheckSupported(Type componentType)
-        =>  _inner.CheckSupported(componentType);
+    public bool CheckComponentSupported(Type componentType)
+        =>  _inner.CheckComponentSupported(componentType);
 
     public IEnumerable<Guid> Query() => _inner.Query();
 
@@ -198,6 +198,18 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
         }
     }
 
+    public IComponentRef<UComponent> GetRef<UComponent>(Guid id)
+        where UComponent : TComponent
+    {
+        _lockSlim.EnterReadLock();
+        try {
+            return _inner.GetRef<UComponent>(id);
+        }
+        finally {
+            _lockSlim.ExitReadLock();
+        }
+    }
+
     public bool Remove<UComponent>(Guid id)
         where UComponent : TComponent
     {
@@ -234,9 +246,16 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
         }
     }
 
-    public bool RemoveAny<UComponent>([MaybeNullWhen(false)] out UComponent component) where UComponent : TComponent
+    public bool RemoveAny<UComponent>([MaybeNullWhen(false)] out UComponent component)
+        where UComponent : TComponent
     {
-        return _inner.RemoveAny(out component);
+        _lockSlim.EnterWriteLock();
+        try {
+            return _inner.RemoveAny(out component);
+        }
+        finally {
+            _lockSlim.ExitWriteLock();
+        }
     }
 
     public void RemoveAll<UComponent>()

@@ -2,6 +2,6 @@ namespace Aeco;
 
 public interface IDataLayerFactory<in TComponent>
 {
-    IDataLayer<TComponent> Create<TStoredComponent>()
+    IBasicDataLayer<TComponent> Create<TStoredComponent>()
         where TStoredComponent : TComponent, new();
 }

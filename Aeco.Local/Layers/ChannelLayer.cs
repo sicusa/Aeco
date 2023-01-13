@@ -3,66 +3,15 @@ namespace Aeco.Local;
 using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
 
-public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<TComponent, TSelectedComponent>
+public class ChannelLayer<TComponent, TSelectedComponent>
+    : DataLayerBase<TComponent, TSelectedComponent>
+    , IReadableDataLayer<TComponent>
+    , ISettableDataLayer<TComponent>
+    , IShrinkableDataLayer<TComponent>
     where TSelectedComponent : TComponent
 {
     private Dictionary<Guid, LinkedList<object>> _channels = new();
     private Stack<LinkedList<object>> _channelPool = new();
-
-    public override bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
-    {
-        if (_channels.TryGetValue(id, out var channel)) {
-            for (var node = channel.First; node != channel.Last; node = node!.Next) {
-                if (node!.Value is UComponent foundComp) {
-                    component = foundComp;
-                    return true;
-                }
-            }
-        }
-        component = default;
-        return false;
-    }
-
-    public override ref UComponent Require<UComponent>(Guid id)
-    {
-        if (_channels.TryGetValue(id, out var channel)) {
-            for (var node = channel.First; node != channel.Last; node = node!.Next) {
-                if (node!.Value is UComponent) {
-                    return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
-                }
-            }
-        }
-        throw new KeyNotFoundException("Component not found");
-    }
-
-    public override ref UComponent Acquire<UComponent>(Guid id)
-        => ref Acquire<UComponent>(id, out bool _);
-
-    public override ref UComponent Acquire<UComponent>(Guid id, out bool exists)
-    {
-        LinkedListNode<object> node;
-
-        if (!_channels.TryGetValue(id, out var channel)) {
-            if (!_channelPool.TryPop(out channel)) {
-                channel = new LinkedList<object>();
-            }
-            _channels[id] = channel;
-            node = channel.AddFirst(new UComponent());
-            exists = false;
-            return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
-        }
-
-        for (node = channel.First!; node != channel.Last; node = node.Next!) {
-            if (node!.Value is UComponent) {
-                exists = true;
-                return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
-            }
-        }
-
-        node = channel.AddFirst(new UComponent());
-        exists = false;
-        return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
-    }
 
     public override bool Contains<UComponent>(Guid id)
     {
@@ -112,7 +61,71 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
     public override IEnumerable<Guid> Query()
         => throw new NotSupportedException("Query not supported for channel component");
 
-    public override ref UComponent Set<UComponent>(Guid id, in UComponent component)
+    public ref readonly UComponent Inspect<UComponent>(Guid id)
+        where UComponent : TComponent
+        => ref Require<UComponent>(id);
+
+    public bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
+        where UComponent : TComponent
+    {
+        if (_channels.TryGetValue(id, out var channel)) {
+            for (var node = channel.First; node != channel.Last; node = node!.Next) {
+                if (node!.Value is UComponent foundComp) {
+                    component = foundComp;
+                    return true;
+                }
+            }
+        }
+        component = default;
+        return false;
+    }
+
+    public ref UComponent Require<UComponent>(Guid id)
+        where UComponent : TComponent
+    {
+        if (_channels.TryGetValue(id, out var channel)) {
+            for (var node = channel.First; node != channel.Last; node = node!.Next) {
+                if (node!.Value is UComponent) {
+                    return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
+                }
+            }
+        }
+        throw new KeyNotFoundException("Component not found");
+    }
+
+    public ref UComponent Acquire<UComponent>(Guid id)
+        where UComponent : TComponent, new()
+        => ref Acquire<UComponent>(id, out bool _);
+
+    public ref UComponent Acquire<UComponent>(Guid id, out bool exists)
+        where UComponent : TComponent, new()
+    {
+        LinkedListNode<object> node;
+
+        if (!_channels.TryGetValue(id, out var channel)) {
+            if (!_channelPool.TryPop(out channel)) {
+                channel = new LinkedList<object>();
+            }
+            _channels[id] = channel;
+            node = channel.AddFirst(new UComponent());
+            exists = false;
+            return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
+        }
+
+        for (node = channel.First!; node != channel.Last; node = node.Next!) {
+            if (node!.Value is UComponent) {
+                exists = true;
+                return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
+            }
+        }
+
+        node = channel.AddFirst(new UComponent());
+        exists = false;
+        return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
+    }
+
+    public ref UComponent Set<UComponent>(Guid id, in UComponent component)
+        where UComponent : TComponent, new()
     {
         LinkedListNode<object> node;
 
@@ -127,7 +140,8 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
         return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
     }
 
-    public override bool Remove<UComponent>(Guid id)
+    public bool Remove<UComponent>(Guid id)
+        where UComponent : TComponent
     {
         if (_channels.TryGetValue(id, out var channel)) {
             for (var node = channel.First; node != channel.Last; node = node!.Next) {
@@ -140,7 +154,8 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
         return false;
     }
 
-    public override bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
+    public bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
+        where UComponent : TComponent
     {
         if (_channels.TryGetValue(id, out var channel)) {
             for (var node = channel.First; node != channel.Last; node = node!.Next) {
@@ -155,7 +170,8 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
         return false;
     }
 
-    public override void RemoveAll<UComponent>()
+    public void RemoveAll<UComponent>()
+        where UComponent : TComponent
     {
         foreach (var (_, channel) in _channels) {
             for (var node = channel.First; node != channel.Last;) {
@@ -168,10 +184,10 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
         }
     }
 
-    public override IEnumerable<object> GetAll(Guid id)
+    public IEnumerable<object> GetAll(Guid id)
         => _channels.TryGetValue(id, out var channel) ? channel : Enumerable.Empty<object>();
 
-    public override void Clear(Guid id)
+    public void Clear(Guid id)
     {
         if (_channels.Remove(id, out var channel)) {
             channel.Clear();
@@ -179,7 +195,7 @@ public class ChannelLayer<TComponent, TSelectedComponent> : LocalDataLayerBase<T
         }
     }
 
-    public override void Clear()
+    public void Clear()
     {
         foreach (var (_, channel) in _channels) {
             channel.Clear();

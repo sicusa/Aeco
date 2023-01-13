@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 public class MonoClosedHashStorage<TComponent, TStoredComponent>
-    : LocalMonoDataLayerBase<TComponent, TStoredComponent>, IStableDataLayer<TComponent>
+    : MonoStorageBase<TComponent, TStoredComponent>
     where TStoredComponent : TComponent, new()
 {
     public int BrickCapacity { get; set; }
@@ -147,7 +147,7 @@ public static class MonoClosedHashStorage
 
         public required int BrickCapacity { get; init; }
 
-        public IDataLayer<TComponent> Create<TStoredComponent>()
+        public IBasicDataLayer<TComponent> Create<TStoredComponent>()
             where TStoredComponent : TComponent, new()
             => new MonoClosedHashStorage<TComponent, TStoredComponent>(BrickCapacity);
     }
