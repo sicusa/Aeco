@@ -38,6 +38,9 @@ public static class RPGTests
         var enemyId = Guid.NewGuid();
         game.MakeEnemy(enemyId, mapId);
 
+        var compRef = game.GetRef<Health>(enemyId);
+        Console.WriteLine(compRef.GetRef().Value);
+
         var ids = new List<Guid>();
         for (int i = 0; i < 2000; ++i) {
             var otherEnemyId = Guid.NewGuid();

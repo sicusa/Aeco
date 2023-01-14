@@ -207,7 +207,7 @@ public class CompositeLayer<TComponent, TSublayer>
         where UComponent : TComponent, new()
         => ref RequireExpandableDataLayer<UComponent>().AcquireRaw<UComponent>(id, out exists);
     
-    public virtual IComponentRef<UComponent> GetRef<UComponent>(Guid id)
+    public virtual ComponentRef<UComponent> GetRef<UComponent>(Guid id)
         where UComponent : TComponent
         => RequireReferableDataLayer<UComponent>().GetRef<UComponent>(id);
 

@@ -198,7 +198,7 @@ public class ConcurrentDataLayer<TComponent> : IDataLayer<TComponent>
         }
     }
 
-    public IComponentRef<UComponent> GetRef<UComponent>(Guid id)
+    public ComponentRef<UComponent> GetRef<UComponent>(Guid id)
         where UComponent : TComponent
     {
         _lockSlim.EnterReadLock();

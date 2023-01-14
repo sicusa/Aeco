@@ -13,19 +13,9 @@ public abstract class MonoStorageBase<TComponent, TStoredComponent>
     , ISettableMonoDataLayer<TComponent, TStoredComponent>
     , IReferableMonoDataLayer<TComponent, TStoredComponent>
     , IShrinkableMonoDataLayer<TComponent, TStoredComponent>
+    , IComponentRefHost<TStoredComponent>
     where TStoredComponent : TComponent, new()
 {
-    private class ComponentRef : IComponentRef<TStoredComponent>
-    {
-        public required MonoStorageBase<TComponent, TStoredComponent> Storage { get; init; }
-        public required Guid Id { get; init; }
-
-        public bool IsValid => Storage.Contains(Id);
-
-        public ref TStoredComponent GetRef()
-            => ref Storage.Require(Id);
-    }
-
     public override bool CheckComponentSupported(Type componentType)
         => typeof(TStoredComponent) == componentType;
 
@@ -45,11 +35,16 @@ public abstract class MonoStorageBase<TComponent, TStoredComponent>
 
     public abstract ref TStoredComponent Set(Guid id, in TStoredComponent component);
 
-    public virtual IComponentRef<TStoredComponent> GetRef(Guid id)
-        => Contains(id) ? new ComponentRef {
-            Storage = this,
-            Id = id
-        } : throw new KeyNotFoundException("Component not found");
+    public virtual ComponentRef<TStoredComponent> GetRef(Guid id)
+        => Contains(id)
+            ? new ComponentRef<TStoredComponent>(this, id)
+            : throw new KeyNotFoundException("Component not found");
+
+    public bool IsRefValid(Guid refId)
+        => Contains(refId);
+
+    public ref TStoredComponent RequireRef(Guid refId)
+        => ref Require(refId);
 
     public abstract bool Remove(Guid id);
     public abstract bool Remove(Guid id, [MaybeNullWhen(false)] out TStoredComponent component);
@@ -99,7 +94,7 @@ public abstract class MonoStorageBase<TComponent, TStoredComponent>
         where UComponent : TComponent, new()
         => ref ConvertSettable<UComponent>().Set(id, component);
 
-    public IComponentRef<UComponent> GetRef<UComponent>(Guid id)
+    public ComponentRef<UComponent> GetRef<UComponent>(Guid id)
         where UComponent : TComponent
         => ConvertReferable<UComponent>().GetRef(id);
 

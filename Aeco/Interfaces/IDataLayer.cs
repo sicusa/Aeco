@@ -100,7 +100,7 @@ public interface ISettableDataLayer<in TComponent>
 public interface IReferableDataLayer<in TComponent>
     : IReadableDataLayer<TComponent>, IWritableDataLayer<TComponent>
 {
-    IComponentRef<UComponent> GetRef<UComponent>(Guid id)
+    ComponentRef<UComponent> GetRef<UComponent>(Guid id)
         where UComponent : TComponent;
 }
 

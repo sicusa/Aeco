@@ -102,7 +102,7 @@ public class PolyStorage<TComponent, TSelectedComponent>
         return ref substorage.Require<UComponent>(id);
     }
 
-    public IComponentRef<UComponent> GetRef<UComponent>(Guid id)
+    public ComponentRef<UComponent> GetRef<UComponent>(Guid id)
         where UComponent : TComponent
         => AcquireSubstorage<UComponent, IReferableDataLayer<TComponent>>()
             .GetRef<UComponent>(id);

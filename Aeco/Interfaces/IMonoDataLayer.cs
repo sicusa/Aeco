@@ -78,7 +78,7 @@ public interface IReferableMonoDataLayer<in TComponent, TStoredComponent>
     , IWritableMonoDataLayer<TComponent, TStoredComponent>
     where TStoredComponent : TComponent
 {
-    IComponentRef<TStoredComponent> GetRef(Guid id);
+    ComponentRef<TStoredComponent> GetRef(Guid id);
 }
 
 public interface IShrinkableMonoDataLayer<in TComponent, TStoredComponent>
