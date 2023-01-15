@@ -36,9 +36,7 @@ public abstract class MonoStorageBase<TComponent, TStoredComponent>
     public abstract ref TStoredComponent Set(Guid id, in TStoredComponent component);
 
     public virtual ComponentRef<TStoredComponent> GetRef(Guid id)
-        => Contains(id)
-            ? new ComponentRef<TStoredComponent>(this, id)
-            : throw new KeyNotFoundException("Component not found");
+        => new ComponentRef<TStoredComponent>(this, id);
 
     public bool IsRefValid(Guid refId)
         => Contains(refId);
