@@ -3,7 +3,7 @@ namespace Aeco;
 public struct ComponentRef<TComponent>
 {
     public Guid Id { get; private init; }
-    bool IsValid => _host.IsRefValid(Id);
+    public bool IsValid => _host.IsRefValid(Id);
 
     private IComponentRefHost<TComponent> _host;
 
