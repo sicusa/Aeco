@@ -1,6 +1,7 @@
-using System.Collections;
-
 namespace Aeco.Reactive;
+
+using System.Collections;
+using System.Runtime.InteropServices;
 
 public interface IGroup : IQuery<IComponent>, IList<Guid>, IReadOnlyList<Guid>
 {
@@ -20,11 +21,14 @@ public abstract class GroupBase : IGroup
 
     private bool _initialized = false;
 
-    public IEnumerator<Guid> GetEnumerator()
+    IEnumerator<Guid> IEnumerable<Guid>.GetEnumerator()
         => _l.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
         => _l.GetEnumerator();
+
+    public Span<Guid>.Enumerator GetEnumerator()
+        => CollectionsMarshal.AsSpan(_l).GetEnumerator();
     
     protected virtual void Reset(IReadableDataLayer<IComponent> dataLayer, IEnumerable<Guid> ids)
     {
