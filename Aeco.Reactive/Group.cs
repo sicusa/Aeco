@@ -30,6 +30,9 @@ public abstract class GroupBase : IGroup
     public Span<Guid>.Enumerator GetEnumerator()
         => CollectionsMarshal.AsSpan(_l).GetEnumerator();
     
+    public Span<Guid> AsSpan()
+        => CollectionsMarshal.AsSpan(_l);
+    
     protected virtual void Reset(IReadableDataLayer<IComponent> dataLayer, IEnumerable<Guid> ids)
     {
         _l.Clear();
