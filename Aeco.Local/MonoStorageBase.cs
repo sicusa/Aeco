@@ -82,7 +82,7 @@ public abstract class MonoStorageBase<TComponent, TStoredComponent>
 
     public ref UComponent RequireOrNullRef<UComponent>(Guid id)
         where UComponent : TComponent
-        => ref ConvertWritable<UComponent>().Require(id);
+        => ref ConvertWritable<UComponent>().RequireOrNullRef(id);
 
     public ref UComponent Acquire<UComponent>(Guid id)
         where UComponent : TComponent, new()
