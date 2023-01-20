@@ -19,8 +19,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aeco.Persistence", "Aeco.Pe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aeco.Persistence.Local", "Aeco.Persistence.Local\Aeco.Persistence.Local.csproj", "{AEC6ED6C-06DE-4D77-BABE-43A8DD391BF0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aeco.Concurrent", "Aeco.Concurrent\Aeco.Concurrent.csproj", "{E6577220-0660-44AD-8137-DE14B6AF7788}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aeco.Reactive", "Aeco.Reactive\Aeco.Reactive.csproj", "{89D40FA9-6D37-4984-8EE7-ECF909BF2A75}"
 EndProject
 Global
@@ -64,10 +62,6 @@ Global
 		{AEC6ED6C-06DE-4D77-BABE-43A8DD391BF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AEC6ED6C-06DE-4D77-BABE-43A8DD391BF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AEC6ED6C-06DE-4D77-BABE-43A8DD391BF0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E6577220-0660-44AD-8137-DE14B6AF7788}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E6577220-0660-44AD-8137-DE14B6AF7788}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E6577220-0660-44AD-8137-DE14B6AF7788}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E6577220-0660-44AD-8137-DE14B6AF7788}.Release|Any CPU.Build.0 = Release|Any CPU
 		{89D40FA9-6D37-4984-8EE7-ECF909BF2A75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{89D40FA9-6D37-4984-8EE7-ECF909BF2A75}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89D40FA9-6D37-4984-8EE7-ECF909BF2A75}.Release|Any CPU.ActiveCfg = Release|Any CPU
