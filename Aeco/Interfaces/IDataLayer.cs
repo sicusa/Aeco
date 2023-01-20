@@ -1,6 +1,7 @@
 namespace Aeco;
 
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 public interface IBasicDataLayer<in TComponent> : ILayer<TComponent>
 {
@@ -24,8 +25,8 @@ public interface IBasicDataLayer<in TComponent> : ILayer<TComponent>
         where UComponent : TComponent;
     Guid RequireSingleton<UComponent>()
         where UComponent : TComponent
-        => Singleton<UComponent>()
-            ?? throw new KeyNotFoundException("Singleton not found: " + typeof(UComponent));
+        => Singleton<UComponent>() ??
+            throw ExceptionHelper.ComponentNotFound<UComponent>();
 }
 
 public interface IReadableDataLayer<in TComponent> : IBasicDataLayer<TComponent>
@@ -34,10 +35,29 @@ public interface IReadableDataLayer<in TComponent> : IBasicDataLayer<TComponent>
         where UComponent : TComponent;
 
     ref readonly UComponent Inspect<UComponent>(Guid id)
-        where UComponent : TComponent;
+        where UComponent : TComponent
+    {
+        ref readonly UComponent comp = ref InspectOrNullRef<UComponent>(id);
+        if (Unsafe.IsNullRef(ref Unsafe.AsRef(in comp))) {
+            throw ExceptionHelper.ComponentNotFound<UComponent>();
+        }
+        return ref comp;
+    }
     ref readonly UComponent InspectAny<UComponent>()
         where UComponent : TComponent
         => ref Inspect<UComponent>(RequireSingleton<UComponent>());
+
+    ref readonly UComponent InspectOrNullRef<UComponent>(Guid id)
+        where UComponent : TComponent;
+    ref readonly UComponent InspectAnyOrNullRef<UComponent>()
+        where UComponent : TComponent
+    {
+        var singleton = Singleton<UComponent>();
+        if (singleton == null) {
+            return ref Unsafe.NullRef<UComponent>();
+        }
+        return ref InspectOrNullRef<UComponent>(singleton.Value);
+    }
 
     IEnumerable<object> GetAll(Guid id);
 }
@@ -45,10 +65,29 @@ public interface IReadableDataLayer<in TComponent> : IBasicDataLayer<TComponent>
 public interface IWritableDataLayer<in TComponent> : IBasicDataLayer<TComponent>
 {
     ref UComponent Require<UComponent>(Guid id)
-        where UComponent : TComponent;
+        where UComponent : TComponent
+    {
+        ref UComponent comp = ref RequireOrNullRef<UComponent>(id);
+        if (Unsafe.IsNullRef(ref comp)) {
+            throw ExceptionHelper.ComponentNotFound<UComponent>();
+        }
+        return ref comp;
+    }
     ref UComponent RequireAny<UComponent>()
         where UComponent : TComponent
         => ref Require<UComponent>(RequireSingleton<UComponent>());
+
+    ref UComponent RequireOrNullRef<UComponent>(Guid id)
+        where UComponent : TComponent;
+    ref UComponent RequireAnyOrNullRef<UComponent>()
+        where UComponent : TComponent
+    {
+        var singleton = Singleton<UComponent>();
+        if (singleton == null) {
+            return ref Unsafe.NullRef<UComponent>();
+        }
+        return ref RequireOrNullRef<UComponent>(singleton.Value);
+    }
 
     ref UComponent InspectRaw<UComponent>(Guid id)
         where UComponent : TComponent
@@ -75,14 +114,14 @@ public interface IExpandableDataLayer<in TComponent> : IBasicDataLayer<TComponen
     ref UComponent AcquireRaw<UComponent>(Guid id)
         where UComponent : TComponent, new()
         => ref Acquire<UComponent>(id);
-    ref UComponent AcquireAnyRaw<UComponent>(Guid id)
+    ref UComponent AcquireAnyRaw<UComponent>()
         where UComponent : TComponent, new()
         => ref AcquireRaw<UComponent>(Singleton<UComponent>() ?? Guid.NewGuid());
 
     ref UComponent AcquireRaw<UComponent>(Guid id, out bool exists)
         where UComponent : TComponent, new()
         => ref Acquire<UComponent>(id, out exists);
-    ref UComponent AcquireAnyRaw<UComponent>(Guid id, out bool exists)
+    ref UComponent AcquireAnyRaw<UComponent>(out bool exists)
         where UComponent : TComponent, new()
         => ref AcquireRaw<UComponent>(Singleton<UComponent>() ?? Guid.NewGuid(), out exists);
 }

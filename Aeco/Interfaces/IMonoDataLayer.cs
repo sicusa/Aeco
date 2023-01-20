@@ -1,6 +1,7 @@
 namespace Aeco;
 
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 public interface IBasicMonoDataLayer<in TComponent, TStoredComponent>
     : IBasicDataLayer<TComponent>
@@ -19,9 +20,26 @@ public interface IReadableMonoDataLayer<in TComponent, TStoredComponent>
 {
     bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component);
 
-    ref readonly TStoredComponent Inspect(Guid id);
+    ref readonly TStoredComponent Inspect(Guid id)
+    {
+        ref readonly TStoredComponent comp = ref InspectOrNullRef(id);
+        if (Unsafe.IsNullRef(ref Unsafe.AsRef(in comp))) {
+            throw ExceptionHelper.ComponentNotFound<TStoredComponent>();
+        }
+        return ref comp;
+    }
     ref readonly TStoredComponent InspectAny()
         => ref Inspect(RequireSingleton());
+
+    ref readonly TStoredComponent InspectOrNullRef(Guid id);
+    ref readonly TStoredComponent InspectAnyOrNullRef()
+    {
+        var singleton = Singleton();
+        if (singleton == null) {
+            return ref Unsafe.NullRef<TStoredComponent>();
+        }
+        return ref InspectOrNullRef(singleton.Value);
+    }
 
     IEnumerable<object> GetAll(Guid id);
 }
@@ -30,9 +48,26 @@ public interface IWritableMonoDataLayer<in TComponent, TStoredComponent>
     : IBasicMonoDataLayer<TComponent, TStoredComponent>
     where TStoredComponent : TComponent
 {
-    ref TStoredComponent Require(Guid id);
+    ref TStoredComponent Require(Guid id)
+    {
+        ref TStoredComponent comp = ref RequireOrNullRef(id);
+        if (Unsafe.IsNullRef(ref comp)) {
+            throw ExceptionHelper.ComponentNotFound<TStoredComponent>();
+        }
+        return ref comp;
+    }
     ref TStoredComponent RequireAny()
         => ref Require(RequireSingleton());
+
+    ref TStoredComponent RequireOrNullRef(Guid id);
+    ref TStoredComponent RequireAnyOrNullRef()
+    {
+        var singleton = Singleton();
+        if (singleton == null) {
+            return ref Unsafe.NullRef<TStoredComponent>();
+        }
+        return ref RequireOrNullRef(singleton.Value);
+    }
 
     ref TStoredComponent InspectRaw(Guid id)
         => ref Require(id);

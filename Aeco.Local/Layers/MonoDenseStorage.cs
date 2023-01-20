@@ -3,6 +3,7 @@ namespace Aeco.Local;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 public class MonoDenseStorage<TComponent, TStoredComponent>
     : MonoStorageBase<TComponent, TStoredComponent>
@@ -40,10 +41,10 @@ public class MonoDenseStorage<TComponent, TStoredComponent>
         return _sparseSet.TryGetValue(index, out component);
     }
 
-    public override ref TStoredComponent Require(Guid id)
+    public override ref TStoredComponent RequireOrNullRef(Guid id)
     {
         if (!_ids.TryGetValue(id, out var index)) {
-            throw new KeyNotFoundException("Component not found");
+            return ref Unsafe.NullRef<TStoredComponent>();
         }
         return ref _sparseSet.GetValueRefOrNullRef(index);
     }

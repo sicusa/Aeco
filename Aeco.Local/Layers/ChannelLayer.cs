@@ -61,9 +61,9 @@ public class ChannelLayer<TComponent, TSelectedComponent>
     public override IEnumerable<Guid> Query()
         => throw new NotSupportedException("Query not supported for channel component");
 
-    public ref readonly UComponent Inspect<UComponent>(Guid id)
+    public ref readonly UComponent InspectOrNullRef<UComponent>(Guid id)
         where UComponent : TComponent
-        => ref Require<UComponent>(id);
+        => ref RequireOrNullRef<UComponent>(id);
 
     public bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
@@ -80,7 +80,7 @@ public class ChannelLayer<TComponent, TSelectedComponent>
         return false;
     }
 
-    public ref UComponent Require<UComponent>(Guid id)
+    public ref UComponent RequireOrNullRef<UComponent>(Guid id)
         where UComponent : TComponent
     {
         if (_channels.TryGetValue(id, out var channel)) {
@@ -90,7 +90,7 @@ public class ChannelLayer<TComponent, TSelectedComponent>
                 }
             }
         }
-        throw new KeyNotFoundException("Component not found");
+        return ref Unsafe.NullRef<UComponent>();
     }
 
     public ref UComponent Acquire<UComponent>(Guid id)

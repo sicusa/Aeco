@@ -3,6 +3,7 @@ namespace Aeco.Local;
 using System;
 using System.Reflection;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 public class PolyStorage<TComponent, TSelectedComponent>
     : DataLayerBase<TComponent, TSelectedComponent>
@@ -72,10 +73,15 @@ public class PolyStorage<TComponent, TSelectedComponent>
         return substorage != null ? substorage.GetCount() : 0;
     }
 
-    public ref readonly UComponent Inspect<UComponent>(Guid id)
+    public ref readonly UComponent InspectOrNullRef<UComponent>(Guid id)
         where UComponent : TComponent
-        => ref AcquireSubstorage<UComponent, IReadableDataLayer<TComponent>>()
-            .Inspect<UComponent>(id);
+    {
+        var substorage = FindSubstorage<UComponent, IReadableDataLayer<TComponent>>();
+        if (substorage == null) {
+            return ref Unsafe.NullRef<UComponent>();
+        }
+        return ref substorage.InspectOrNullRef<UComponent>(id);
+    }
 
     public bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
@@ -92,14 +98,14 @@ public class PolyStorage<TComponent, TSelectedComponent>
         => _substorages.Values.OfType<IReadableDataLayer<TComponent>>()
             .SelectMany(sub => sub.GetAll(id));
     
-    public ref UComponent Require<UComponent>(Guid id)
+    public ref UComponent RequireOrNullRef<UComponent>(Guid id)
         where UComponent : TComponent
     {
         var substorage = FindSubstorage<UComponent, IWritableDataLayer<TComponent>>();
         if (substorage == null) {
-            throw new KeyNotFoundException("Component not found: " + typeof(UComponent));
+            return ref Unsafe.NullRef<UComponent>();
         }
-        return ref substorage.Require<UComponent>(id);
+        return ref substorage.RequireOrNullRef<UComponent>(id);
     }
 
     public ComponentRef<UComponent> GetRef<UComponent>(Guid id)

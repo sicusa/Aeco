@@ -25,11 +25,11 @@ public class MonoClosedHashStorage<TComponent, TStoredComponent>
     public override bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
         => _brick.TryGetValue(id, out component);
 
-    public override ref TStoredComponent Require(Guid id)
+    public override ref TStoredComponent RequireOrNullRef(Guid id)
     {
         ref var block = ref _brick.FindBlock(id);
         if (Unsafe.IsNullRef(ref block)) {
-            throw new KeyNotFoundException("Component not found");
+            return ref Unsafe.NullRef<TStoredComponent>();
         }
         return ref block.Value;
     }

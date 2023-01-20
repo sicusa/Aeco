@@ -18,11 +18,11 @@ public class MonoHashStorage<TComponent, TStoredComponent>
     public override bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
         => _dict.TryGetValue(id, out component);
 
-    public override ref TStoredComponent Require(Guid id)
+    public override ref TStoredComponent RequireOrNullRef(Guid id)
     {
         ref var comp = ref CollectionsMarshal.GetValueRefOrNullRef(_dict, id);
         if (Unsafe.IsNullRef(ref comp)) {
-            throw new KeyNotFoundException("Component not found");
+            throw ExceptionHelper.ComponentNotFound<TStoredComponent>();
         }
         return ref comp!;
     }

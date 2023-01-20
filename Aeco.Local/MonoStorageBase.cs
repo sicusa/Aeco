@@ -2,6 +2,7 @@ namespace Aeco.Local;
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 public abstract class MonoStorageBase<TComponent, TStoredComponent>
     : DataLayerBase<TComponent, TStoredComponent>
@@ -19,7 +20,8 @@ public abstract class MonoStorageBase<TComponent, TStoredComponent>
     public override bool CheckComponentSupported(Type componentType)
         => typeof(TStoredComponent) == componentType;
 
-    public ref readonly TStoredComponent Inspect(Guid id) => ref Require(id);
+    public ref readonly TStoredComponent InspectOrNullRef(Guid id)
+        => ref RequireOrNullRef(id);
 
     public abstract bool Contains(Guid id);
     public abstract bool ContainsAny();
@@ -28,7 +30,7 @@ public abstract class MonoStorageBase<TComponent, TStoredComponent>
     public abstract IEnumerable<object> GetAll(Guid id);
 
     public abstract bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component);
-    public abstract ref TStoredComponent Require(Guid id);
+    public abstract ref TStoredComponent RequireOrNullRef(Guid id);
 
     public abstract ref TStoredComponent Acquire(Guid id);
     public abstract ref TStoredComponent Acquire(Guid id, out bool exists);
@@ -42,7 +44,13 @@ public abstract class MonoStorageBase<TComponent, TStoredComponent>
         => Contains(refId);
 
     public ref TStoredComponent RequireRef(Guid refId)
-        => ref Require(refId);
+    {
+        ref TStoredComponent value = ref RequireOrNullRef(refId);
+        if (Unsafe.IsNullRef(ref value)) {
+            throw ExceptionHelper.ComponentNotFound<TStoredComponent>();
+        }
+        return ref value;
+    }
 
     public abstract bool Remove(Guid id);
     public abstract bool Remove(Guid id, [MaybeNullWhen(false)] out TStoredComponent component);
@@ -64,14 +72,15 @@ public abstract class MonoStorageBase<TComponent, TStoredComponent>
     public bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
         => ConvertReadable<UComponent>().TryGet(id, out component);
-    public ref readonly UComponent Inspect<UComponent>(Guid id)
-        where UComponent : TComponent
-        => ref ConvertReadable<UComponent>().Inspect(id);
 
+    public ref readonly UComponent InspectOrNullRef<UComponent>(Guid id)
+        where UComponent : TComponent
+        => ref ConvertReadable<UComponent>().InspectOrNullRef(id);
     public ref UComponent InspectRaw<UComponent>(Guid id)
         where UComponent : TComponent
         => ref ConvertWritable<UComponent>().InspectRaw(id);
-    public ref UComponent Require<UComponent>(Guid id)
+
+    public ref UComponent RequireOrNullRef<UComponent>(Guid id)
         where UComponent : TComponent
         => ref ConvertWritable<UComponent>().Require(id);
 

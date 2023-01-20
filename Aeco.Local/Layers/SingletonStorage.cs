@@ -2,6 +2,7 @@ namespace Aeco.Local;
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 public class SingletonStorage<TComponent, TStoredComponent>
     : MonoStorageBase<TComponent, TStoredComponent>
@@ -26,10 +27,10 @@ public class SingletonStorage<TComponent, TStoredComponent>
         }
     }
 
-    public override ref TStoredComponent Require(Guid id)
+    public override ref TStoredComponent RequireOrNullRef(Guid id)
     {
         if (id != _id) {
-            throw new KeyNotFoundException("Singleton component not found");
+            return ref Unsafe.NullRef<TStoredComponent>();
         }
         return ref _data;
     }

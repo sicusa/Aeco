@@ -183,13 +183,41 @@ public class CompositeLayer<TComponent, TSublayer>
         where UComponent : TComponent
         => ref RequireReadableDataLayer<UComponent>().Inspect<UComponent>(id);
 
+    public virtual ref readonly UComponent InspectAny<UComponent>()
+        where UComponent : TComponent
+        => ref RequireReadableDataLayer<UComponent>().InspectAny<UComponent>();
+
+    public virtual ref readonly UComponent InspectOrNullRef<UComponent>(Guid id)
+        where UComponent : TComponent
+        => ref RequireReadableDataLayer<UComponent>().InspectOrNullRef<UComponent>(id);
+
+    public virtual ref readonly UComponent InspectAnyOrNullRef<UComponent>()
+        where UComponent : TComponent
+        => ref RequireReadableDataLayer<UComponent>().InspectAnyOrNullRef<UComponent>();
+
     public virtual ref UComponent InspectRaw<UComponent>(Guid id)
         where UComponent : TComponent
         => ref RequireWritableDataLayer<UComponent>().InspectRaw<UComponent>(id);
 
+    public virtual ref UComponent InspectAnyRaw<UComponent>()
+        where UComponent : TComponent
+        => ref RequireWritableDataLayer<UComponent>().InspectAnyRaw<UComponent>();
+
     public virtual ref UComponent Require<UComponent>(Guid id)
         where UComponent : TComponent
         => ref RequireWritableDataLayer<UComponent>().Require<UComponent>(id);
+
+    public virtual ref UComponent RequireAny<UComponent>()
+        where UComponent : TComponent
+        => ref RequireWritableDataLayer<UComponent>().RequireAny<UComponent>();
+
+    public virtual ref UComponent RequireOrNullRef<UComponent>(Guid id)
+        where UComponent : TComponent
+        => ref RequireWritableDataLayer<UComponent>().RequireOrNullRef<UComponent>(id);
+
+    public virtual ref UComponent RequireAnyOrNullRef<UComponent>()
+        where UComponent : TComponent
+        => ref RequireWritableDataLayer<UComponent>().RequireAnyOrNullRef<UComponent>();
 
     public virtual ref UComponent Acquire<UComponent>(Guid id)
         where UComponent : TComponent, new()
@@ -199,6 +227,10 @@ public class CompositeLayer<TComponent, TSublayer>
         where UComponent : TComponent, new()
         => ref RequireExpandableDataLayer<UComponent>().Acquire<UComponent>(id, out exists);
 
+    public virtual ref UComponent AcquireAny<UComponent>()
+        where UComponent : TComponent, new()
+        => ref RequireExpandableDataLayer<UComponent>().AcquireAny<UComponent>();
+
     public virtual ref UComponent AcquireRaw<UComponent>(Guid id)
         where UComponent : TComponent, new()
         => ref RequireExpandableDataLayer<UComponent>().AcquireRaw<UComponent>(id);
@@ -206,6 +238,10 @@ public class CompositeLayer<TComponent, TSublayer>
     public virtual ref UComponent AcquireRaw<UComponent>(Guid id, out bool exists)
         where UComponent : TComponent, new()
         => ref RequireExpandableDataLayer<UComponent>().AcquireRaw<UComponent>(id, out exists);
+
+    public virtual ref UComponent AcquireAnyRaw<UComponent>()
+        where UComponent : TComponent, new()
+        => ref RequireExpandableDataLayer<UComponent>().AcquireAnyRaw<UComponent>();
     
     public virtual ComponentRef<UComponent> GetRef<UComponent>(Guid id)
         where UComponent : TComponent
