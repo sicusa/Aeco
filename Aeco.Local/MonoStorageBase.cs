@@ -118,35 +118,35 @@ public abstract class MonoStorageBase<TComponent, TStoredComponent>
     private IBasicMonoDataLayer<TComponent, UComponent> ConvertBasic<UComponent>()
         where UComponent : TComponent
         => this as IBasicMonoDataLayer<TComponent, UComponent>
-            ?? throw new NotSupportedException("Component not supported");
+            ?? throw ExceptionHelper.ComponentNotSupported<UComponent>();
 
     private IReadableMonoDataLayer<TComponent, UComponent> ConvertReadable<UComponent>()
         where UComponent : TComponent
         => this as IReadableMonoDataLayer<TComponent, UComponent>
-            ?? throw new NotSupportedException("Component not supported");
+            ?? throw ExceptionHelper.ComponentNotSupported<UComponent>();
 
     private IWritableMonoDataLayer<TComponent, UComponent> ConvertWritable<UComponent>()
         where UComponent : TComponent
         => this as IWritableMonoDataLayer<TComponent, UComponent>
-            ?? throw new NotSupportedException("Component not supported");
+            ?? throw ExceptionHelper.ComponentNotSupported<UComponent>();
 
     private IExpandableMonoDataLayer<TComponent, UComponent> ConvertExpandable<UComponent>()
         where UComponent : TComponent, new()
         => this as IExpandableMonoDataLayer<TComponent, UComponent>
-            ?? throw new NotSupportedException("Component not supported");
+            ?? throw ExceptionHelper.ComponentNotSupported<UComponent>();
 
     private ISettableMonoDataLayer<TComponent, UComponent> ConvertSettable<UComponent>()
         where UComponent : TComponent, new()
         => this as ISettableMonoDataLayer<TComponent, UComponent>
-            ?? throw new NotSupportedException("Component not supported");
+            ?? throw ExceptionHelper.ComponentNotSupported<UComponent>();
 
     private IReferableMonoDataLayer<TComponent, UComponent> ConvertReferable<UComponent>()
         where UComponent : TComponent
         => this as IReferableMonoDataLayer<TComponent, UComponent>
-            ?? throw new NotSupportedException("Component not supported");
+            ?? throw ExceptionHelper.ComponentNotSupported<UComponent>();
 
     private IShrinkableMonoDataLayer<TComponent, UComponent> ConvertShrinkable<UComponent>()
         where UComponent : TComponent
         => this as IShrinkableMonoDataLayer<TComponent, UComponent>
-            ?? throw new NotSupportedException("Component not supported");
+            ?? throw ExceptionHelper.ComponentNotSupported<UComponent>();
 }
