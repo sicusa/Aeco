@@ -2,6 +2,6 @@ namespace Aeco;
 
 public interface IComponentRefHost<TComponent>
 {
-    bool IsRefValid(Guid refId);
-    ref TComponent RequireRef(Guid refId);
+    bool IsRefValid(Guid id, int internalId);
+    ref TComponent RequireRef(Guid id, int internalId);
 }

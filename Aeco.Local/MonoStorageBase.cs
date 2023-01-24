@@ -38,14 +38,15 @@ public abstract class MonoStorageBase<TComponent, TStoredComponent>
     public abstract ref TStoredComponent Set(Guid id, in TStoredComponent component);
 
     public virtual ComponentRef<TStoredComponent> GetRef(Guid id)
-        => new ComponentRef<TStoredComponent>(this, id);
+        => Contains(id) ? new ComponentRef<TStoredComponent>(this, id)
+            : throw ExceptionHelper.ComponentNotFound<TStoredComponent>();
 
-    public bool IsRefValid(Guid refId)
-        => Contains(refId);
+    public virtual bool IsRefValid(Guid id, int internalId)
+        => Contains(id);
 
-    public ref TStoredComponent RequireRef(Guid refId)
+    public virtual ref TStoredComponent RequireRef(Guid id, int internalId)
     {
-        ref TStoredComponent value = ref RequireOrNullRef(refId);
+        ref TStoredComponent value = ref RequireOrNullRef(id);
         if (Unsafe.IsNullRef(ref value)) {
             throw ExceptionHelper.ComponentNotFound<TStoredComponent>();
         }

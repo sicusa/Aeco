@@ -32,6 +32,26 @@ public class MonoDenseStorage<TComponent, TStoredComponent>
         return index;
     }
 
+    public override ComponentRef<TStoredComponent> GetRef(Guid id)
+    {
+        if (!_ids.TryGetValue(id, out var index)) {
+            throw ExceptionHelper.ComponentNotFound<TStoredComponent>();
+        }
+        return new ComponentRef<TStoredComponent>(this, id, index);
+    }
+
+    public override bool IsRefValid(Guid id, int internalId)
+        => _ids.ContainsKey(id);
+
+    public override ref TStoredComponent RequireRef(Guid id, int internalId)
+    {
+        ref TStoredComponent comp = ref _sparseSet.GetValueRefOrNullRef(internalId);
+        if (Unsafe.IsNullRef(ref comp)) {
+            throw ExceptionHelper.ComponentNotFound<TStoredComponent>();
+        }
+        return ref comp;
+    }
+
     public override bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
     {
         if (!_ids.TryGetValue(id, out var index)) {
