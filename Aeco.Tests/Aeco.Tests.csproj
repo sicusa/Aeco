@@ -22,7 +22,6 @@
     <ProjectReference Include="..\Aeco.Serialization.Binary\Aeco.Serialization.Binary.csproj" />
     <ProjectReference Include="..\Aeco.Persistence\Aeco.Persistence.csproj" />
     <ProjectReference Include="..\Aeco.Persistence.Local\Aeco.Persistence.Local.csproj" />
-    <ProjectReference Include="..\Aeco.Concurrent\Aeco.Concurrent.csproj" />
   </ItemGroup>
 
   <ItemGroup>
