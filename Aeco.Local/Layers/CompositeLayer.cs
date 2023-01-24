@@ -14,8 +14,8 @@ public class CompositeLayer<TComponent, TSublayer>
     private HashSet<TSublayer> _sublayerSet = new();
     private List<TSublayer> _sublayers = new();
 
-    private Dictionary<ILayer<TComponent>, SparseSet<Type>> _dataLayers = new();
-    private SparseSet<ILayer<TComponent>> _dataLayerCache = new();
+    private Dictionary<IBasicDataLayer<TComponent>, SparseSet<Type>> _dataLayers = new();
+    private SparseSet<IBasicDataLayer<TComponent>> _dataLayerCache = new();
 
     public CompositeLayer()
     {
@@ -36,7 +36,7 @@ public class CompositeLayer<TComponent, TSublayer>
         }
         _sublayers.Add(sublayer);
 
-        if (sublayer is IExpandableDataLayer<TComponent> dataLayer) {
+        if (sublayer is IBasicDataLayer<TComponent> dataLayer) {
             _dataLayers.Add(dataLayer, new());
         }
         (sublayer as IParentLayerListener<TComponent, CompositeLayer<TComponent, TSublayer>>)?.OnLayerAdded(this);
@@ -60,7 +60,7 @@ public class CompositeLayer<TComponent, TSublayer>
         }
         _sublayers.Remove(sublayer);
         
-        if (sublayer is IExpandableDataLayer<TComponent> dataLayer
+        if (sublayer is IBasicDataLayer<TComponent> dataLayer
                 && _dataLayers.Remove(dataLayer, out var cachedComps)) {
             foreach (var index in cachedComps.AsKeySpan()) {
                 _dataLayerCache.Remove(index);
