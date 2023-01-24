@@ -5,15 +5,16 @@ using Aeco.Reactive;
 
 public class Layers : CompositeLayer
 {
-    public Layers(IExpandableDataLayer<IReactiveEvent> eventDataLayer)
+    public Layers(IExpandableDataLayer<IReactiveEvent> eventDataLayer, IExpandableDataLayer<IAnyReactiveEvent> anyEventDataLayer)
         : base(
             // storages
             new ReactiveCompositeLayer(
-                eventDataLayer: eventDataLayer,
                 new MonoHashStorage<InMap>(),
                 new MonoHashStorage<Position>(),
-                new MonoHashStorage<Rotation>()
-            ),
+                new MonoHashStorage<Rotation>()) {
+                EventDataLayer = eventDataLayer,
+                AnyEventDataLayer = anyEventDataLayer
+            },
 
             // reactive handlers
             new InMapHandler(),

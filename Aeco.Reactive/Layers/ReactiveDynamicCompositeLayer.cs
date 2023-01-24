@@ -11,8 +11,8 @@ public class ReactiveDynamicCompositeLayer<TComponent, TSublayer> : ReactiveComp
     private Subject<TSublayer> _sublayerAdded = new();
     private Subject<TSublayer> _sublayerRemoved = new();
 
-    public ReactiveDynamicCompositeLayer(IExpandableDataLayer<IReactiveEvent> eventDataLayer, params TSublayer[] sublayers)
-        : base(eventDataLayer, sublayers)
+    public ReactiveDynamicCompositeLayer(params TSublayer[] sublayers)
+        : base(sublayers)
     {
     }
 
@@ -49,16 +49,16 @@ public class ReactiveDynamicCompositeLayer<TComponent, TSublayer> : ReactiveComp
 public class ReactiveDynamicCompositeLayer<TComponent>
     : ReactiveDynamicCompositeLayer<TComponent, ILayer<TComponent>>, IDynamicCompositeLayer<TComponent>
 {
-    public ReactiveDynamicCompositeLayer(IExpandableDataLayer<IReactiveEvent> eventDataLayer, params ILayer<TComponent>[] sublayers)
-        : base(eventDataLayer, sublayers)
+    public ReactiveDynamicCompositeLayer(params ILayer<TComponent>[] sublayers)
+        : base(sublayers)
     {
     }
 }
 
 public class ReactiveDynamicCompositeLayer : ReactiveDynamicCompositeLayer<IComponent>
 {
-    public ReactiveDynamicCompositeLayer(IExpandableDataLayer<IReactiveEvent> eventDataLayer, params ILayer<IComponent>[] sublayers)
-        : base(eventDataLayer, sublayers)
+    public ReactiveDynamicCompositeLayer(params ILayer<IComponent>[] sublayers)
+        : base(sublayers)
     {
     }
 }

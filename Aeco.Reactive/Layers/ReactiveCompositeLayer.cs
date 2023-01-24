@@ -10,12 +10,12 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
 {
     public override bool IsProvidedLayerCachable => false;
 
-    public IExpandableDataLayer<IReactiveEvent> EventDataLayer { get; }
+    public required IExpandableDataLayer<IReactiveEvent> EventDataLayer { get; init; }
+    public required IExpandableDataLayer<IAnyReactiveEvent> AnyEventDataLayer { get; init; }
     
-    public ReactiveCompositeLayer(IExpandableDataLayer<IReactiveEvent> eventDataLayer, params TSublayer[] sublayers)
+    public ReactiveCompositeLayer(params TSublayer[] sublayers)
         : base(sublayers)
     {
-        EventDataLayer = eventDataLayer;
     }
 
     public override ref UComponent InspectRaw<UComponent>(Guid id)
@@ -28,7 +28,7 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
     {
         ref UComponent comp = ref base.Require<UComponent>(id);
         EventDataLayer.Acquire<Modified<UComponent>>(id);
-        EventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+        AnyEventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
         return ref comp;
     }
 
@@ -37,11 +37,11 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
         ref UComponent comp = ref base.Acquire<UComponent>(id, out bool exists);
         if (!exists) {
             EventDataLayer.Acquire<Created<UComponent>>(id);
-            EventDataLayer.Acquire<AnyCreated<UComponent>>(ReactiveCompositeLayer.AnyEventId);
-            EventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+            AnyEventDataLayer.Acquire<AnyCreated<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+            AnyEventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
         }
         EventDataLayer.Acquire<Modified<UComponent>>(id);
-        EventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+        AnyEventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
         return ref comp;
     }
 
@@ -50,11 +50,11 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
         ref UComponent comp = ref base.Acquire<UComponent>(id, out exists);
         if (!exists) {
             EventDataLayer.Acquire<Created<UComponent>>(id);
-            EventDataLayer.Acquire<AnyCreated<UComponent>>(ReactiveCompositeLayer.AnyEventId);
-            EventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+            AnyEventDataLayer.Acquire<AnyCreated<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+            AnyEventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
         }
         EventDataLayer.Acquire<Modified<UComponent>>(id);
-        EventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+        AnyEventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
         return ref comp;
     }
 
@@ -68,7 +68,7 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
     {
         ref UComponent comp = ref base.Set(id, component);
         EventDataLayer.Acquire<Modified<UComponent>>(id);
-        EventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+        AnyEventDataLayer.Acquire<AnyModified<UComponent>>(ReactiveCompositeLayer.AnyEventId);
         return ref comp;
     }
 
@@ -76,8 +76,8 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
     {
         if (base.Remove<UComponent>(id)) {
             EventDataLayer.Acquire<Removed<UComponent>>(id);
-            EventDataLayer.Acquire<AnyRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
-            EventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+            AnyEventDataLayer.Acquire<AnyRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+            AnyEventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
             return true;
         }
         return false;
@@ -87,8 +87,8 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
     {
         if (base.Remove<UComponent>(id, out component)) {
             EventDataLayer.Acquire<Removed<UComponent>>(id);
-            EventDataLayer.Acquire<AnyRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
-            EventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+            AnyEventDataLayer.Acquire<AnyRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+            AnyEventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
             return true;
         }
         return false;
@@ -98,17 +98,29 @@ public class ReactiveCompositeLayer<TComponent, TSublayer> : CompositeLayer<TCom
     {
         foreach (var id in Query<UComponent>()) {
             EventDataLayer.Acquire<Removed<UComponent>>(id);
-            EventDataLayer.Acquire<AnyRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
-            EventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+            AnyEventDataLayer.Acquire<AnyRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
+            AnyEventDataLayer.Acquire<AnyCreatedOrRemoved<UComponent>>(ReactiveCompositeLayer.AnyEventId);
         }
         base.RemoveAll<UComponent>();
+    }
+
+    public override void Clear()
+    {
+        base.Clear();
+        AnyEventDataLayer.Acquire<AnyCleared>(ReactiveCompositeLayer.AnyEventId);
+    }
+
+    public override void Clear(Guid id)
+    {
+        base.Clear(id);
+        AnyEventDataLayer.Acquire<AnyCleared>(ReactiveCompositeLayer.AnyEventId);
     }
 }
 
 public class ReactiveCompositeLayer<TComponent> : ReactiveCompositeLayer<TComponent, ILayer<TComponent>>
 {
-    public ReactiveCompositeLayer(IExpandableDataLayer<IReactiveEvent> eventDataLayer, params ILayer<TComponent>[] sublayers)
-        : base(eventDataLayer, sublayers)
+    public ReactiveCompositeLayer(params ILayer<TComponent>[] sublayers)
+        : base(sublayers)
     {
     }
 }
@@ -117,8 +129,8 @@ public class ReactiveCompositeLayer : ReactiveCompositeLayer<IComponent>
 {
     public static readonly Guid AnyEventId = Guid.NewGuid();
 
-    public ReactiveCompositeLayer(IExpandableDataLayer<IReactiveEvent> eventDataLayer, params ILayer<IComponent>[] sublayers)
-        : base(eventDataLayer, sublayers)
+    public ReactiveCompositeLayer(params ILayer<IComponent>[] sublayers)
+        : base(sublayers)
     {
     }
 }

@@ -25,13 +25,18 @@ public static class ReactiveTests
         Console.WriteLine("== Reactive ==");
 
         var eventStorage = new PolyHashStorage<IReactiveEvent>();
+        var anyEventStorage = new PolyHashStorage<IAnyReactiveEvent>();
 
         var world = new CompositeLayer(
             eventStorage,
+            anyEventStorage,
+
             new ReactiveCompositeLayer(
-                eventDataLayer: eventStorage,
                 new PolyClosedHashStorage<IReactiveComponent>(),
-                new PolyHashStorage<IReactiveEvent<Position>>()));
+                new PolyHashStorage<IReactiveEvent<Position>>()) {
+                EventDataLayer = eventStorage,
+                AnyEventDataLayer = anyEventStorage
+            });
 
         var id = Guid.NewGuid();
         world.Acquire<Position>(id);

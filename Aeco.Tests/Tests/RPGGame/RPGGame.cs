@@ -15,21 +15,23 @@ public class RPGGame : CompositeLayer
 
     public RPGGame(Config config)
     {
-        var eventDataLayer = new PolyHashStorage<IReactiveEvent>();
+        var eventStorage = new PolyHashStorage<IReactiveEvent>();
+        var anyEventStorage = new PolyHashStorage<IAnyReactiveEvent>();
 
         InternalAddSublayers(
-            new Character.Layers(eventDataLayer),
-            new Map.Layers(eventDataLayer),
+            new Character.Layers(),
+            new Map.Layers(eventStorage, anyEventStorage),
             new Gameplay.Layers(),
 
-            eventDataLayer,
+            eventStorage,
+            anyEventStorage,
 
             new ChannelLayer<IGameCommand>(),
             new PolyDenseStorage<IPooledGameComponent>(),
             new PolyHashStorage<IGameComponent>(),
             new PolyHashStorage(),
 
-            new ShortLivedCompositeLayer(eventDataLayer)
+            new ShortLivedCompositeLayer(eventStorage)
         );
         
         _updateLayers = GetSublayersRecursively<IGameUpdateLayer>().ToArray();

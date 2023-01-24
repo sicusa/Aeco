@@ -1,11 +1,10 @@
 namespace Aeco.Tests.RPGGame.Character;
 
 using Aeco.Local;
-using Aeco.Reactive;
 
 public class Layers : CompositeLayer
 {
-    public Layers(IExpandableDataLayer<IReactiveEvent> eventDataLayer)
+    public Layers()
         : base(
             // command handlers
             new AttackHandler(),

@@ -1,6 +1,6 @@
 namespace Aeco.Reactive;
 
-public interface IAnyReactiveEvent : IReactiveEvent
+public interface IAnyReactiveEvent : IComponent
 {
 }
 
