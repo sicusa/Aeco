@@ -3,7 +3,7 @@ namespace Aeco.Reactive;
 using System.Collections;
 using System.Runtime.InteropServices;
 
-public interface IGroup : IQuery<IComponent>, IList<Guid>, IReadOnlyList<Guid>
+public interface IGroup : IList<Guid>, IReadOnlyList<Guid>
 {
 }
 
@@ -42,13 +42,13 @@ public abstract class GroupBase : IGroup
     public abstract bool ShouldRefresh(IReadableDataLayer<IComponent> dataLayer);
     public abstract void Refresh(IReadableDataLayer<IComponent> dataLayer);
 
-    public IEnumerable<Guid> Query(IReadableDataLayer<IComponent> dataLayer)
+    public GroupBase Query(IReadableDataLayer<IComponent> dataLayer)
     {
         if (!_initialized || ShouldRefresh(dataLayer)) {
             Refresh(dataLayer);
             _initialized = true;
         }
-        return _l;
+        return this;
     }
 
     public int IndexOf(Guid item)
