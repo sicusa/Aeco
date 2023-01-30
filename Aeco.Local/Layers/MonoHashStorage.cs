@@ -19,13 +19,7 @@ public class MonoHashStorage<TComponent, TStoredComponent>
         => _dict.TryGetValue(id, out component);
 
     public override ref TStoredComponent RequireOrNullRef(Guid id)
-    {
-        ref var comp = ref CollectionsMarshal.GetValueRefOrNullRef(_dict, id);
-        if (Unsafe.IsNullRef(ref comp)) {
-            throw ExceptionHelper.ComponentNotFound<TStoredComponent>();
-        }
-        return ref comp!;
-    }
+        => ref CollectionsMarshal.GetValueRefOrNullRef(_dict, id);
 
     public override ref TStoredComponent Acquire(Guid id)
         => ref Acquire(id, out bool _);
@@ -79,6 +73,9 @@ public class MonoHashStorage<TComponent, TStoredComponent>
     public override ref TStoredComponent Set(Guid id, in TStoredComponent component)
     {
         ref var value = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, id, out bool exists);
+        if (!exists) {
+            _ids.Add(id);
+        }
         value = component;
         return ref value!;
     }
