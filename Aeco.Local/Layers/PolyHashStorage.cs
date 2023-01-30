@@ -13,7 +13,3 @@ public class PolyHashStorage<TSelectedComponent> : PolyHashStorage<IComponent, T
     where TSelectedComponent : IComponent
 {
 }
-
-public class PolyHashStorage : PolyHashStorage<IComponent>
-{
-}
