@@ -47,7 +47,7 @@ public static class LocalTests
             new MonoClosedHashStorage<TestComponent>(),
             new PolyClosedHashStorage<ITestComponentB>(),
             new ChannelLayer<ICommand>(),
-            new PolyHashStorage()
+            new PolyHashStorage<IComponent>()
         );
 
         var id = Guid.NewGuid();

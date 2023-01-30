@@ -29,7 +29,7 @@ public class RPGGame : CompositeLayer
             new ChannelLayer<IGameCommand>(),
             new PolyDenseStorage<IPooledGameComponent>(),
             new PolyHashStorage<IGameComponent>(),
-            new PolyHashStorage(),
+            new PolyHashStorage<IComponent>(),
 
             new ShortLivedCompositeLayer(eventStorage)
         );
