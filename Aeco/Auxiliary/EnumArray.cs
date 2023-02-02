@@ -11,18 +11,18 @@ public sealed class EnumArray<TKey, TElement>
 
     private readonly TElement[] _array;
 
-    private bool s_boundSet;
     private static int s_lower;
     private static int s_upper;
 
+    static EnumArray()
+    {
+        var values = Enum.GetValues(typeof(TKey)).Cast<TKey>();
+        s_lower = Convert.ToInt32(values.Min());
+        s_upper = Convert.ToInt32(values.Max());
+    }
+
     public EnumArray()
     {
-        if (!s_boundSet) {
-            var values = Enum.GetValues(typeof(TKey)).Cast<TKey>();
-            s_lower = Convert.ToInt32(values.Min());
-            s_upper = Convert.ToInt32(values.Max());
-            s_boundSet = true;
-        }
         _array = new TElement[1 + s_upper - s_lower];
     }
 
@@ -52,13 +52,8 @@ public sealed class EnumArray<TKey, TElement>
         _array = (TElement[])other._array.Clone();
     }
 
-    public TElement this[TKey key]
-    {
-        get { return _array[Convert.ToInt32(key) - s_lower]; }
-        set { _array[Convert.ToInt32(key) - s_lower] = value; }
-    }
-
-    public TElement this[int index] { get => ((IList<TElement>)_array)[index]; set => ((IList<TElement>)_array)[index] = value; }
+    public ref TElement this[TKey key]
+        => ref _array[Convert.ToInt32(key) - s_lower];
 
     public int Length => _array.Length;
 
@@ -67,30 +62,23 @@ public sealed class EnumArray<TKey, TElement>
 
     public bool IsReadOnly => ((ICollection<TElement>)_array).IsReadOnly;
 
-    public IEnumerator<TElement> GetEnumerator()
-    {
-        return ((IEnumerable<TElement>)_array).GetEnumerator();
-    }
+    public Span<TElement>.Enumerator GetEnumerator()
+        => _array.AsSpan().GetEnumerator();
+
+    IEnumerator<TElement> IEnumerable<TElement>.GetEnumerator()
+        => ((IEnumerable<TElement>)_array).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
-    {
-        return _array.GetEnumerator();
-    }
+        => _array.GetEnumerator();
 
     public int CompareTo(object? other, IComparer comparer)
-    {
-        return ((IStructuralComparable)_array).CompareTo(other, comparer);
-    }
+        => ((IStructuralComparable)_array).CompareTo(other, comparer);
 
     public bool Equals(object? other, IEqualityComparer comparer)
-    {
-        return ((IStructuralEquatable)_array).Equals(other, comparer);
-    }
+        => ((IStructuralEquatable)_array).Equals(other, comparer);
 
     public int GetHashCode(IEqualityComparer comparer)
-    {
-        return ((IStructuralEquatable)_array).GetHashCode(comparer);
-    }
+        => ((IStructuralEquatable)_array).GetHashCode(comparer);
 
     public object Clone()
         => new EnumArray<TKey, TElement>(this);
@@ -105,9 +93,7 @@ public sealed class EnumArray<TKey, TElement>
         => ((ICollection<TElement>)_array).Contains(item);
 
     public void CopyTo(TElement[] array, int arrayIndex)
-    {
-        ((ICollection<TElement>)_array).CopyTo(array, arrayIndex);
-    }
+        => ((ICollection<TElement>)_array).CopyTo(array, arrayIndex);
 
     bool ICollection<TElement>.Remove(TElement item)
         => ((ICollection<TElement>)_array).Remove(item);
