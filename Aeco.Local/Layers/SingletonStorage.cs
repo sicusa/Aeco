@@ -11,10 +11,6 @@ public class SingletonStorage<TComponent, TStoredComponent>
     private Guid? _id;
     private TStoredComponent _data = default!;
 
-    public SingletonStorage()
-    {
-    }
-
     public override bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
     {
         if (_id == id) {
