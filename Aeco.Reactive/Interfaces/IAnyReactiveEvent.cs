@@ -4,6 +4,6 @@ public interface IAnyReactiveEvent : IComponent
 {
 }
 
-public interface IAnyReactiveEvent<out TComponent> : IAnyReactiveEvent, IReactiveEvent<TComponent>
+public interface IAnyReactiveEvent<out TComponent> : IAnyReactiveEvent
 {
 }
