@@ -6,14 +6,8 @@ using System.Runtime.CompilerServices;
 
 public abstract class MonoStorageBase<TComponent, TStoredComponent>
     : DataLayerBase<TComponent, TStoredComponent>
-    , IReadableDataLayer<TComponent>
-    , ISettableDataLayer<TComponent>
-    , IReferableDataLayer<TComponent>
-    , IShrinkableDataLayer<TComponent>
-    , IReadableMonoDataLayer<TComponent, TStoredComponent>
-    , ISettableMonoDataLayer<TComponent, TStoredComponent>
-    , IReferableMonoDataLayer<TComponent, TStoredComponent>
-    , IShrinkableMonoDataLayer<TComponent, TStoredComponent>
+    , IDataLayer<TComponent>
+    , IMonoDataLayer<TComponent, TStoredComponent>
     , IComponentRefHost<TStoredComponent>
     where TStoredComponent : TComponent, new()
 {
