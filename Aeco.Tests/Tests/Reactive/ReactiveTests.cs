@@ -38,7 +38,7 @@ public static class ReactiveTests
                 AnyEventDataLayer = anyEventStorage
             });
 
-        var id = Guid.NewGuid();
+        var id = IdFactory.New();
         world.Acquire<Position>(id);
 
         Console.WriteLine(world.Remove<Created<Position>>(id)); // true
@@ -50,7 +50,7 @@ public static class ReactiveTests
 
         world.Acquire<Rotation>(id).Angle = 1;
 
-        var anotherId = Guid.NewGuid();
+        var anotherId = IdFactory.New();
         world.Acquire<Position>(anotherId);
         world.Acquire<Rotation>(anotherId);
 

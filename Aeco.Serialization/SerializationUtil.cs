@@ -27,7 +27,7 @@ public static class SerializationUtil<TComponent>
     private static ImmutableDictionary<Type, MethodInfo> s_genericMethods =
         ImmutableDictionary<Type, MethodInfo>.Empty;
 
-    public static void Set(ISettableDataLayer<TComponent> dataLayer, Guid id, IEnumerable<TComponent> components)
+    public static void Set(ISettableDataLayer<TComponent> dataLayer, uint id, IEnumerable<TComponent> components)
     {
         if (s_setMethodInfo == null) {
             s_setMethodInfo = typeof(ISettableDataLayer<TComponent>).GetMethod("Set")!;

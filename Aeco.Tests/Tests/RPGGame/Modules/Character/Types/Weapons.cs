@@ -10,8 +10,8 @@ public interface IWeapon
     string Description { get; }
     float Damage { get; }
 
-    IEnumerable<(int, int)> GetEffectiveArea(RPGGame game, Guid actorId);
-    void Attack(RPGGame game, Guid actorId, Guid targetId);
+    IEnumerable<(int, int)> GetEffectiveArea(RPGGame game, uint actorId);
+    void Attack(RPGGame game, uint actorId, uint targetId);
 }
 
 [DataContract]
@@ -23,7 +23,7 @@ public class LongSword : IWeapon
     [DataMember]
     public float Damage { get; set; } = 1;
 
-    public virtual IEnumerable<(int, int)> GetEffectiveArea(RPGGame game, Guid actorId)
+    public virtual IEnumerable<(int, int)> GetEffectiveArea(RPGGame game, uint actorId)
     {
         var p = game.Acquire<Position>(actorId);
         var (x, y) = (p.X, p.Y);
@@ -36,7 +36,7 @@ public class LongSword : IWeapon
         };
     }
 
-    public virtual void Attack(RPGGame game, Guid actorId, Guid targetId)
+    public virtual void Attack(RPGGame game, uint actorId, uint targetId)
     {
         ref var health = ref game.Acquire<Health>(targetId);
         health.Value -= Damage;
@@ -46,7 +46,7 @@ public class LongSword : IWeapon
 [DataContract]
 public class PoisonousLongSword : LongSword
 {
-    public override void Attack(RPGGame game, Guid actorId, Guid targetId)
+    public override void Attack(RPGGame game, uint actorId, uint targetId)
     {
         base.Attack(game, actorId, targetId);
 

@@ -50,7 +50,7 @@ public static class LocalTests
             new PolyHashStorage<IComponent>()
         );
 
-        var id = Guid.NewGuid();
+        var id = IdFactory.New();
 
         Console.WriteLine("[TestComponent1]");
         Console.WriteLine($"ContainsComponent<TestComponent>(): {compositeLayer.Contains<TestComponent>(id)}");

@@ -9,12 +9,12 @@ public class MonoTagStorage<TComponent, TStoredComponent>
     : MonoStorageBase<TComponent, TStoredComponent>
     where TStoredComponent : TComponent, new()
 {
-    private SortedSet<Guid> _ids = new();
+    private SortedSet<uint> _ids = new();
     private TStoredComponent _instance = new();
 
-    private Guid? _singleton;
+    private uint? _singleton;
 
-    public override bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
+    public override bool TryGet(uint id, [MaybeNullWhen(false)] out TStoredComponent component)
     {
         if (_ids.Contains(id)) {
             component = _instance;
@@ -24,7 +24,7 @@ public class MonoTagStorage<TComponent, TStoredComponent>
         return false;
     }
 
-    public override ref TStoredComponent RequireOrNullRef(Guid id)
+    public override ref TStoredComponent RequireOrNullRef(uint id)
     {
         if (_ids.Contains(id)) {
             return ref _instance;
@@ -32,22 +32,22 @@ public class MonoTagStorage<TComponent, TStoredComponent>
         return ref Unsafe.NullRef<TStoredComponent>();
     }
 
-    public override ref TStoredComponent Acquire(Guid id)
+    public override ref TStoredComponent Acquire(uint id)
         => ref Acquire(id, out bool _);
     
-    public override ref TStoredComponent Acquire(Guid id, out bool exists)
+    public override ref TStoredComponent Acquire(uint id, out bool exists)
     {
         exists = !_ids.Add(id);
         return ref _instance;
     }
 
-    public override bool Contains(Guid id)
+    public override bool Contains(uint id)
         => _ids.Contains(id);
 
     public override bool ContainsAny()
         => _ids.Count != 0;
 
-    private bool RawRemove(Guid id)
+    private bool RawRemove(uint id)
     {
         if (!_ids.Remove(id)) {
             return false;
@@ -58,10 +58,10 @@ public class MonoTagStorage<TComponent, TStoredComponent>
         return true;
     }
 
-    public override bool Remove(Guid id)
+    public override bool Remove(uint id)
         => RawRemove(id);
 
-    public override bool Remove(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
+    public override bool Remove(uint id, [MaybeNullWhen(false)] out TStoredComponent component)
     {
         if (!_ids.Remove(id)) {
             component = default;
@@ -74,14 +74,14 @@ public class MonoTagStorage<TComponent, TStoredComponent>
         return true;
     }
 
-    public override ref TStoredComponent Set(Guid id, in TStoredComponent component)
+    public override ref TStoredComponent Set(uint id, in TStoredComponent component)
     {
         _ids.Add(id);
         _instance = component;
         return ref _instance;
     }
 
-    private Guid? ResetSingleton()
+    private uint? ResetSingleton()
     {
         if (_ids.Count != 0) {
             _singleton = _ids.First();
@@ -89,16 +89,16 @@ public class MonoTagStorage<TComponent, TStoredComponent>
         return _singleton;
     }
 
-    public override Guid? Singleton()
+    public override uint? Singleton()
         => _singleton == null ? ResetSingleton() : _singleton;
 
-    public override IEnumerable<Guid> Query()
+    public override IEnumerable<uint> Query()
         => _ids;
 
     public override int GetCount()
         => _ids.Count;
 
-    public override IEnumerable<object> GetAll(Guid id)
+    public override IEnumerable<object> GetAll(uint id)
     {
         if (!_ids.Contains(id)) {
             return Enumerable.Empty<object>();
@@ -106,7 +106,7 @@ public class MonoTagStorage<TComponent, TStoredComponent>
         return Enumerable.Repeat<object>(_instance!, 1);
     }
 
-    public override void Clear(Guid id)
+    public override void Clear(uint id)
         => RawRemove(id);
 
     public override void Clear()

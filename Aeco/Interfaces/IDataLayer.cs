@@ -7,7 +7,7 @@ public interface IBasicDataLayer<in TComponent> : ILayer<TComponent>
 {
     bool CheckComponentSupported(Type componentType);
 
-    bool Contains<UComponent>(Guid id)
+    bool Contains<UComponent>(uint id)
         where UComponent : TComponent;
     bool ContainsAny<UComponent>()
         where UComponent : TComponent
@@ -17,13 +17,13 @@ public interface IBasicDataLayer<in TComponent> : ILayer<TComponent>
     int GetCount<UComponent>()
         where UComponent : TComponent;
 
-    IEnumerable<Guid> Query();
-    IEnumerable<Guid> Query<UComponent>()
+    IEnumerable<uint> Query();
+    IEnumerable<uint> Query<UComponent>()
         where UComponent : TComponent;
 
-    Guid? Singleton<UComponent>()
+    uint? Singleton<UComponent>()
         where UComponent : TComponent;
-    Guid RequireSingleton<UComponent>()
+    uint RequireSingleton<UComponent>()
         where UComponent : TComponent
         => Singleton<UComponent>() ??
             throw ExceptionHelper.ComponentNotFound<UComponent>();
@@ -31,10 +31,10 @@ public interface IBasicDataLayer<in TComponent> : ILayer<TComponent>
 
 public interface IReadableDataLayer<in TComponent> : IBasicDataLayer<TComponent>
 {
-    bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
+    bool TryGet<UComponent>(uint id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent;
 
-    ref readonly UComponent Inspect<UComponent>(Guid id)
+    ref readonly UComponent Inspect<UComponent>(uint id)
         where UComponent : TComponent
     {
         ref readonly UComponent comp = ref InspectOrNullRef<UComponent>(id);
@@ -47,7 +47,7 @@ public interface IReadableDataLayer<in TComponent> : IBasicDataLayer<TComponent>
         where UComponent : TComponent
         => ref Inspect<UComponent>(RequireSingleton<UComponent>());
 
-    ref readonly UComponent InspectOrNullRef<UComponent>(Guid id)
+    ref readonly UComponent InspectOrNullRef<UComponent>(uint id)
         where UComponent : TComponent;
     ref readonly UComponent InspectAnyOrNullRef<UComponent>()
         where UComponent : TComponent
@@ -59,12 +59,12 @@ public interface IReadableDataLayer<in TComponent> : IBasicDataLayer<TComponent>
         return ref InspectOrNullRef<UComponent>(singleton.Value);
     }
 
-    IEnumerable<object> GetAll(Guid id);
+    IEnumerable<object> GetAll(uint id);
 }
 
 public interface IWritableDataLayer<in TComponent> : IBasicDataLayer<TComponent>
 {
-    ref UComponent Require<UComponent>(Guid id)
+    ref UComponent Require<UComponent>(uint id)
         where UComponent : TComponent
     {
         ref UComponent comp = ref RequireOrNullRef<UComponent>(id);
@@ -77,7 +77,7 @@ public interface IWritableDataLayer<in TComponent> : IBasicDataLayer<TComponent>
         where UComponent : TComponent
         => ref Require<UComponent>(RequireSingleton<UComponent>());
 
-    ref UComponent RequireOrNullRef<UComponent>(Guid id)
+    ref UComponent RequireOrNullRef<UComponent>(uint id)
         where UComponent : TComponent;
     ref UComponent RequireAnyOrNullRef<UComponent>()
         where UComponent : TComponent
@@ -89,7 +89,7 @@ public interface IWritableDataLayer<in TComponent> : IBasicDataLayer<TComponent>
         return ref RequireOrNullRef<UComponent>(singleton.Value);
     }
 
-    ref UComponent InspectRaw<UComponent>(Guid id)
+    ref UComponent InspectRaw<UComponent>(uint id)
         where UComponent : TComponent
         => ref Require<UComponent>(id);
     ref UComponent InspectAnyRaw<UComponent>()
@@ -99,53 +99,53 @@ public interface IWritableDataLayer<in TComponent> : IBasicDataLayer<TComponent>
 
 public interface IExpandableDataLayer<in TComponent> : IBasicDataLayer<TComponent>
 {
-    ref UComponent Acquire<UComponent>(Guid id)
+    ref UComponent Acquire<UComponent>(uint id)
         where UComponent : TComponent, new();
     ref UComponent AcquireAny<UComponent>()
         where UComponent : TComponent, new()
-        => ref Acquire<UComponent>(Singleton<UComponent>() ?? Guid.NewGuid());
+        => ref Acquire<UComponent>(Singleton<UComponent>() ?? IdFactory.New());
 
-    ref UComponent Acquire<UComponent>(Guid id, out bool exists)
+    ref UComponent Acquire<UComponent>(uint id, out bool exists)
         where UComponent : TComponent, new();
     ref UComponent AcquireAny<UComponent>(out bool exists)
         where UComponent : TComponent, new()
-        => ref Acquire<UComponent>(Singleton<UComponent>() ?? Guid.NewGuid(), out exists);
+        => ref Acquire<UComponent>(Singleton<UComponent>() ?? IdFactory.New(), out exists);
 
-    ref UComponent AcquireRaw<UComponent>(Guid id)
+    ref UComponent AcquireRaw<UComponent>(uint id)
         where UComponent : TComponent, new()
         => ref Acquire<UComponent>(id);
     ref UComponent AcquireAnyRaw<UComponent>()
         where UComponent : TComponent, new()
-        => ref AcquireRaw<UComponent>(Singleton<UComponent>() ?? Guid.NewGuid());
+        => ref AcquireRaw<UComponent>(Singleton<UComponent>() ?? IdFactory.New());
 
-    ref UComponent AcquireRaw<UComponent>(Guid id, out bool exists)
+    ref UComponent AcquireRaw<UComponent>(uint id, out bool exists)
         where UComponent : TComponent, new()
         => ref Acquire<UComponent>(id, out exists);
     ref UComponent AcquireAnyRaw<UComponent>(out bool exists)
         where UComponent : TComponent, new()
-        => ref AcquireRaw<UComponent>(Singleton<UComponent>() ?? Guid.NewGuid(), out exists);
+        => ref AcquireRaw<UComponent>(Singleton<UComponent>() ?? IdFactory.New(), out exists);
 }
 
 public interface ISettableDataLayer<in TComponent>
     : IWritableDataLayer<TComponent>, IExpandableDataLayer<TComponent>
 {
-    ref UComponent Set<UComponent>(Guid id, in UComponent component)
+    ref UComponent Set<UComponent>(uint id, in UComponent component)
         where UComponent : TComponent, new();
     ref UComponent SetAny<UComponent>(in UComponent component)
         where UComponent : TComponent, new()
-        => ref Set<UComponent>(Singleton<UComponent>() ?? Guid.NewGuid(), component);
+        => ref Set<UComponent>(Singleton<UComponent>() ?? IdFactory.New(), component);
 }
 
 public interface IReferableDataLayer<in TComponent>
     : IReadableDataLayer<TComponent>, IWritableDataLayer<TComponent>
 {
-    ComponentRef<UComponent> GetRef<UComponent>(Guid id)
+    ComponentRef<UComponent> GetRef<UComponent>(uint id)
         where UComponent : TComponent;
 }
 
 public interface IShrinkableDataLayer<in TComponent> : IBasicDataLayer<TComponent>
 {
-    bool Remove<UComponent>(Guid id)
+    bool Remove<UComponent>(uint id)
         where UComponent : TComponent;
     bool RemoveAny<UComponent>()
         where UComponent : TComponent
@@ -154,7 +154,7 @@ public interface IShrinkableDataLayer<in TComponent> : IBasicDataLayer<TComponen
         return id.HasValue ? Remove<UComponent>(id.Value) : false;
     }
 
-    bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
+    bool Remove<UComponent>(uint id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent;
     bool RemoveAny<UComponent>([MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
@@ -172,7 +172,7 @@ public interface IShrinkableDataLayer<in TComponent> : IBasicDataLayer<TComponen
     void RemoveAll<UComponent>()
         where UComponent : TComponent;
 
-    void Clear(Guid id);
+    void Clear(uint id);
     void Clear();
 }
 

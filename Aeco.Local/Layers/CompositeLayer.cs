@@ -128,7 +128,7 @@ public class CompositeLayer<TComponent, TSublayer>
         }
     }
 
-    public override bool Contains<UComponent>(Guid id)
+    public override bool Contains<UComponent>(uint id)
     {
         var dataLayer = GetReadableDataLayer<UComponent>();
         return dataLayer != null ? dataLayer.Contains<UComponent>(id) : false;
@@ -140,7 +140,7 @@ public class CompositeLayer<TComponent, TSublayer>
         return dataLayer != null ? dataLayer.ContainsAny<UComponent>() : false;
     }
 
-    public override Guid? Singleton<UComponent>()
+    public override uint? Singleton<UComponent>()
         => GetReadableDataLayer<UComponent>()?.Singleton<UComponent>();
 
     public override int GetCount()
@@ -154,21 +154,21 @@ public class CompositeLayer<TComponent, TSublayer>
         return dataLayer != null ? dataLayer.GetCount<UComponent>() : 0;
     }
 
-    public override IEnumerable<Guid> Query<UComponent>()
+    public override IEnumerable<uint> Query<UComponent>()
     {
         var dataLayer = GetReadableDataLayer<UComponent>();
         if (dataLayer == null) {
-            return Enumerable.Empty<Guid>();
+            return Enumerable.Empty<uint>();
         }
         return dataLayer.Query<UComponent>();
     }
 
-    public override IEnumerable<Guid> Query()
+    public override IEnumerable<uint> Query()
         => QueryUtil.Union(
             _dataLayers.Keys.OfType<IReadableDataLayer<TComponent>>()
                 .Select(l => l.Query()));
 
-    public virtual bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
+    public virtual bool TryGet<UComponent>(uint id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
     {
         var dataLayer = GetReadableDataLayer<UComponent>();
@@ -179,7 +179,7 @@ public class CompositeLayer<TComponent, TSublayer>
         return dataLayer.TryGet<UComponent>(id, out component);
     }
 
-    public virtual ref readonly UComponent Inspect<UComponent>(Guid id)
+    public virtual ref readonly UComponent Inspect<UComponent>(uint id)
         where UComponent : TComponent
         => ref RequireReadableDataLayer<UComponent>().Inspect<UComponent>(id);
 
@@ -187,7 +187,7 @@ public class CompositeLayer<TComponent, TSublayer>
         where UComponent : TComponent
         => ref RequireReadableDataLayer<UComponent>().InspectAny<UComponent>();
 
-    public virtual ref readonly UComponent InspectOrNullRef<UComponent>(Guid id)
+    public virtual ref readonly UComponent InspectOrNullRef<UComponent>(uint id)
         where UComponent : TComponent
         => ref RequireReadableDataLayer<UComponent>().InspectOrNullRef<UComponent>(id);
 
@@ -195,7 +195,7 @@ public class CompositeLayer<TComponent, TSublayer>
         where UComponent : TComponent
         => ref RequireReadableDataLayer<UComponent>().InspectAnyOrNullRef<UComponent>();
 
-    public virtual ref UComponent InspectRaw<UComponent>(Guid id)
+    public virtual ref UComponent InspectRaw<UComponent>(uint id)
         where UComponent : TComponent
         => ref RequireWritableDataLayer<UComponent>().InspectRaw<UComponent>(id);
 
@@ -203,7 +203,7 @@ public class CompositeLayer<TComponent, TSublayer>
         where UComponent : TComponent
         => ref RequireWritableDataLayer<UComponent>().InspectAnyRaw<UComponent>();
 
-    public virtual ref UComponent Require<UComponent>(Guid id)
+    public virtual ref UComponent Require<UComponent>(uint id)
         where UComponent : TComponent
         => ref RequireWritableDataLayer<UComponent>().Require<UComponent>(id);
 
@@ -211,7 +211,7 @@ public class CompositeLayer<TComponent, TSublayer>
         where UComponent : TComponent
         => ref RequireWritableDataLayer<UComponent>().RequireAny<UComponent>();
 
-    public virtual ref UComponent RequireOrNullRef<UComponent>(Guid id)
+    public virtual ref UComponent RequireOrNullRef<UComponent>(uint id)
         where UComponent : TComponent
         => ref RequireWritableDataLayer<UComponent>().RequireOrNullRef<UComponent>(id);
 
@@ -219,11 +219,11 @@ public class CompositeLayer<TComponent, TSublayer>
         where UComponent : TComponent
         => ref RequireWritableDataLayer<UComponent>().RequireAnyOrNullRef<UComponent>();
 
-    public virtual ref UComponent Acquire<UComponent>(Guid id)
+    public virtual ref UComponent Acquire<UComponent>(uint id)
         where UComponent : TComponent, new()
         => ref RequireExpandableDataLayer<UComponent>().Acquire<UComponent>(id);
 
-    public virtual ref UComponent Acquire<UComponent>(Guid id, out bool exists)
+    public virtual ref UComponent Acquire<UComponent>(uint id, out bool exists)
         where UComponent : TComponent, new()
         => ref RequireExpandableDataLayer<UComponent>().Acquire<UComponent>(id, out exists);
 
@@ -231,11 +231,11 @@ public class CompositeLayer<TComponent, TSublayer>
         where UComponent : TComponent, new()
         => ref RequireExpandableDataLayer<UComponent>().AcquireAny<UComponent>();
 
-    public virtual ref UComponent AcquireRaw<UComponent>(Guid id)
+    public virtual ref UComponent AcquireRaw<UComponent>(uint id)
         where UComponent : TComponent, new()
         => ref RequireExpandableDataLayer<UComponent>().AcquireRaw<UComponent>(id);
 
-    public virtual ref UComponent AcquireRaw<UComponent>(Guid id, out bool exists)
+    public virtual ref UComponent AcquireRaw<UComponent>(uint id, out bool exists)
         where UComponent : TComponent, new()
         => ref RequireExpandableDataLayer<UComponent>().AcquireRaw<UComponent>(id, out exists);
 
@@ -243,19 +243,19 @@ public class CompositeLayer<TComponent, TSublayer>
         where UComponent : TComponent, new()
         => ref RequireExpandableDataLayer<UComponent>().AcquireAnyRaw<UComponent>();
     
-    public virtual ComponentRef<UComponent> GetRef<UComponent>(Guid id)
+    public virtual ComponentRef<UComponent> GetRef<UComponent>(uint id)
         where UComponent : TComponent
         => RequireReferableDataLayer<UComponent>().GetRef<UComponent>(id);
 
-    public virtual ref UComponent Set<UComponent>(Guid id, in UComponent component)
+    public virtual ref UComponent Set<UComponent>(uint id, in UComponent component)
         where UComponent : TComponent, new()
         => ref RequireSettableDataLayer<UComponent>().Set(id, component);
 
-    public virtual IEnumerable<object> GetAll(Guid id)
+    public virtual IEnumerable<object> GetAll(uint id)
         => _dataLayers.Keys.OfType<IReadableDataLayer<TComponent>>()
             .SelectMany(s => s.GetAll(id));
 
-    public virtual bool Remove<UComponent>(Guid id)
+    public virtual bool Remove<UComponent>(uint id)
         where UComponent : TComponent
     {
         var dataLayer = GetShrinkableDataLayer<UComponent>();
@@ -265,7 +265,7 @@ public class CompositeLayer<TComponent, TSublayer>
         return dataLayer.Remove<UComponent>(id);
     }
 
-    public virtual bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
+    public virtual bool Remove<UComponent>(uint id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
     {
         var dataLayer = GetShrinkableDataLayer<UComponent>();
@@ -280,7 +280,7 @@ public class CompositeLayer<TComponent, TSublayer>
         where UComponent : TComponent
         => GetShrinkableDataLayer<UComponent>()?.RemoveAll<UComponent>();
 
-    public virtual void Clear(Guid id)
+    public virtual void Clear(uint id)
     {
         foreach (var (dataLayer, _) in _dataLayers) {
             (dataLayer as IShrinkableDataLayer<TComponent>)?.Clear(id);

@@ -2,7 +2,7 @@ namespace Aeco.Reactive;
 
 public static class EventDataLayerExtensions
 {
-    public static void MarkModified<TComponent>(this IExpandableDataLayer<IComponent> dataLayer, Guid id)
+    public static void MarkModified<TComponent>(this IExpandableDataLayer<IComponent> dataLayer, uint id)
         where TComponent : IComponent
     {
         dataLayer.Acquire<AnyModified<TComponent>>(ReactiveCompositeLayer.AnyEventId);
@@ -15,7 +15,7 @@ public static class EventDataLayerExtensions
         dataLayer.Acquire<AnyModified<TComponent>>(ReactiveCompositeLayer.AnyEventId);
     }
 
-    public static void MarkCreated<TComponent>(this IExpandableDataLayer<IComponent> dataLayer, Guid id)
+    public static void MarkCreated<TComponent>(this IExpandableDataLayer<IComponent> dataLayer, uint id)
         where TComponent : IComponent
     {
         dataLayer.Acquire<AnyCreated<TComponent>>(ReactiveCompositeLayer.AnyEventId);
@@ -30,7 +30,7 @@ public static class EventDataLayerExtensions
         dataLayer.Acquire<AnyCreatedOrRemoved<TComponent>>(ReactiveCompositeLayer.AnyEventId);
     }
     
-    public static void MarkRemoved<TComponent>(this IExpandableDataLayer<IComponent> dataLayer, Guid id)
+    public static void MarkRemoved<TComponent>(this IExpandableDataLayer<IComponent> dataLayer, uint id)
         where TComponent : IComponent
     {
         dataLayer.Acquire<AnyRemoved<TComponent>>(ReactiveCompositeLayer.AnyEventId);

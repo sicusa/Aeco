@@ -2,7 +2,7 @@ namespace Aeco.Tests.RPGGame.Gameplay;
 
 public class DestroyHandler : Layer, IGameLateUpdateLayer
 {
-    private List<Guid> _ids = new();
+    private List<uint> _ids = new();
     public void LateUpdate(RPGGame game)
     {
         _ids.Clear();

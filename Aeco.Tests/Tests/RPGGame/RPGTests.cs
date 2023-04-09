@@ -35,15 +35,15 @@ public static class RPGTests
         game.Update(0.5f);
         Console.WriteLine("Found in map: " + mapBlocks[pos].Contains(playerId)); // false
 
-        var enemyId = Guid.NewGuid();
+        var enemyId = IdFactory.New();
         game.MakeEnemy(enemyId, mapId);
 
         var compRef = game.GetRef<Health>(enemyId);
         Console.WriteLine(compRef.GetRef().Value);
 
-        var ids = new List<Guid>();
+        var ids = new List<uint>();
         for (int i = 0; i < 2000; ++i) {
-            var otherEnemyId = Guid.NewGuid();
+            var otherEnemyId = IdFactory.New();
             game.MakeEnemy(otherEnemyId, mapId);
             ids.Add(otherEnemyId);
         }

@@ -11,7 +11,7 @@ public struct Player : IPooledGameComponent
 
 public static class PlayerExtensions
 {
-    public static void MakePlayer(this IExpandableDataLayer<IComponent> dataLayer, Guid id, Guid mapId)
+    public static void MakePlayer(this IExpandableDataLayer<IComponent> dataLayer, uint id, uint mapId)
     {
         dataLayer.Acquire<Player>(id);
         dataLayer.Acquire<InMap>(id).MapId = mapId;

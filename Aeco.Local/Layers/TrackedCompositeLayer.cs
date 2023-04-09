@@ -6,40 +6,40 @@ using System.Collections.Immutable;
 public class TrackedCompositeLayer<TComponent, TSublayer> : CompositeLayer<TComponent, TSublayer>
     where TSublayer : ILayer<TComponent>
 {
-    private ImmutableDictionary<Guid, ImmutableHashSet<Type>> _componentTrack =
-        ImmutableDictionary<Guid, ImmutableHashSet<Type>>.Empty;
+    private ImmutableDictionary<uint, ImmutableHashSet<Type>> _componentTrack =
+        ImmutableDictionary<uint, ImmutableHashSet<Type>>.Empty;
     
     public TrackedCompositeLayer(params TSublayer[] sublayers)
         : base(sublayers)
     {
     }
 
-    public override ref UComponent Acquire<UComponent>(Guid id)
+    public override ref UComponent Acquire<UComponent>(uint id)
     {
         return ref base.Acquire<UComponent>(id, out bool exsts);
     }
 
-    public override ref UComponent Acquire<UComponent>(Guid id, out bool exists)
+    public override ref UComponent Acquire<UComponent>(uint id, out bool exists)
     {
         return ref base.Acquire<UComponent>(id, out exists);
     }
 
-    public override ref UComponent AcquireRaw<UComponent>(Guid id)
+    public override ref UComponent AcquireRaw<UComponent>(uint id)
     {
         return ref base.AcquireRaw<UComponent>(id);
     }
 
-    public override ref UComponent AcquireRaw<UComponent>(Guid id, out bool exists)
+    public override ref UComponent AcquireRaw<UComponent>(uint id, out bool exists)
     {
         return ref base.AcquireRaw<UComponent>(id, out exists);
     }
 
-    public override bool Remove<UComponent>(Guid id)
+    public override bool Remove<UComponent>(uint id)
     {
         return base.Remove<UComponent>(id);
     }
 
-    public override bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
+    public override bool Remove<UComponent>(uint id, [MaybeNullWhen(false)] out UComponent component)
     {
         return base.Remove(id, out component);
     }
@@ -49,7 +49,7 @@ public class TrackedCompositeLayer<TComponent, TSublayer> : CompositeLayer<TComp
         base.RemoveAll<UComponent>();
     }
 
-    public override ref UComponent Set<UComponent>(Guid id, in UComponent component)
+    public override ref UComponent Set<UComponent>(uint id, in UComponent component)
     {
         return ref base.Set(id, component);
     }
@@ -59,7 +59,7 @@ public class TrackedCompositeLayer<TComponent, TSublayer> : CompositeLayer<TComp
         base.Clear();
     }
 
-    public override void Clear(Guid id)
+    public override void Clear(uint id)
     {
         base.Clear(id);
     }

@@ -4,7 +4,7 @@ using System.Buffers;
 
 public static class QueryUtil
 {
-    public static IEnumerable<Guid> Intersect(IEnumerable<Guid> orderedEnum1, IEnumerable<Guid> orderedEnum2)
+    public static IEnumerable<uint> Intersect(IEnumerable<uint> orderedEnum1, IEnumerable<uint> orderedEnum2)
     {
         var e1 = orderedEnum1.GetEnumerator();
         var e2 = orderedEnum2.GetEnumerator();
@@ -29,7 +29,7 @@ public static class QueryUtil
         }
     }
 
-    public static IEnumerable<Guid> Intersect(IEnumerable<IEnumerable<Guid>> orderedEnums)
+    public static IEnumerable<uint> Intersect(IEnumerable<IEnumerable<uint>> orderedEnums)
     {
         var enums = orderedEnums.Select(e => e.GetEnumerator()).ToArray();
         var count = enums.Length;
@@ -67,7 +67,7 @@ public static class QueryUtil
         }
     }
 
-    public static IEnumerable<Guid> Union(IEnumerable<Guid> orderedEnum1, IEnumerable<Guid> orderedEnum2)
+    public static IEnumerable<uint> Union(IEnumerable<uint> orderedEnum1, IEnumerable<uint> orderedEnum2)
     {
         var e1 = orderedEnum1.GetEnumerator();
         var e2 = orderedEnum2.GetEnumerator();
@@ -93,7 +93,7 @@ public static class QueryUtil
         }
     }
 
-    public static IEnumerable<Guid> Union(IEnumerable<IEnumerable<Guid>> orderedEnums)
+    public static IEnumerable<uint> Union(IEnumerable<IEnumerable<uint>> orderedEnums)
     {
         var enums = orderedEnums.Select(e => e.GetEnumerator()).ToArray();
         var count = enums.Length;

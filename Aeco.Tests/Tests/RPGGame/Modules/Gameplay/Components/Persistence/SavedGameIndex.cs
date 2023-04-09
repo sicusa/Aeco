@@ -6,5 +6,5 @@ using System.Runtime.Serialization;
 public struct SavedGameIndex : IGameComponent
 {
     [DataMember]
-    public Guid[] SavedGames;
+    public uint[] SavedGames;
 }

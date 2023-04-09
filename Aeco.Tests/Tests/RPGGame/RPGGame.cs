@@ -47,11 +47,11 @@ public class RPGGame : CompositeLayer
         }
 
         // Initialize map
-        var mapId = Guid.NewGuid();
+        var mapId = IdFactory.New();
         Acquire<Map.Map>(mapId);
 
         // Initialize player
-        this.MakePlayer(Guid.NewGuid(), mapId);
+        this.MakePlayer(IdFactory.New(), mapId);
     }
 
     public void Update(float deltaTime)

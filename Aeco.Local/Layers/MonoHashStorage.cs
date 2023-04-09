@@ -10,21 +10,21 @@ public class MonoHashStorage<TComponent, TStoredComponent>
     : MonoStorageBase<TComponent, TStoredComponent>
     where TStoredComponent : TComponent, new()
 {
-    private SortedSet<Guid> _ids = new();
-    private Dictionary<Guid, TStoredComponent> _dict = new();
+    private SortedSet<uint> _ids = new();
+    private Dictionary<uint, TStoredComponent> _dict = new();
 
-    private Guid? _singleton;
+    private uint? _singleton;
 
-    public override bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
+    public override bool TryGet(uint id, [MaybeNullWhen(false)] out TStoredComponent component)
         => _dict.TryGetValue(id, out component);
 
-    public override ref TStoredComponent RequireOrNullRef(Guid id)
+    public override ref TStoredComponent RequireOrNullRef(uint id)
         => ref CollectionsMarshal.GetValueRefOrNullRef(_dict, id);
 
-    public override ref TStoredComponent Acquire(Guid id)
+    public override ref TStoredComponent Acquire(uint id)
         => ref Acquire(id, out bool _);
     
-    public override ref TStoredComponent Acquire(Guid id, out bool exists)
+    public override ref TStoredComponent Acquire(uint id, out bool exists)
     {
         ref var comp = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, id, out exists);
         if (!exists) {
@@ -34,13 +34,13 @@ public class MonoHashStorage<TComponent, TStoredComponent>
         return ref comp!;
     }
 
-    public override bool Contains(Guid id)
+    public override bool Contains(uint id)
         => _ids.Contains(id);
 
     public override bool ContainsAny()
         => _ids.Count != 0;
 
-    private bool RawRemove(Guid id)
+    private bool RawRemove(uint id)
     {
         if (!_ids.Remove(id)) {
             return false;
@@ -52,10 +52,10 @@ public class MonoHashStorage<TComponent, TStoredComponent>
         return true;
     }
 
-    public override bool Remove(Guid id)
+    public override bool Remove(uint id)
         => RawRemove(id);
 
-    public override bool Remove(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
+    public override bool Remove(uint id, [MaybeNullWhen(false)] out TStoredComponent component)
     {
         if (!_ids.Remove(id)) {
             component = default;
@@ -70,7 +70,7 @@ public class MonoHashStorage<TComponent, TStoredComponent>
         return true;
     }
 
-    public override ref TStoredComponent Set(Guid id, in TStoredComponent component)
+    public override ref TStoredComponent Set(uint id, in TStoredComponent component)
     {
         ref var value = ref CollectionsMarshal.GetValueRefOrAddDefault(_dict, id, out bool exists);
         if (!exists) {
@@ -80,7 +80,7 @@ public class MonoHashStorage<TComponent, TStoredComponent>
         return ref value!;
     }
 
-    private Guid? ResetSingleton()
+    private uint? ResetSingleton()
     {
         if (_ids.Count != 0) {
             _singleton = _ids.First();
@@ -88,16 +88,16 @@ public class MonoHashStorage<TComponent, TStoredComponent>
         return _singleton;
     }
 
-    public override Guid? Singleton()
+    public override uint? Singleton()
         => _singleton == null ? ResetSingleton() : _singleton;
 
-    public override IEnumerable<Guid> Query()
+    public override IEnumerable<uint> Query()
         => _ids;
 
     public override int GetCount()
         => _ids.Count;
 
-    public override IEnumerable<object> GetAll(Guid id)
+    public override IEnumerable<object> GetAll(uint id)
     {
         ref var comp = ref CollectionsMarshal.GetValueRefOrNullRef(_dict, id);
         if (Unsafe.IsNullRef(ref comp)) {
@@ -106,7 +106,7 @@ public class MonoHashStorage<TComponent, TStoredComponent>
         return Enumerable.Repeat<object>(comp!, 1);
     }
 
-    public override void Clear(Guid id)
+    public override void Clear(uint id)
         => RawRemove(id);
 
     public override void Clear()

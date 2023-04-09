@@ -8,10 +8,10 @@ public class SingletonStorage<TComponent, TStoredComponent>
     : MonoStorageBase<TComponent, TStoredComponent>
     where TStoredComponent : TComponent, new()
 {
-    private Guid? _id;
+    private uint? _id;
     private TStoredComponent _data = default!;
 
-    public override bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
+    public override bool TryGet(uint id, [MaybeNullWhen(false)] out TStoredComponent component)
     {
         if (_id == id) {
             component = _data;
@@ -23,7 +23,7 @@ public class SingletonStorage<TComponent, TStoredComponent>
         }
     }
 
-    public override ref TStoredComponent RequireOrNullRef(Guid id)
+    public override ref TStoredComponent RequireOrNullRef(uint id)
     {
         if (id != _id) {
             return ref Unsafe.NullRef<TStoredComponent>();
@@ -31,7 +31,7 @@ public class SingletonStorage<TComponent, TStoredComponent>
         return ref _data;
     }
 
-    public override ref TStoredComponent Acquire(Guid id)
+    public override ref TStoredComponent Acquire(uint id)
     {
         if (_id == null) {
             _id = id;
@@ -44,7 +44,7 @@ public class SingletonStorage<TComponent, TStoredComponent>
         throw new NotSupportedException("Singleton component already exists");
     }
 
-    public override ref TStoredComponent Acquire(Guid id, out bool exists)
+    public override ref TStoredComponent Acquire(uint id, out bool exists)
     {
         if (_id == null) {
             _id = id;
@@ -59,13 +59,13 @@ public class SingletonStorage<TComponent, TStoredComponent>
         throw new NotSupportedException("Singleton component already exists");
     }
 
-    public override bool Contains(Guid id)
+    public override bool Contains(uint id)
         => _id == id;
 
     public override bool ContainsAny()
         => _id != null;
 
-    public override bool Remove(Guid id)
+    public override bool Remove(uint id)
     {
         if (_id != id) {
             return false;
@@ -75,7 +75,7 @@ public class SingletonStorage<TComponent, TStoredComponent>
         return true;
     }
 
-    public override bool Remove(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
+    public override bool Remove(uint id, [MaybeNullWhen(false)] out TStoredComponent component)
     {
         if (_id != id) {
             component = default;
@@ -88,7 +88,7 @@ public class SingletonStorage<TComponent, TStoredComponent>
         return true;
     }
 
-    public override ref TStoredComponent Set(Guid id, in TStoredComponent component)
+    public override ref TStoredComponent Set(uint id, in TStoredComponent component)
     {
         if (_id == null) {
             _id = id;
@@ -103,19 +103,19 @@ public class SingletonStorage<TComponent, TStoredComponent>
         return ref _data;
     }
 
-    public override Guid? Singleton()
+    public override uint? Singleton()
         => _id;
 
     public override int GetCount()
         => _id == null ? 0 : 1;
 
-    public override IEnumerable<Guid> Query()
-        => _id == null ? Enumerable.Empty<Guid>() : Enumerable.Repeat<Guid>(_id.Value, 1);
+    public override IEnumerable<uint> Query()
+        => _id == null ? Enumerable.Empty<uint>() : Enumerable.Repeat<uint>(_id.Value, 1);
 
-    public override IEnumerable<object> GetAll(Guid id)
+    public override IEnumerable<object> GetAll(uint id)
         => _id == id ? Enumerable.Repeat<object>(_data!, 1) : Enumerable.Empty<object>();
 
-    public override void Clear(Guid id)
+    public override void Clear(uint id)
     {
         if (_id == id) {
             _id = null;

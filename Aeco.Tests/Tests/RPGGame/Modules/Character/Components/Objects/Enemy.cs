@@ -11,7 +11,7 @@ public struct Enemy : IPooledGameComponent
 
 public static class EnemyExtensions
 {
-    public static void MakeEnemy(this IExpandableDataLayer<IComponent> dataLayer, Guid id, Guid mapId)
+    public static void MakeEnemy(this IExpandableDataLayer<IComponent> dataLayer, uint id, uint mapId)
     {
         dataLayer.Acquire<Enemy>(id);
         dataLayer.Acquire<InMap>(id).MapId = mapId;

@@ -2,13 +2,13 @@ namespace Aeco;
 
 public struct ComponentRef<TComponent>
 {
-    public Guid Id { get; private init; }
+    public uint Id { get; private init; }
     public bool IsValid => _host.IsRefValid(Id, _internalId);
 
     private IComponentRefHost<TComponent> _host;
     private int _internalId;
 
-    public ComponentRef(IComponentRefHost<TComponent> host, Guid id, int internalId = 0)
+    public ComponentRef(IComponentRefHost<TComponent> host, uint id, int internalId = 0)
     {
         Id = id;
         _host = host;

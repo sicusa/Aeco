@@ -14,31 +14,31 @@ public abstract class MonoStorageBase<TComponent, TStoredComponent>
     public override bool CheckComponentSupported(Type componentType)
         => typeof(TStoredComponent) == componentType;
 
-    public ref readonly TStoredComponent InspectOrNullRef(Guid id)
+    public ref readonly TStoredComponent InspectOrNullRef(uint id)
         => ref RequireOrNullRef(id);
 
-    public abstract bool Contains(Guid id);
+    public abstract bool Contains(uint id);
     public abstract bool ContainsAny();
-    public abstract Guid? Singleton();
+    public abstract uint? Singleton();
 
-    public abstract IEnumerable<object> GetAll(Guid id);
+    public abstract IEnumerable<object> GetAll(uint id);
 
-    public abstract bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component);
-    public abstract ref TStoredComponent RequireOrNullRef(Guid id);
+    public abstract bool TryGet(uint id, [MaybeNullWhen(false)] out TStoredComponent component);
+    public abstract ref TStoredComponent RequireOrNullRef(uint id);
 
-    public abstract ref TStoredComponent Acquire(Guid id);
-    public abstract ref TStoredComponent Acquire(Guid id, out bool exists);
+    public abstract ref TStoredComponent Acquire(uint id);
+    public abstract ref TStoredComponent Acquire(uint id, out bool exists);
 
-    public abstract ref TStoredComponent Set(Guid id, in TStoredComponent component);
+    public abstract ref TStoredComponent Set(uint id, in TStoredComponent component);
 
-    public virtual ComponentRef<TStoredComponent> GetRef(Guid id)
+    public virtual ComponentRef<TStoredComponent> GetRef(uint id)
         => Contains(id) ? new ComponentRef<TStoredComponent>(this, id)
             : throw ExceptionHelper.ComponentNotFound<TStoredComponent>();
 
-    public virtual bool IsRefValid(Guid id, int internalId)
+    public virtual bool IsRefValid(uint id, int internalId)
         => Contains(id);
 
-    public virtual ref TStoredComponent RequireRef(Guid id, int internalId)
+    public virtual ref TStoredComponent RequireRef(uint id, int internalId)
     {
         ref TStoredComponent value = ref RequireOrNullRef(id);
         if (Unsafe.IsNullRef(ref value)) {
@@ -47,63 +47,63 @@ public abstract class MonoStorageBase<TComponent, TStoredComponent>
         return ref value;
     }
 
-    public abstract bool Remove(Guid id);
-    public abstract bool Remove(Guid id, [MaybeNullWhen(false)] out TStoredComponent component);
+    public abstract bool Remove(uint id);
+    public abstract bool Remove(uint id, [MaybeNullWhen(false)] out TStoredComponent component);
 
-    public abstract void Clear(Guid id);
+    public abstract void Clear(uint id);
     public abstract void Clear();
 
-    public sealed override bool Contains<UComponent>(Guid id)
+    public sealed override bool Contains<UComponent>(uint id)
         => ConvertBasic<UComponent>().Contains(id);
     public sealed override bool ContainsAny<UComponent>()
         => ConvertBasic<UComponent>().ContainsAny();
-    public sealed override Guid? Singleton<UComponent>()
+    public sealed override uint? Singleton<UComponent>()
         => ConvertBasic<UComponent>().Singleton();
     public sealed override int GetCount<UComponent>()
         => ConvertBasic<UComponent>().GetCount();
-    public sealed override IEnumerable<Guid> Query<UComponent>()
+    public sealed override IEnumerable<uint> Query<UComponent>()
         => ConvertBasic<UComponent>().Query();
 
-    public bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
+    public bool TryGet<UComponent>(uint id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
         => ConvertReadable<UComponent>().TryGet(id, out component);
 
-    public ref readonly UComponent InspectOrNullRef<UComponent>(Guid id)
+    public ref readonly UComponent InspectOrNullRef<UComponent>(uint id)
         where UComponent : TComponent
         => ref ConvertReadable<UComponent>().InspectOrNullRef(id);
-    public ref UComponent InspectRaw<UComponent>(Guid id)
+    public ref UComponent InspectRaw<UComponent>(uint id)
         where UComponent : TComponent
         => ref ConvertWritable<UComponent>().InspectRaw(id);
 
-    public ref UComponent RequireOrNullRef<UComponent>(Guid id)
+    public ref UComponent RequireOrNullRef<UComponent>(uint id)
         where UComponent : TComponent
         => ref ConvertWritable<UComponent>().RequireOrNullRef(id);
 
-    public ref UComponent Acquire<UComponent>(Guid id)
+    public ref UComponent Acquire<UComponent>(uint id)
         where UComponent : TComponent, new()
         => ref ConvertExpandable<UComponent>().Acquire(id);
-    public ref UComponent Acquire<UComponent>(Guid id, out bool exists)
+    public ref UComponent Acquire<UComponent>(uint id, out bool exists)
         where UComponent : TComponent, new()
         => ref ConvertExpandable<UComponent>().Acquire(id, out exists);
-    public ref UComponent AcquireRaw<UComponent>(Guid id)
+    public ref UComponent AcquireRaw<UComponent>(uint id)
         where UComponent : TComponent, new()
         => ref ConvertExpandable<UComponent>().AcquireRaw(id);
-    public ref UComponent AcquireRaw<UComponent>(Guid id, out bool exists)
+    public ref UComponent AcquireRaw<UComponent>(uint id, out bool exists)
         where UComponent : TComponent, new()
         => ref ConvertExpandable<UComponent>().AcquireRaw(id, out exists);
 
-    public ref UComponent Set<UComponent>(Guid id, in UComponent component)
+    public ref UComponent Set<UComponent>(uint id, in UComponent component)
         where UComponent : TComponent, new()
         => ref ConvertSettable<UComponent>().Set(id, component);
 
-    public ComponentRef<UComponent> GetRef<UComponent>(Guid id)
+    public ComponentRef<UComponent> GetRef<UComponent>(uint id)
         where UComponent : TComponent
         => ConvertReferable<UComponent>().GetRef(id);
 
-    public bool Remove<UComponent>(Guid id)
+    public bool Remove<UComponent>(uint id)
         where UComponent : TComponent
         => ConvertShrinkable<UComponent>().Remove(id);
-    public bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
+    public bool Remove<UComponent>(uint id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
         => ConvertShrinkable<UComponent>().Remove(id, out component);
     public void RemoveAll<UComponent>()

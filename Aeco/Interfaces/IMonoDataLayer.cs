@@ -6,11 +6,11 @@ using System.Runtime.CompilerServices;
 public interface IBasicMonoDataLayer<in TComponent, TStoredComponent>
     : IBasicDataLayer<TComponent>
 {
-    bool Contains(Guid id);
+    bool Contains(uint id);
     bool ContainsAny() => Singleton() != null;
 
-    Guid? Singleton();
-    Guid RequireSingleton() => Singleton()
+    uint? Singleton();
+    uint RequireSingleton() => Singleton()
         ?? throw new KeyNotFoundException("Singleton not found: " + typeof(TStoredComponent));
 }
 
@@ -18,9 +18,9 @@ public interface IReadableMonoDataLayer<in TComponent, TStoredComponent>
     : IBasicMonoDataLayer<TComponent, TStoredComponent>
     where TStoredComponent : TComponent
 {
-    bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component);
+    bool TryGet(uint id, [MaybeNullWhen(false)] out TStoredComponent component);
 
-    ref readonly TStoredComponent Inspect(Guid id)
+    ref readonly TStoredComponent Inspect(uint id)
     {
         ref readonly TStoredComponent comp = ref InspectOrNullRef(id);
         if (Unsafe.IsNullRef(ref Unsafe.AsRef(in comp))) {
@@ -31,7 +31,7 @@ public interface IReadableMonoDataLayer<in TComponent, TStoredComponent>
     ref readonly TStoredComponent InspectAny()
         => ref Inspect(RequireSingleton());
 
-    ref readonly TStoredComponent InspectOrNullRef(Guid id);
+    ref readonly TStoredComponent InspectOrNullRef(uint id);
     ref readonly TStoredComponent InspectAnyOrNullRef()
     {
         var singleton = Singleton();
@@ -41,14 +41,14 @@ public interface IReadableMonoDataLayer<in TComponent, TStoredComponent>
         return ref InspectOrNullRef(singleton.Value);
     }
 
-    IEnumerable<object> GetAll(Guid id);
+    IEnumerable<object> GetAll(uint id);
 }
 
 public interface IWritableMonoDataLayer<in TComponent, TStoredComponent>
     : IBasicMonoDataLayer<TComponent, TStoredComponent>
     where TStoredComponent : TComponent
 {
-    ref TStoredComponent Require(Guid id)
+    ref TStoredComponent Require(uint id)
     {
         ref TStoredComponent comp = ref RequireOrNullRef(id);
         if (Unsafe.IsNullRef(ref comp)) {
@@ -59,7 +59,7 @@ public interface IWritableMonoDataLayer<in TComponent, TStoredComponent>
     ref TStoredComponent RequireAny()
         => ref Require(RequireSingleton());
 
-    ref TStoredComponent RequireOrNullRef(Guid id);
+    ref TStoredComponent RequireOrNullRef(uint id);
     ref TStoredComponent RequireAnyOrNullRef()
     {
         var singleton = Singleton();
@@ -69,7 +69,7 @@ public interface IWritableMonoDataLayer<in TComponent, TStoredComponent>
         return ref RequireOrNullRef(singleton.Value);
     }
 
-    ref TStoredComponent InspectRaw(Guid id)
+    ref TStoredComponent InspectRaw(uint id)
         => ref Require(id);
     ref TStoredComponent InspectAnyRaw()
         => ref InspectRaw(RequireSingleton());
@@ -79,23 +79,23 @@ public interface IExpandableMonoDataLayer<in TComponent, TStoredComponent>
     : IBasicMonoDataLayer<TComponent, TStoredComponent>
     where TStoredComponent : TComponent, new()
 {
-    ref TStoredComponent Acquire(Guid id);
+    ref TStoredComponent Acquire(uint id);
     ref TStoredComponent AcquireAny()
-        => ref Acquire(Singleton() ?? Guid.NewGuid());
+        => ref Acquire(Singleton() ?? IdFactory.New());
 
-    ref TStoredComponent Acquire(Guid id, out bool exists);
+    ref TStoredComponent Acquire(uint id, out bool exists);
     ref TStoredComponent AcquireAny(out bool exists)
-        => ref Acquire(Singleton() ?? Guid.NewGuid(), out exists);
+        => ref Acquire(Singleton() ?? IdFactory.New(), out exists);
 
-    ref TStoredComponent AcquireRaw(Guid id)
+    ref TStoredComponent AcquireRaw(uint id)
         => ref Acquire(id);
-    ref TStoredComponent AcquireAnyRaw(Guid id)
-        => ref AcquireRaw(Singleton() ?? Guid.NewGuid());
+    ref TStoredComponent AcquireAnyRaw(uint id)
+        => ref AcquireRaw(Singleton() ?? IdFactory.New());
 
-    ref TStoredComponent AcquireRaw(Guid id, out bool exists)
+    ref TStoredComponent AcquireRaw(uint id, out bool exists)
         => ref Acquire(id, out exists);
-    ref TStoredComponent AcquireAnyRaw(Guid id, out bool exists)
-        => ref AcquireRaw(Singleton() ?? Guid.NewGuid(), out exists);
+    ref TStoredComponent AcquireAnyRaw(uint id, out bool exists)
+        => ref AcquireRaw(Singleton() ?? IdFactory.New(), out exists);
 }
 
 public interface ISettableMonoDataLayer<in TComponent, TStoredComponent>
@@ -103,9 +103,9 @@ public interface ISettableMonoDataLayer<in TComponent, TStoredComponent>
     , IExpandableMonoDataLayer<TComponent, TStoredComponent>
     where TStoredComponent : TComponent, new()
 {
-    ref TStoredComponent Set(Guid id, in TStoredComponent component);
+    ref TStoredComponent Set(uint id, in TStoredComponent component);
     ref TStoredComponent SetAny(in TStoredComponent component)
-        => ref Set(Singleton() ?? Guid.NewGuid(), component);
+        => ref Set(Singleton() ?? IdFactory.New(), component);
 }
 
 public interface IReferableMonoDataLayer<in TComponent, TStoredComponent>
@@ -113,21 +113,21 @@ public interface IReferableMonoDataLayer<in TComponent, TStoredComponent>
     , IWritableMonoDataLayer<TComponent, TStoredComponent>
     where TStoredComponent : TComponent
 {
-    ComponentRef<TStoredComponent> GetRef(Guid id);
+    ComponentRef<TStoredComponent> GetRef(uint id);
 }
 
 public interface IShrinkableMonoDataLayer<in TComponent, TStoredComponent>
     : IBasicMonoDataLayer<TComponent, TStoredComponent>
     where TStoredComponent : TComponent
 {
-    bool Remove(Guid id);
+    bool Remove(uint id);
     bool RemoveAny()
     {
         var id = Singleton();
         return id.HasValue ? Remove(id.Value) : false;
     }
 
-    bool Remove(Guid id, [MaybeNullWhen(false)] out TStoredComponent component);
+    bool Remove(uint id, [MaybeNullWhen(false)] out TStoredComponent component);
     bool RemoveAny([MaybeNullWhen(false)] out TStoredComponent component)
     {
         var id = Singleton();

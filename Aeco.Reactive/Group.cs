@@ -3,37 +3,37 @@ namespace Aeco.Reactive;
 using System.Collections;
 using System.Runtime.InteropServices;
 
-public interface IGroup : IList<Guid>, IReadOnlyList<Guid>
+public interface IGroup : IList<uint>, IReadOnlyList<uint>
 {
 }
 
 public abstract class GroupBase : IGroup
 {
-    private List<Guid> _l = new();
+    private List<uint> _l = new();
 
-    public Guid this[int index] => _l[index];
+    public uint this[int index] => _l[index];
 
     public int Count => _l.Count;
 
-    public bool IsReadOnly => ((ICollection<Guid>)_l).IsReadOnly;
+    public bool IsReadOnly => ((ICollection<uint>)_l).IsReadOnly;
 
-    Guid IList<Guid>.this[int index] { get => ((IList<Guid>)_l)[index]; set => ((IList<Guid>)_l)[index] = value; }
+    uint IList<uint>.this[int index] { get => ((IList<uint>)_l)[index]; set => ((IList<uint>)_l)[index] = value; }
 
     private bool _initialized = false;
 
-    IEnumerator<Guid> IEnumerable<Guid>.GetEnumerator()
+    IEnumerator<uint> IEnumerable<uint>.GetEnumerator()
         => _l.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator()
         => _l.GetEnumerator();
 
-    public Span<Guid>.Enumerator GetEnumerator()
+    public Span<uint>.Enumerator GetEnumerator()
         => CollectionsMarshal.AsSpan(_l).GetEnumerator();
     
-    public Span<Guid> AsSpan()
+    public Span<uint> AsSpan()
         => CollectionsMarshal.AsSpan(_l);
     
-    protected virtual void Reset(IReadableDataLayer<IComponent> dataLayer, IEnumerable<Guid> ids)
+    protected virtual void Reset(IReadableDataLayer<IComponent> dataLayer, IEnumerable<uint> ids)
     {
         _l.Clear();
         _l.AddRange(ids);
@@ -51,34 +51,34 @@ public abstract class GroupBase : IGroup
         return this;
     }
 
-    public int IndexOf(Guid item)
-        => ((IList<Guid>)_l).IndexOf(item);
+    public int IndexOf(uint item)
+        => ((IList<uint>)_l).IndexOf(item);
 
-    public void Insert(int index, Guid item)
-        => ((IList<Guid>)_l).Insert(index, item);
+    public void Insert(int index, uint item)
+        => ((IList<uint>)_l).Insert(index, item);
 
     public void RemoveAt(int index)
-        => ((IList<Guid>)_l).RemoveAt(index);
+        => ((IList<uint>)_l).RemoveAt(index);
 
-    public void Add(Guid item)
-        => ((ICollection<Guid>)_l).Add(item);
+    public void Add(uint item)
+        => ((ICollection<uint>)_l).Add(item);
 
     public void Clear()
-        => ((ICollection<Guid>)_l).Clear();
+        => ((ICollection<uint>)_l).Clear();
 
-    public bool Contains(Guid item)
-        => ((ICollection<Guid>)_l).Contains(item);
+    public bool Contains(uint item)
+        => ((ICollection<uint>)_l).Contains(item);
 
-    public void CopyTo(Guid[] array, int arrayIndex)
-        => ((ICollection<Guid>)_l).CopyTo(array, arrayIndex);
+    public void CopyTo(uint[] array, int arrayIndex)
+        => ((ICollection<uint>)_l).CopyTo(array, arrayIndex);
 
-    public bool Remove(Guid item)
-        => ((ICollection<Guid>)_l).Remove(item);
+    public bool Remove(uint item)
+        => ((ICollection<uint>)_l).Remove(item);
     
-    public void Sort(Comparison<Guid> comparision)
+    public void Sort(Comparison<uint> comparision)
         => _l.Sort(comparision);
 
-    public void Sort(IComparer<Guid> comparer)
+    public void Sort(IComparer<uint> comparer)
         => _l.Sort(comparer);
 }
 

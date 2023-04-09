@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 [DataContract]
 public struct Inventory : IGameComponent
 {
-    [DataMember] public Dictionary<Type, Guid> Items = new();
+    [DataMember] public Dictionary<Type, uint> Items = new();
 
     public Inventory() {}
 }

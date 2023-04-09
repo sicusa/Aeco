@@ -10,10 +10,10 @@ public class ChannelLayer<TComponent, TSelectedComponent>
     , IShrinkableDataLayer<TComponent>
     where TSelectedComponent : TComponent
 {
-    private Dictionary<Guid, LinkedList<object>> _channels = new();
+    private Dictionary<uint, LinkedList<object>> _channels = new();
     private Stack<LinkedList<object>> _channelPool = new();
 
-    public override bool Contains<UComponent>(Guid id)
+    public override bool Contains<UComponent>(uint id)
     {
         if (_channels.TryGetValue(id, out var channel)) {
             for (var node = channel.First; node != channel.Last; node = node!.Next) {
@@ -37,7 +37,7 @@ public class ChannelLayer<TComponent, TSelectedComponent>
         return false;
     }
 
-    public override Guid? Singleton<UComponent>()
+    public override uint? Singleton<UComponent>()
     {
         foreach (var (id, channel) in _channels) {
             for (var node = channel.First; node != channel.Last; node = node!.Next) {
@@ -55,17 +55,17 @@ public class ChannelLayer<TComponent, TSelectedComponent>
     public override int GetCount<UComponent>()
         => _channels.SelectMany(t => t.Value).OfType<UComponent>().Count();
 
-    public override IEnumerable<Guid> Query<UComponent>()
+    public override IEnumerable<uint> Query<UComponent>()
         => throw new NotSupportedException("Query not supported for channel component");
 
-    public override IEnumerable<Guid> Query()
+    public override IEnumerable<uint> Query()
         => throw new NotSupportedException("Query not supported for channel component");
 
-    public ref readonly UComponent InspectOrNullRef<UComponent>(Guid id)
+    public ref readonly UComponent InspectOrNullRef<UComponent>(uint id)
         where UComponent : TComponent
         => ref RequireOrNullRef<UComponent>(id);
 
-    public bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
+    public bool TryGet<UComponent>(uint id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
     {
         if (_channels.TryGetValue(id, out var channel)) {
@@ -80,7 +80,7 @@ public class ChannelLayer<TComponent, TSelectedComponent>
         return false;
     }
 
-    public ref UComponent RequireOrNullRef<UComponent>(Guid id)
+    public ref UComponent RequireOrNullRef<UComponent>(uint id)
         where UComponent : TComponent
     {
         if (_channels.TryGetValue(id, out var channel)) {
@@ -93,11 +93,11 @@ public class ChannelLayer<TComponent, TSelectedComponent>
         return ref Unsafe.NullRef<UComponent>();
     }
 
-    public ref UComponent Acquire<UComponent>(Guid id)
+    public ref UComponent Acquire<UComponent>(uint id)
         where UComponent : TComponent, new()
         => ref Acquire<UComponent>(id, out bool _);
 
-    public ref UComponent Acquire<UComponent>(Guid id, out bool exists)
+    public ref UComponent Acquire<UComponent>(uint id, out bool exists)
         where UComponent : TComponent, new()
     {
         LinkedListNode<object> node;
@@ -124,7 +124,7 @@ public class ChannelLayer<TComponent, TSelectedComponent>
         return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
     }
 
-    public ref UComponent Set<UComponent>(Guid id, in UComponent component)
+    public ref UComponent Set<UComponent>(uint id, in UComponent component)
         where UComponent : TComponent, new()
     {
         LinkedListNode<object> node;
@@ -140,7 +140,7 @@ public class ChannelLayer<TComponent, TSelectedComponent>
         return ref Unsafe.As<object, UComponent>(ref node.ValueRef);
     }
 
-    public bool Remove<UComponent>(Guid id)
+    public bool Remove<UComponent>(uint id)
         where UComponent : TComponent
     {
         if (_channels.TryGetValue(id, out var channel)) {
@@ -154,7 +154,7 @@ public class ChannelLayer<TComponent, TSelectedComponent>
         return false;
     }
 
-    public bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
+    public bool Remove<UComponent>(uint id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
     {
         if (_channels.TryGetValue(id, out var channel)) {
@@ -184,10 +184,10 @@ public class ChannelLayer<TComponent, TSelectedComponent>
         }
     }
 
-    public IEnumerable<object> GetAll(Guid id)
+    public IEnumerable<object> GetAll(uint id)
         => _channels.TryGetValue(id, out var channel) ? channel : Enumerable.Empty<object>();
 
-    public void Clear(Guid id)
+    public void Clear(uint id)
     {
         if (_channels.Remove(id, out var channel)) {
             channel.Clear();

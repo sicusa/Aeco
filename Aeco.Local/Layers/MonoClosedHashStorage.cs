@@ -11,10 +11,10 @@ public class MonoClosedHashStorage<TComponent, TStoredComponent>
 {
     public int BrickCapacity { get; set; }
 
-    private SortedSet<Guid> _ids = new();
-    private ClosedHashBrick<Guid, TStoredComponent> _brick;
+    private SortedSet<uint> _ids = new();
+    private ClosedHashBrick<uint, TStoredComponent> _brick;
 
-    private Guid? _singleton;
+    private uint? _singleton;
 
     public MonoClosedHashStorage(int brickCapacity = MonoClosedHashStorage.DefaultBrickCapacity)
     {
@@ -22,10 +22,10 @@ public class MonoClosedHashStorage<TComponent, TStoredComponent>
         _brick = new(brickCapacity);
     }
 
-    public override bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
+    public override bool TryGet(uint id, [MaybeNullWhen(false)] out TStoredComponent component)
         => _brick.TryGetValue(id, out component);
 
-    public override ref TStoredComponent RequireOrNullRef(Guid id)
+    public override ref TStoredComponent RequireOrNullRef(uint id)
     {
         ref var block = ref _brick.FindBlock(id);
         if (Unsafe.IsNullRef(ref block)) {
@@ -34,10 +34,10 @@ public class MonoClosedHashStorage<TComponent, TStoredComponent>
         return ref block.Value;
     }
     
-    public override ref TStoredComponent Acquire(Guid id)
+    public override ref TStoredComponent Acquire(uint id)
         => ref Acquire(id, out bool _);
 
-    public override ref TStoredComponent Acquire(Guid id, out bool exists)
+    public override ref TStoredComponent Acquire(uint id, out bool exists)
     {
         ref var block = ref _brick.AcquireBlock(id, out exists);
         if (!exists) {
@@ -47,13 +47,13 @@ public class MonoClosedHashStorage<TComponent, TStoredComponent>
         return ref block.Value;
     }
 
-    public override bool Contains(Guid id)
+    public override bool Contains(uint id)
         => _brick.Contains(id);
 
     public override bool ContainsAny()
         => _ids.Count != 0;
 
-    private Guid? ResetSingleton()
+    private uint? ResetSingleton()
     {
         if (_ids.Count != 0) {
             _singleton = _ids.First();
@@ -61,7 +61,7 @@ public class MonoClosedHashStorage<TComponent, TStoredComponent>
         return _singleton;
     }
 
-    private void ClearBlock(ref ClosedHashBrick<Guid, TStoredComponent>.Block block, Guid id)
+    private void ClearBlock(ref ClosedHashBrick<uint, TStoredComponent>.Block block, uint id)
     {
         block.Value = default!;
         _ids.Remove(id);
@@ -70,7 +70,7 @@ public class MonoClosedHashStorage<TComponent, TStoredComponent>
         }
     }
 
-    public override bool Remove(Guid id)
+    public override bool Remove(uint id)
     {
         ref var block = ref _brick.RemoveBlock(id);
         if (Unsafe.IsNullRef(ref block)) {
@@ -80,7 +80,7 @@ public class MonoClosedHashStorage<TComponent, TStoredComponent>
         return true;
     }
 
-    public override bool Remove(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
+    public override bool Remove(uint id, [MaybeNullWhen(false)] out TStoredComponent component)
     {
         ref var block = ref _brick.RemoveBlock(id);
         if (Unsafe.IsNullRef(ref block)) {
@@ -92,7 +92,7 @@ public class MonoClosedHashStorage<TComponent, TStoredComponent>
         return true;
     }
 
-    public override ref TStoredComponent Set(Guid id, in TStoredComponent component)
+    public override ref TStoredComponent Set(uint id, in TStoredComponent component)
     {
         ref var block = ref _brick.AcquireBlock(id, out bool exists);
         if (!exists) {
@@ -102,16 +102,16 @@ public class MonoClosedHashStorage<TComponent, TStoredComponent>
         return ref block.Value;
     }
 
-    public override Guid? Singleton()
+    public override uint? Singleton()
         => _singleton == null ? ResetSingleton() : _singleton;
 
-    public override IEnumerable<Guid> Query()
+    public override IEnumerable<uint> Query()
         => _ids;
 
     public override int GetCount()
         => _ids.Count;
 
-    public override IEnumerable<object> GetAll(Guid id)
+    public override IEnumerable<object> GetAll(uint id)
     {
         ref var block = ref _brick.FindBlock(id);
         if (Unsafe.IsNullRef(ref block)) {
@@ -120,7 +120,7 @@ public class MonoClosedHashStorage<TComponent, TStoredComponent>
         return Enumerable.Repeat<object>(block.Value!, 1);
     }
 
-    public override void Clear(Guid id)
+    public override void Clear(uint id)
         => Remove(id);
 
     public override void Clear()

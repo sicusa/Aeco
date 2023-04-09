@@ -13,11 +13,11 @@ public class MonoDenseStorage<TComponent, TStoredComponent>
     public int PageSize => _sparseSet.PageSize;
     public int Capacity => _sparseSet.Capacity;
 
-    private SortedDictionary<Guid, int> _ids = new();
+    private SortedDictionary<uint, int> _ids = new();
     private SparseSet<TStoredComponent> _sparseSet;
 
-    private Guid? _singleton;
-    private int _maxGuidIndex;
+    private uint? _singleton;
+    private int _maxIdIndex;
 
     public MonoDenseStorage(
         int pageCount = MonoDenseStorage.DefaultPageCount, int pageSize = MonoDenseStorage.DeafultPageSize)
@@ -25,14 +25,14 @@ public class MonoDenseStorage<TComponent, TStoredComponent>
         _sparseSet = new(pageCount, pageSize);
     }
 
-    private int GetNextGuidIndex()
+    private int GetNextIdIndex()
     {
-        int index = _maxGuidIndex;
-        _maxGuidIndex = (_maxGuidIndex + 1) % _sparseSet.Capacity;
+        int index = _maxIdIndex;
+        _maxIdIndex = (_maxIdIndex + 1) % _sparseSet.Capacity;
         return index;
     }
 
-    public override ComponentRef<TStoredComponent> GetRef(Guid id)
+    public override ComponentRef<TStoredComponent> GetRef(uint id)
     {
         if (!_ids.TryGetValue(id, out var index)) {
             throw ExceptionHelper.ComponentNotFound<TStoredComponent>();
@@ -40,10 +40,10 @@ public class MonoDenseStorage<TComponent, TStoredComponent>
         return new ComponentRef<TStoredComponent>(this, id, index);
     }
 
-    public override bool IsRefValid(Guid id, int internalId)
+    public override bool IsRefValid(uint id, int internalId)
         => _ids.ContainsKey(id);
 
-    public override ref TStoredComponent RequireRef(Guid id, int internalId)
+    public override ref TStoredComponent RequireRef(uint id, int internalId)
     {
         ref TStoredComponent comp = ref _sparseSet.GetValueRefOrNullRef(internalId);
         if (Unsafe.IsNullRef(ref comp)) {
@@ -52,7 +52,7 @@ public class MonoDenseStorage<TComponent, TStoredComponent>
         return ref comp;
     }
 
-    public override bool TryGet(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
+    public override bool TryGet(uint id, [MaybeNullWhen(false)] out TStoredComponent component)
     {
         if (!_ids.TryGetValue(id, out var index)) {
             component = default;
@@ -61,7 +61,7 @@ public class MonoDenseStorage<TComponent, TStoredComponent>
         return _sparseSet.TryGetValue(index, out component);
     }
 
-    public override ref TStoredComponent RequireOrNullRef(Guid id)
+    public override ref TStoredComponent RequireOrNullRef(uint id)
     {
         if (!_ids.TryGetValue(id, out var index)) {
             return ref Unsafe.NullRef<TStoredComponent>();
@@ -69,29 +69,29 @@ public class MonoDenseStorage<TComponent, TStoredComponent>
         return ref _sparseSet.GetValueRefOrNullRef(index);
     }
 
-    public override ref TStoredComponent Acquire(Guid id)
+    public override ref TStoredComponent Acquire(uint id)
         => ref Acquire(id, out bool _);
     
-    public override ref TStoredComponent Acquire(Guid id, out bool exists)
+    public override ref TStoredComponent Acquire(uint id, out bool exists)
     {
         if (_ids.TryGetValue(id, out var index)) {
             exists = true;
             return ref _sparseSet.GetValueRefOrNullRef(index);
         }
-        index = GetNextGuidIndex();
+        index = GetNextIdIndex();
         _ids.Add(id, index);
         ref var valueRef = ref _sparseSet.GetOrAddValueRef(index, out exists);
         valueRef = new();
         return ref valueRef!;
     }
 
-    public override bool Contains(Guid id)
+    public override bool Contains(uint id)
         => _ids.ContainsKey(id);
 
     public override bool ContainsAny()
         => _singleton != null;
 
-    private bool RawRemove(Guid id)
+    private bool RawRemove(uint id)
     {
         if (!_ids.Remove(id, out var index)) {
             return false;
@@ -103,10 +103,10 @@ public class MonoDenseStorage<TComponent, TStoredComponent>
         return true;
     }
 
-    public override bool Remove(Guid id)
+    public override bool Remove(uint id)
         => RawRemove(id);
 
-    public override bool Remove(Guid id, [MaybeNullWhen(false)] out TStoredComponent component)
+    public override bool Remove(uint id, [MaybeNullWhen(false)] out TStoredComponent component)
     {
         if (!_ids.Remove(id, out var index)) {
             component = default;
@@ -121,10 +121,10 @@ public class MonoDenseStorage<TComponent, TStoredComponent>
         return true;
     }
 
-    public override ref TStoredComponent Set(Guid id, in TStoredComponent component)
+    public override ref TStoredComponent Set(uint id, in TStoredComponent component)
     {
         if (!_ids.TryGetValue(id, out var index)) {
-            index = GetNextGuidIndex();
+            index = GetNextIdIndex();
             _ids.Add(id, index);
         }
         ref var valueRef = ref _sparseSet.GetOrAddValueRef(index, out bool _);
@@ -132,7 +132,7 @@ public class MonoDenseStorage<TComponent, TStoredComponent>
         return ref valueRef!;
     }
 
-    private Guid? ResetSingleton()
+    private uint? ResetSingleton()
     {
         if (_ids.Count != 0) {
             _singleton = _ids.Keys.First();
@@ -140,16 +140,16 @@ public class MonoDenseStorage<TComponent, TStoredComponent>
         return _singleton;
     }
 
-    public override Guid? Singleton()
+    public override uint? Singleton()
         => _singleton == null ? ResetSingleton() : _singleton;
 
-    public override IEnumerable<Guid> Query()
+    public override IEnumerable<uint> Query()
         => _ids.Keys;
 
     public override int GetCount()
         => _ids.Count;
 
-    public override IEnumerable<object> GetAll(Guid id)
+    public override IEnumerable<object> GetAll(uint id)
     {
         if (!_ids.TryGetValue(id, out var index)) {
             return Enumerable.Empty<object>();
@@ -158,7 +158,7 @@ public class MonoDenseStorage<TComponent, TStoredComponent>
         return Enumerable.Repeat<object>(comp!, 1);
     }
 
-    public override void Clear(Guid id)
+    public override void Clear(uint id)
         => RawRemove(id);
 
     public override void Clear()

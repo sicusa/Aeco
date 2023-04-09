@@ -28,7 +28,7 @@ public class PolyStorage<TComponent, TSelectedComponent>
         _factory = dataLayerFactory;
     }
 
-    public override bool Contains<UComponent>(Guid id)
+    public override bool Contains<UComponent>(uint id)
     {
         var substorage = FindSubstorage<UComponent>();
         if (substorage == null) {
@@ -46,22 +46,22 @@ public class PolyStorage<TComponent, TSelectedComponent>
         return substorage.ContainsAny<UComponent>();
     }
 
-    public override Guid? Singleton<UComponent>()
+    public override uint? Singleton<UComponent>()
     {
         var substorage = FindSubstorage<UComponent>();
         return substorage?.Singleton<UComponent>();
     }
 
-    public override IEnumerable<Guid> Query<UComponent>()
+    public override IEnumerable<uint> Query<UComponent>()
     {
         var substorage = FindSubstorage<UComponent>();
         if (substorage == null) {
-            return Enumerable.Empty<Guid>();
+            return Enumerable.Empty<uint>();
         }
         return substorage.Query<UComponent>();
     }
 
-    public override IEnumerable<Guid> Query()
+    public override IEnumerable<uint> Query()
         => QueryUtil.Union(_substorages.Values.Select(s => s.Query()));
 
     public override int GetCount()
@@ -73,7 +73,7 @@ public class PolyStorage<TComponent, TSelectedComponent>
         return substorage != null ? substorage.GetCount() : 0;
     }
 
-    public ref readonly UComponent InspectOrNullRef<UComponent>(Guid id)
+    public ref readonly UComponent InspectOrNullRef<UComponent>(uint id)
         where UComponent : TComponent
     {
         var substorage = FindSubstorage<UComponent, IReadableDataLayer<TComponent>>();
@@ -83,7 +83,7 @@ public class PolyStorage<TComponent, TSelectedComponent>
         return ref substorage.InspectOrNullRef<UComponent>(id);
     }
 
-    public bool TryGet<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
+    public bool TryGet<UComponent>(uint id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
     {
         var substorage = FindSubstorage<UComponent, IReadableDataLayer<TComponent>>();
@@ -94,11 +94,11 @@ public class PolyStorage<TComponent, TSelectedComponent>
         return substorage.TryGet<UComponent>(id, out component);
     }
 
-    public IEnumerable<object> GetAll(Guid id)
+    public IEnumerable<object> GetAll(uint id)
         => _substorages.Values.OfType<IReadableDataLayer<TComponent>>()
             .SelectMany(sub => sub.GetAll(id));
     
-    public ref UComponent RequireOrNullRef<UComponent>(Guid id)
+    public ref UComponent RequireOrNullRef<UComponent>(uint id)
         where UComponent : TComponent
     {
         var substorage = FindSubstorage<UComponent, IWritableDataLayer<TComponent>>();
@@ -108,27 +108,27 @@ public class PolyStorage<TComponent, TSelectedComponent>
         return ref substorage.RequireOrNullRef<UComponent>(id);
     }
 
-    public ComponentRef<UComponent> GetRef<UComponent>(Guid id)
+    public ComponentRef<UComponent> GetRef<UComponent>(uint id)
         where UComponent : TComponent
         => AcquireSubstorage<UComponent, IReferableDataLayer<TComponent>>()
             .GetRef<UComponent>(id);
 
-    public ref UComponent Acquire<UComponent>(Guid id)
+    public ref UComponent Acquire<UComponent>(uint id)
         where UComponent : TComponent, new()
         => ref AcquireSubstorage<UComponent, IExpandableDataLayer<TComponent>>()
             .Acquire<UComponent>(id);
 
-    public ref UComponent Acquire<UComponent>(Guid id, out bool exists)
+    public ref UComponent Acquire<UComponent>(uint id, out bool exists)
         where UComponent : TComponent, new()
         => ref AcquireSubstorage<UComponent, IExpandableDataLayer<TComponent>>()
             .Acquire<UComponent>(id, out exists);
 
-    public ref UComponent Set<UComponent>(Guid id, in UComponent component)
+    public ref UComponent Set<UComponent>(uint id, in UComponent component)
         where UComponent : TComponent, new()
         => ref AcquireSubstorage<UComponent, ISettableDataLayer<TComponent>>()
             .Set(id, component);
 
-    public bool Remove<UComponent>(Guid id)
+    public bool Remove<UComponent>(uint id)
         where UComponent : TComponent
     {
         var substorage = FindSubstorage<UComponent, IShrinkableDataLayer<TComponent>>();
@@ -138,7 +138,7 @@ public class PolyStorage<TComponent, TSelectedComponent>
         return substorage.Remove<UComponent>(id);
     }
 
-    public bool Remove<UComponent>(Guid id, [MaybeNullWhen(false)] out UComponent component)
+    public bool Remove<UComponent>(uint id, [MaybeNullWhen(false)] out UComponent component)
         where UComponent : TComponent
     {
         var substorage = FindSubstorage<UComponent, IShrinkableDataLayer<TComponent>>();
@@ -154,7 +154,7 @@ public class PolyStorage<TComponent, TSelectedComponent>
         => FindSubstorage<UComponent, IShrinkableDataLayer<TComponent>>()
             ?.RemoveAll<UComponent>();
 
-    public void Clear(Guid id)
+    public void Clear(uint id)
     {
         foreach (var sub in _substorages.Values) {
             (sub as IShrinkableDataLayer<TComponent>)?.Clear(id);

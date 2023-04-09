@@ -15,7 +15,7 @@ public class JsonEntitySerializer<TComponent> : IEntitySerializer<TComponent>
             typeof(IEnumerable<TComponent>), SerializationUtil.KnownTypes);
     }
 
-    public void Write(Stream stream, IReadableDataLayer<TComponent> dataLayer, Guid id)
+    public void Write(Stream stream, IReadableDataLayer<TComponent> dataLayer, uint id)
     {
         _serializer.WriteObject(
             stream,
@@ -26,7 +26,7 @@ public class JsonEntitySerializer<TComponent> : IEntitySerializer<TComponent>
             }).Select(p => (TComponent)p));
     }
 
-    public bool Read(Stream stream, ISettableDataLayer<TComponent> dataLayer, Guid id)
+    public bool Read(Stream stream, ISettableDataLayer<TComponent> dataLayer, uint id)
     {
         try {
             var components = (TComponent[]?)_serializer.ReadObject(stream);
